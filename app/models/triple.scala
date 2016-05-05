@@ -2,8 +2,6 @@ package models
 
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import pdstore.PDStore
-import pdstore.GUID
 
 object triple {
 	implicit val tripleWrites: Writes[triple] = (
