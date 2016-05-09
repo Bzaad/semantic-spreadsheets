@@ -19,4 +19,4 @@ POST 	/triples/add/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.add(tObj
 DELETE /triples/delete/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.remove(tObject: String, tPredicate: String, tSubject: String)
 
 # Query and return the results along with a 200
-GET 	/triples/query/:theQuery 	@controllers.PdStore.query(theQuery: String)
+GET 	/triples/query/:qObject/:qPredicate/:qSubject 	@controllers.PdStore.query(qObject: String, qPredicate: String, qSubject: String)
