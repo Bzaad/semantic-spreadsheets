@@ -22,4 +22,5 @@ target
 /.settings
 /RUNNING_PID
 ui/node_modules/
-ui/bower_components
+ui/bower_components/
+ui/.sass-cache/
