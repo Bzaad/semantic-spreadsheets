@@ -36,6 +36,7 @@ module.exports = function(config) {
       'bower_components/pikaday/pikaday.js',
       'bower_components/handsontable/dist/handsontable.js',
       'bower_components/ngHandsontable/dist/ngHandsontable.js',
+      'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
       "app/scripts/**/*.js",

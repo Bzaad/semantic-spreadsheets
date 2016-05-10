@@ -15,7 +15,9 @@ angular
     'ngResource',
     'ngRoute',
     'ngSanitize',
-    'ngTouch'
+    'ngTouch', 
+    'ui.bootstrap',
+    'ngHandsontable'
   ])
   .config(function ($routeProvider) {
     $routeProvider
@@ -28,6 +30,11 @@ angular
         templateUrl: 'views/about.html',
         controller: 'AboutCtrl',
         controllerAs: 'about'
+      })
+      .when('/table', {
+        templateUrl: 'views/table.html',
+        controller: 'tableCtrl',
+        controllerAs: 'table'
       })
       .otherwise({
         redirectTo: '/'
