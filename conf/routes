@@ -20,3 +20,8 @@ DELETE /triples/delete/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.remo
 
 # Query and return the results along with a 200
 GET 	/triples/query/:qObject/:qPredicate/:qSubject 	@controllers.PdStore.query(qObject: String, qPredicate: String, qSubject: String)
+
+# Yeoman routes
+GET 	/ui 	@com.tuplejump.playYeoman.Yeoman.index
+	
+-> 		/ui/ 	yeoman.Routes
