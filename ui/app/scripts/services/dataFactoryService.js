@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('uiApp')
-  .service('dataFactory', function(){
+  .service('DataFactoryService', function(){
     var products = [
       {
         description: 'Big Mac',
@@ -58,4 +58,4 @@ angular.module('uiApp')
           return Handsontable.helper.createSpreadsheetData(rows || 10, cols || 10);
       }
     };
-  })
+  });
