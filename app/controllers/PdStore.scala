@@ -1,6 +1,7 @@
 package controllers
 
 import javax.inject._
+import java.security.MessageDigest
 import play.api.mvc.{Controller, Action}
 import play.api.libs.json._
 import scala.collection.mutable.ArrayBuffer	
@@ -11,25 +12,16 @@ import pdstore.GUID
 
 class PdStore @Inject() extends Controller {
 
-	var store: PDStore = null
-	store = new PDStore("SampleQuery")
-	var hasJob = new GUID ()
-	var hasParent = new GUID ()
-	store.setName(hasJob, "hasJob");
-	store.setName(hasParent, "hasParent")
-
+	var store = new PDStore("fileName")
 	store.begin
-	store.addLink("James", hasJob, "Programmer")
-	store.addLink("Max", hasJob, "Programmer")
-	store.addLink("Beth", hasJob, "Waiter")
-	store.addLink("Sue", hasParent, "James")
-	store.addLink("Mike", hasParent, "James")
-	store.addLink("Bethany", hasParent, "Fritz")
-	store.commit
-	
+
+	def computeGuid (tGuid: String) : GUID = {
+		return new GUID (MessageDigest.getInstance("MD5").digest(tGuid.getBytes));
+	}
+
 	def add(tObject: String, tPredicate: String, tSubject: String) = Action{
-		store.begin
-		store.addLink(tObject, hasJob, tSubject)
+		store.addLink(tObject, computeGuid(tPredicate), tSubject)
+		store.setName(computeGuid(tPredicate), tPredicate)
 		store.commit
 		Ok(Json.obj("result" -> triple(tObject, tPredicate, tSubject)))
 	}
@@ -39,22 +31,20 @@ class PdStore @Inject() extends Controller {
 	}
 
 	def query(qObject: String, qPredicate: String, qSubject: String)= Action {
-		var qGuid = new GUID ()
-		var result = ArrayBuffer[String]()
-
-		if(qPredicate == "hasJob")
-			qGuid = hasJob
-		if(qPredicate == "hasParent")
-			qGuid = hasParent
-
+		var qGuid = computeGuid(qPredicate);
+		var result = ArrayBuffer[String]() 
+		var length = 0
 		if(qObject == "_"){
-			for ( i <- 0 to (store.query((v"x", qGuid, qSubject)).toList.length - 1)) {
-				result += store.query((v"x", qGuid, qSubject)).toList(i).get(v"x").toString
+			val results = store.query((v"x", qGuid, qSubject))
+			while(results.hasNext) {
+				result += results.next.get(v"x").toString
 			}
 		}
+
 		if(qSubject == "_"){
-			for ( i <- 0 to (store.query((qObject, qGuid, v"x")).toList.length - 1)){
-				result += store.query((qObject, qGuid, v"x")).toList(i).get(v"x").toString
+			val results = store.query((qObject, qGuid, v"x"))
+			while (results.hasNext) {
+				result += results.next.get(v"x").toString
 			}
 		}
 		//Ok(Json.obj(qObject -> triple(qObject, qPredicate, result.toString)))
