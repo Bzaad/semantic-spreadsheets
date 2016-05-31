@@ -1,28 +1,42 @@
 'use strict';
 
 angular.module('uiApp')
-	.service('QueryService', ['$rootScope', '$http', function($rootScope, $http){
+	.service('QueryService', ['$rootScope', '$http', 'ApiUrls', function($rootScope, $http, ApiUrls){
+		var result = {};
+		var queryObject = function(request){
+			var url = ApiUrls.baseUrl + 'triples/query/' + '_' + '/' + request.predicate + '/' + request.object;
+			queryApiCall(url);
 
-		var url = 'http://localhost:9000/triples/query/_/hasJob/Programmer';
+		}
 
-		var getTestLink = function(){
-		$http.get(url)
+		var querySubject = function(request){
+			var url = ApiUrls.baseUrl + 'triples/query/' +  request.subject + '/' + request.predicate + '/' + '_'; 
+			queryApiCall(url);
+		}
+
+		var queryApiCall = function(url){
+			$http.get(url)
 			.success(function(response){
-				console.log(response);
+				result = response;
+				$rootScope.$broadcast('RESULT_READY');
 			})
 			.error(function(error){
 				console.log(error);
 			})
 			.finally(function(){
-				console.log('done!');
+				console.log('done with the query');
 			})
 		}
 
-		getTestLink();
-
 		return {
-			getUrls: function(){
-				ApiUrls;
+			queryObject: function(request){
+				queryObject(request);
+			},
+			querySubject: function(request){
+				querySubject(request);
+			},
+			getResult: function(){
+				return result;
 			}
 		};
 	}]);
