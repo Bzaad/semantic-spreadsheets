@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import java.security.MessageDigest
-import play.api.mvc.{Controller, Action}
+import play.api.mvc._
 import play.api.libs.json._
 import scala.collection.mutable.ArrayBuffer	
 import scala.collection.immutable.Seq
@@ -32,7 +32,8 @@ class PdStore @Inject() extends Controller {
 
 	def query(qObject: String, qPredicate: String, qSubject: String)= Action {
 		var qGuid = computeGuid(qPredicate);
-		var result = ArrayBuffer[String]() 
+		var result = ArrayBuffer[String]()
+		var returnObj = new triple(qObject, qPredicate, qSubject)
 		var length = 0
 		if(qObject == "_"){
 			val results = store.query((v"x", qGuid, qSubject))
@@ -47,7 +48,11 @@ class PdStore @Inject() extends Controller {
 				result += results.next.get(v"x").toString
 			}
 		}
-		//Ok(Json.obj(qObject -> triple(qObject, qPredicate, result.toString)))
-		Ok(Json.toJson(result))
+		
+		Ok(Json.obj(qObject -> triple(qObject, qPredicate, Json.toJson(result).toString)))
 	}
+
+	def someFunction(someParam: String) = TODO 
+
+	def create = TODO
 }
