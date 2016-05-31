@@ -1,0 +1,50 @@
+<div class="panel panel-default">
+  <div class="panel-heading">Query Table</div>
+  <div class="panel-body">
+  	<div class="row">
+  		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">Query by Subject</div>
+				</br>
+				<div class="card-block">
+					<label for="usr">Subject:</label>
+  					<input type="text" class="form-control" id="subject" ng-model="qSubject.subject">
+  					<label for="usr">Predicate:</label>
+  					<input type="text" class="form-control" id="spredicate" ng-model="qSubject.predicate">
+  					</br>
+					<button ng-click="querySubject()" class="btn btn-primary">Query</a>
+				</div>
+			</div>
+  		</div>
+  		<div class="col-md-6 ">
+  			<div class="card">
+				<div class="card-header">Query by Object</div>
+				</br>
+				<div class="card-block">
+					<label for="usr">Object:</label>
+  					<input type="text" class="form-control" id="object" ng-model="qObject.object">
+  					<label for="usr">Predicate:</label>
+  					<input type="text" class="form-control" id="opredicate" ng-model="qObject.predicate">
+  					</br>
+					<button ng-click="queryObject()" class="btn btn-primary">Query</a>
+				</div>
+			</div>
+  		</div>
+  	</div>
+  </div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">Query Result:</div>
+	<div class="panel-body">
+		<div class="row">
+	  		<div class="col-md-12">
+				<div class="card">
+					<div class="card-header">Result</div>
+					<div class="card-block">
+						<h4>{{queryResults}}</h4>
+					</div>
+				</div>
+	  		</div>
+  		</div>
+	</div>
+</div>
