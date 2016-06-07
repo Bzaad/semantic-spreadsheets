@@ -17,5 +17,6 @@ angular
     'ngSanitize',
     'ngTouch', 
     'ui.bootstrap',
-    'ngHandsontable'
+    'ngHandsontable',
+    'toaster'
   ])

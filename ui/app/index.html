@@ -11,6 +11,7 @@
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/pikaday/css/pikaday.css" />
     <link rel="stylesheet" href="bower_components/handsontable/dist/handsontable.css" />
+    <link rel="stylesheet" href="bower_components/AngularJS-Toaster/toaster.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
@@ -42,8 +43,9 @@
 
             <ul class="nav navbar-nav">
               <li class="active"><a href="#/">Home</a></li>
-              <li><a ng-href="#/about">About</a></li>
+              <li><a ng-href="#/addTable">Adding Table</a></li>
               <li><a ng-href="#/table">Table</a></li>
+              <li><a ng-href="#/query">Query</a></li>
             </ul>
           </div>
         </div>
@@ -89,18 +91,24 @@
     <script src="bower_components/handsontable/dist/handsontable.js"></script>
     <script src="bower_components/ngHandsontable/dist/ngHandsontable.js"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="bower_components/lodash/lodash.js"></script>
+    <script src="bower_components/AngularJS-Toaster/toaster.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
+        <script src="scripts/config.js"></script>
         <!-- controllers -->
         <script src="scripts/controllers/main.js"></script>
         <script src="scripts/controllers/about.js"></script>
         <script src="scripts/controllers/table.js"></script>
+        <script src="scripts/controllers/addCtrl.js"></script>
+        <script src="scripts/controllers/queryCtrl.js"></script>
         <!-- services -->
         <script src="scripts/services/dataFactoryService.js"></script>
         <script src="scripts/services/queryService.js"></script>
+        <script src="scripts/services/addService.js"></script>
         <!-- values -->
         <script src="scripts/values/apiUrls.js"></script>
         <!-- endbuild -->
