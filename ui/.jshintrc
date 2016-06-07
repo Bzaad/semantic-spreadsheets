@@ -11,6 +11,13 @@
   "undef": true,
   "unused": true,
   "globals": {
-    "angular": false
+    "jasmine": true,
+    "angular": true,
+    "browser": true,
+    "element": true,
+    "by":true,
+    "io":true,
+    "_":false,
+    "$":false
   }
 }
