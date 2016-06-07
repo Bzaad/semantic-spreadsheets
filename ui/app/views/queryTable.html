@@ -1,7 +1,34 @@
 <div class="panel panel-default">
   <div class="panel-heading">Query Table</div>
   <div class="panel-body">
-  	<div class="row">
+	<form class="form-inline">
+		<div class="form-group">
+			<input type="text" class="form-control input-sm col-sm-10" id="exampleInputEmail3" placeholder="Subject" ng-model="theSubject">
+		</div>
+		<div class="form-group"> 
+			<input type="text" class="form-control input-sm col-sm-1" id="exampleInputPassword3" placeholder="Predicate" ng-model="thePredicate">
+		</div>
+		<div class="form-group">
+			<input type="text" class="form-control input-sm col-sm-10" id="exampleInputEmail3" placeholder="Object" ng-model="theObject">
+		</div>
+		<button type="submit" class="btn btn-default" ng-click="theQuery()">Query</button>
+	</div>
+	<div class="panel-body">
+	</form>
+	    <hot-table 
+    	settings="settings"
+    	row-headers="true"
+    	col-headers="true"
+    	data="objectArray"
+    	height="700"
+    	width="680"
+    	fixed-rows-top="1"
+    	fixed-columns-left="1"
+    	min-spare-cols="50"
+    	min-spare-rows="100">
+  	</hot-table>
+
+  	<!-- <div class="row">
   		<div class="col-md-6">
 			<div class="card">
 				<div class="card-header">Query by Subject</div>
@@ -45,6 +72,6 @@
 					</div>
 				</div>
 	  		</div>
-  		</div>
+  		</div> -->
 	</div>
 </div>
