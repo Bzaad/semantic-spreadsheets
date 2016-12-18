@@ -1,5 +1,4 @@
 'use strict';
-
 angular.module('uiApp')
 	.controller('QueryCtrl', ['$scope', '$timeout', 'toaster', 'QueryService', function($scope, $timeout, toaster, QueryService){
 		$scope.thePredicate = ''; 
@@ -7,22 +6,16 @@ angular.module('uiApp')
 		$scope.theObject = '';
 		var queryType = '';
 		var currentColumn = 0;
-		var currentRow = 0;
-
 		$scope.objectArray = 
-			[
-				[''],
-				[]
-			]
-
+		[
+			[''],
+			[]
+		];
 		$scope.queryResults = 'No results yet!';
-
 		$scope.$on('RESULT_READY', function(){
 			processResults(QueryService.getResult());
-		})
-
+		});
 		var processResults = function(results){
-
 			var queryBySubject = function(){
 				for (var i in $scope.objectArray){
 					if($scope.objectArray[0][i] === results[$scope.theSubject].tPredicate){
@@ -45,19 +38,16 @@ angular.module('uiApp')
 						break;
 					}
 				}
-			}
-
+			};
 			var queryByObject = function(){
 				console.log('querying by object');
-			}
-
+			};
 			if(queryType === 'qByObj'){
 				queryByObject();
-			}else if(queryType = 'qBySbj'){
+			}else if(queryType === 'qBySbj'){
 				queryBySubject();
 			}
-		}
-
+		};
 		$scope.theQuery = function() {
 			if($scope.thePredicate === ''){
 				toaster.pop({
@@ -73,7 +63,7 @@ angular.module('uiApp')
 				var qSubject = {
 					subject: $scope.theSubject,
 					predicate: $scope.thePredicate
-				}
+				};
 				QueryService.querySubject(qSubject);
 			}
 			if($scope.thePredicate !== '' && $scope.theObject !== '' && $scope.theSubject === ''){
@@ -82,9 +72,9 @@ angular.module('uiApp')
 				var qObject = {
 					object: $scope.theObject,
 					predicate: $scope.thePredicate
-				}
+				};
 				QueryService.queryObject(qObject);
 			}
-		}
+		};
 
-	}])
+	}]);

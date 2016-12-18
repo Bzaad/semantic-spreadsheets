@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('uiApp')
-	.controller('tableCtrl', ['$scope', 'DataFactoryService', 'QueryService', function($scope, DataFactoryService, QueryService){
+	.controller('tableCtrl', ['$scope', 'DataFactoryService', function($scope, DataFactoryService){
 		$scope.rowHeaders = true;
 		$scope.colHeaders = true;
 

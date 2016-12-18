@@ -7,13 +7,11 @@ angular.module('uiApp')
 			var url = ApiUrls.baseUrl + 'triples/query/' + '_' + '/' + request.predicate + '/' + request.object;
 			queryApiCall(url);
 
-		}
-
+		};
 		var querySubject = function(request){
 			var url = ApiUrls.baseUrl + 'triples/query/' +  request.subject + '/' + request.predicate + '/' + '_'; 
 			queryApiCall(url);
-		}
-
+		};
 		var queryApiCall = function(url){
 			$http.get(url)
 			.success(function(response){
@@ -25,9 +23,8 @@ angular.module('uiApp')
 			})
 			.finally(function(){
 				console.log('done with the query');
-			})
-		}
-
+			});
+		};
 		return {
 			queryObject: function(request){
 				queryObject(request);
