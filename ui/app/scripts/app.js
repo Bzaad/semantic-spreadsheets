@@ -18,5 +18,6 @@ angular
         'ngTouch',
         'ui.bootstrap',
         'ngHandsontable',
-        'toaster'
+        'toaster',
+        'ngWebSocket'
     ]);
