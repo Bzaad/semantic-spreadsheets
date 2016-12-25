@@ -9,14 +9,14 @@
  * Main module of the application.
  */
 angular
-  .module('uiApp', [
-    'ngAnimate',
-    'ngCookies',
-    'ngResource',
-    'ngRoute',
-    'ngSanitize',
-    'ngTouch', 
-    'ui.bootstrap',
-    'ngHandsontable',
-    'toaster'
-  ])
+    .module('uiApp', [
+        'ngAnimate',
+        'ngCookies',
+        'ngResource',
+        'ngRoute',
+        'ngSanitize',
+        'ngTouch',
+        'ui.bootstrap',
+        'ngHandsontable',
+        'toaster'
+    ]);
