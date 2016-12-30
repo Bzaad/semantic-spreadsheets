@@ -4,6 +4,9 @@ import javax.inject._
 import java.security.MessageDigest
 import play.api.mvc._
 import play.api.libs.json._
+import play.api.libs.iteratee._
+import play.api.libs.concurrent._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.collection.mutable.ArrayBuffer	
 import scala.collection.immutable.Seq
 import models.{triple, DB}
@@ -52,7 +55,7 @@ class PdStore @Inject() extends Controller {
 		Ok(Json.obj(qObject -> triple(qObject, qPredicate, Json.toJson(result).toString)))
 	}
 
-	def stream = Websocket.using[string] { request =>
+	def stream = WebSocket.using[String] { request =>
 		val (out, channel) = Concurrent.broadcast[String]
 		val in = Iteratee.foreach[String] { msg =>
 			channel push("message: " + msg)

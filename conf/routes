@@ -22,7 +22,7 @@ DELETE /triples/delete/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.remo
 GET 	/triples/query/:qObject/:qPredicate/:qSubject 	@controllers.PdStore.query(qObject: String, qPredicate: String, qSubject: String)
 
 #websocket link
-GET     /stream                                         @controller.HomeController.stream
+GET     /stream                                         @controllers.PdStore.stream
 
 # Create a nes set of triples.
 POST 	/triples/create 								@controllers.PdStore.create 
