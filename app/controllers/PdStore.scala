@@ -26,7 +26,7 @@ class PdStore @Inject() extends Controller {
 		Ok(Json.obj("result" -> triple(tObject, tPredicate, tSubject)))
 	}
 
-	def remove(tObject: String, tPredicate: String, tSubject: String) = Action{
+	def remove(tObject: String, tPredicate: String, tSubject: String) = Action {
 		Ok("the triple was removed!")
 	}
 
@@ -50,6 +50,14 @@ class PdStore @Inject() extends Controller {
 		}
 		
 		Ok(Json.obj(qObject -> triple(qObject, qPredicate, Json.toJson(result).toString)))
+	}
+
+	def stream = Websocket.using[string] { request =>
+		val (out, channel) = Concurrent.broadcast[String]
+		val in = Iteratee.foreach[String] { msg =>
+			channel push("message: " + msg)
+		}
+		(in, out)
 	}
 
 	def someFunction(someParam: String) = TODO 
