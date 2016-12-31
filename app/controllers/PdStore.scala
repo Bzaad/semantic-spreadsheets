@@ -1,17 +1,21 @@
 package controllers
 
-import javax.inject._
+import javax.inject.Inject
 import java.security.MessageDigest
+
 import play.api.mvc._
+import play.api.libs.ws._
 import play.api.libs.json._
 import play.api.libs.iteratee._
-import play.api.libs.concurrent._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import scala.collection.mutable.ArrayBuffer	
-import scala.collection.immutable.Seq
-import models.{triple, DB}
+import play.api.libs.functional.syntax._
+
+import scala.collection.mutable.ArrayBuffer
+import models.{DB, triple}
 import pdstore._
 import pdstore.GUID
+
+import scala.util.parsing.json.JSONObject
 
 class PdStore @Inject() extends Controller {
 
@@ -55,10 +59,54 @@ class PdStore @Inject() extends Controller {
 		Ok(Json.obj(qObject -> triple(qObject, qPredicate, Json.toJson(result).toString)))
 	}
 
+	case class jsonTriple(sbj: String, pred: String, Obj: String)
+	case class triples(singleTriple: jsonTriple)
+
+	object triples {
+		var list: List[jsonTriple] = {
+			List(
+				jsonTriple("behzad", "hasCar", "Toyota"),
+				jsonTriple("behzad", "hasFamilyName", "farokhi")
+			)
+		}
+	}
+
+	implicit val jsonTripleWrites: Writes[jsonTriple] = (
+		(JsPath \ "sbj").write[String] and
+			(JsPath \ "pred").write[String] and
+			(JsPath \ "obj").write[String]
+	)(unlift( jsonTriple.unapply ))
+
+	def getJsonTest = Action {
+		val json = Json.toJson(triples.list)
+		Ok(json)
+	}
+
+	/**
+		* A simple method that reads the Json object from the request body
+		* and echoes it back as a response
+		* @return
+		*/
+	def echoJson = Action(parse.json) { request =>
+		val json = Json.toJson(request.body)
+		Ok(json)
+		/**
+		(request.body \ "name").asOpt[String].map { name =>
+			Ok("Hello " + name)
+		}.getOrElse {
+			BadRequest("Missing Parameter [name]")
+		}
+			*/
+	}
+
 	def stream = WebSocket.using[String] { request =>
 		val (out, channel) = Concurrent.broadcast[String]
 		val in = Iteratee.foreach[String] { msg =>
 			channel push("message: " + msg)
+			if(msg == "end"){
+				channel push("closing the websocket!");
+				channel.eofAndEnd();
+			}
 		}
 		(in, out)
 	}

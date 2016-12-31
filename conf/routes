@@ -21,7 +21,13 @@ DELETE /triples/delete/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.remo
 # Query and return the results along with a 200
 GET 	/triples/query/:qObject/:qPredicate/:qSubject 	@controllers.PdStore.query(qObject: String, qPredicate: String, qSubject: String)
 
-#websocket link
+# Returns a predefined Json Object (for Testing porpuses only!)
+GET     /testjson                                       @controllers.PdStore.getJsonTest
+
+# Echoes whatever Object is sent to it through the post request (for Testing porpuses only!)
+POST    /echojson                                       @controllers.PdStore.echoJson
+
+#websocket link -> recieves a message as a string and broadcasts it to all the clients that are connected to the websocket (for Testing porpuses only!)
 GET     /stream                                         @controllers.PdStore.stream
 
 # Create a nes set of triples.
