@@ -15,7 +15,7 @@ server.pid
 .cache
 logs
 target
-.idea
+/.idea
 .idea_modules
 /.classpath
 /.project
@@ -27,4 +27,3 @@ ui/.tmp
 ui/.sass-cache
 ui/bower_components
 *.log
-
