@@ -11,13 +11,13 @@ angular.module('uiApp')
 				}
 			};
 			var postTriple = function(triple){
-				var url = ApiUrls.baseUrl + 'triples/add/' + triple.subject + '/' + triple.predicate + '/' + triple.object; 
+				var url = ApiUrls.baseUrl + 'triples/add/' + triple.subject + '/' + triple.predicate + '/' + triple.object;
 				$http.post(url)
-				.success(function(response){
+				.then(function(response){
 					console.log(response);
 					tripleFeeder();
 				})
-				.error(function(error){
+				.catch(function(error){
 					console.log(error);
 				})
 				.finally(function(){
@@ -26,9 +26,13 @@ angular.module('uiApp')
 			};
 			tripleFeeder();
 		};
+		var addTripleWithJson = function(triples){
+		  console.log(triples);
+    };
 		return {
 			getTriples: function(triples){
 				addTriples(triples);
+				addTripleWithJson(triples);
 			}
 		};
 	}]);

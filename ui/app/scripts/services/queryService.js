@@ -9,16 +9,16 @@ angular.module('uiApp')
 
 		};
 		var querySubject = function(request){
-			var url = ApiUrls.baseUrl + 'triples/query/' +  request.subject + '/' + request.predicate + '/' + '_'; 
+			var url = ApiUrls.baseUrl + 'triples/query/' +  request.subject + '/' + request.predicate + '/' + '_';
 			queryApiCall(url);
 		};
 		var queryApiCall = function(url){
 			$http.get(url)
-			.success(function(response){
+			.then(function(response){
 				result = response;
 				$rootScope.$broadcast('RESULT_READY');
 			})
-			.error(function(error){
+			.catch(function(error){
 				console.log(error);
 			})
 			.finally(function(){

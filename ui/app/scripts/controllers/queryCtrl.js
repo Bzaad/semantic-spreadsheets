@@ -1,12 +1,12 @@
 'use strict';
 angular.module('uiApp')
 	.controller('QueryCtrl', ['$scope', '$timeout', 'toaster', 'QueryService', function($scope, $timeout, toaster, QueryService){
-		$scope.thePredicate = ''; 
+		$scope.thePredicate = '';
 		$scope.theSubject = '';
 		$scope.theObject = '';
 		var queryType = '';
 		var currentColumn = 0;
-		$scope.objectArray = 
+		$scope.objectArray =
 		[
 			[''],
 			[]
@@ -18,23 +18,23 @@ angular.module('uiApp')
 		var processResults = function(results){
 			var queryBySubject = function(){
 				for (var i in $scope.objectArray){
-					if($scope.objectArray[0][i] === results[$scope.theSubject].tPredicate){
+					if($scope.objectArray[0][i] === results.data[$scope.theSubject].tPredicate){
 						currentColumn = i;
 						break;
 					}
 					if ($scope.objectArray[0][i] === null){
-						$scope.objectArray[0][i] = results[$scope.theSubject].tPredicate;
+						$scope.objectArray[0][i] = results.data[$scope.theSubject].tPredicate;
 						currentColumn = i;
 						break;
 					}
 				}
 				for(var i in $scope.objectArray){
-					if($scope.objectArray[i][0] === results[$scope.theSubject].tObject){
-						$scope.objectArray[i][currentColumn] = results[$scope.theSubject].tSubject;
+					if($scope.objectArray[i][0] === results.data[$scope.theSubject].tObject){
+						$scope.objectArray[i][currentColumn] = results.data[$scope.theSubject].tSubject;
 						break;
 					}
 					if($scope.objectArray[i][0] === null){
-						$scope.objectArray[i][0] = results[$scope.theSubject].tObject;
+						$scope.objectArray[i][0] = results.data[$scope.theSubject].tObject;
 						break;
 					}
 				}

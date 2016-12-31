@@ -5,7 +5,7 @@ angular.module('uiApp')
 		$scope.colHeaders = true;
 		var allRequests = [];
 
-		$scope.objectArray = 
+		$scope.objectArray =
 		[
 			[''],
 			[]
@@ -19,15 +19,15 @@ angular.module('uiApp')
 				requests = [];
 				for (var i = 1; i<$scope.objectArray[j].length; i++){
 					if ($scope.objectArray[j][i] === null){
-						continue; 
+						continue;
 					}
 					var request = {
 						object: $scope.objectArray[j][i],
 						subject: subject,
 						predicate: predicates[i]
 					};
-					if (!request.object){ 
-						continue; 
+					if (!request.object){
+						continue;
 					}
 					requests.push(request);
 				}
