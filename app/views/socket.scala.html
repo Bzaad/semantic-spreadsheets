@@ -1,0 +1,13 @@
+@(message: String)
+
+
+
+@main("Welcome to websocket!"){
+    <div id="viewport">
+        <canvas id="draws" width="500" height="300"></canvas>
+    </div>
+    <div>
+        <canvas id="controls" width="500" height=""></canvas>
+    </div>
+    <script type="text/javascript" src="@routes.Assets.versioned("javascript/socket.js")"></script>
+}

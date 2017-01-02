@@ -9,6 +9,10 @@ GET     /count                      controllers.CountController.count
 # An example controller showing how to write asynchronous code
 GET     /message                    controllers.AsyncController.message
 
+GET     /socketview                  controllers.socket.socketview
+
+GET     /socket                     controllers.socket.socket
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
@@ -29,6 +33,8 @@ POST    /echojson                                       @controllers.PdStore.ech
 
 #websocket link -> recieves a message as a string and broadcasts it to all the clients that are connected to the websocket (for Testing porpuses only!)
 GET     /stream                                         @controllers.PdStore.stream
+
+GET     /teststream                                     @controllers.teststream.socket
 
 # Create a nes set of triples.
 POST 	/triples/create 								@controllers.PdStore.create 
