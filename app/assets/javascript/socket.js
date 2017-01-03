@@ -13,8 +13,7 @@
     var connected = false;
     var players = [];
     socket.onopen = function () { 
-        connected = true; 
-        console.log("web-socket connected!");
+        connected = true;
     };
     socket.onclose = function () { connected = false };
     socket.onmessage = function (e) {

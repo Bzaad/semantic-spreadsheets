@@ -32,9 +32,11 @@ GET     /testjson                                       @controllers.PdStore.get
 POST    /echojson                                       @controllers.PdStore.echoJson
 
 #websocket link -> recieves a message as a string and broadcasts it to all the clients that are connected to the websocket (for Testing porpuses only!)
-GET     /stream                                         @controllers.PdStore.stream
+GET     /stream                                        @controllers.PdStore.stream
 
-GET     /teststream                                     @controllers.teststream.socket
+GET     /teststream                                    @controllers.teststream.socket
+
+GET     /teststreamview                                @controllers.teststream.teststreamview
 
 # Create a nes set of triples.
 POST 	/triples/create 								@controllers.PdStore.create 
