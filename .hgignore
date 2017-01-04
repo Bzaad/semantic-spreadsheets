@@ -15,7 +15,7 @@ server.pid
 .cache
 logs
 target
-/.idea
+.idea
 .idea_modules
 /.classpath
 /.project
