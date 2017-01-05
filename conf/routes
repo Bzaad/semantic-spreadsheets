@@ -3,18 +3,18 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                           controllers.HomeController.index
+GET     /                                               @controllers.HomeController.index
 # An example controller showing how to use dependency injection
-GET     /count                      controllers.CountController.count
+GET     /count                                          @controllers.CountController.count
 # An example controller showing how to write asynchronous code
-GET     /message                    controllers.AsyncController.message
+GET     /message                                        @controllers.AsyncController.message
 
-GET     /socketview                  controllers.socket.socketview
+GET     /socketview                                     @controllers.socket.socketview
 
-GET     /socket                     controllers.socket.socket
+GET     /socket                                         @controllers.socket.socket
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET     /assets/*file                                   @controllers.Assets.versioned(path="/public", file: Asset)
 
 # Get the triple and return the gotten triple along with a 200 message
 POST 	/triples/add/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.add(tObject: String, tPredicate: String, tSubject: String)
@@ -32,16 +32,19 @@ GET     /testjson                                       @controllers.PdStore.get
 POST    /echojson                                       @controllers.PdStore.echoJson
 
 #websocket link -> recieves a message as a string and broadcasts it to all the clients that are connected to the websocket (for Testing porpuses only!)
-GET     /stream                                        @controllers.PdStore.stream
+GET     /stream                                         @controllers.PdStore.stream
 
-GET     /teststream                                    @controllers.teststream.socket
+GET     /teststream                                     @controllers.teststream.socket
 
-GET     /teststreamview                                @controllers.teststream.teststreamview
+GET     /teststreamview                                 @controllers.teststream.teststreamview
 
+GET     /assets/*file                                   @controllers.Assets.at(path="/public", file)
+
+GET     /webjars/*file                                  @controllers.WebJarAssets.at(file)
 # Create a nes set of triples.
 POST 	/triples/create 								@controllers.PdStore.create 
 
 # Yeoman routes
-GET 	/ui 	@com.tuplejump.playYeoman.Yeoman.index
+# GET 	/ui 	@com.tuplejump.playYeoman.Yeoman.index
 	
--> 		/ui/ 	yeoman.Routes
+# -> 		/ui/ 	yeoman.Routes
