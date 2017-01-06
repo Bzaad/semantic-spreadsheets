@@ -18,6 +18,7 @@ class socket @Inject() extends Controller{
   def socketview = Action {
     Ok(views.html.socket("welcome to web-socket!"))
   }
+  val thisMessage = JsObject(Seq("messge" -> JsString("the call was successful")))
 
   var counter = 0
   def socket = WebSocket.using[JsValue] { request =>

@@ -8,7 +8,7 @@
                 window.setTimeout(callback, 1000 / 60);
             };
     })();
-
+    /*
     var data = [
         ["", "Ford", "Volvo", "Toyota", "Honda"],
         ["2016", 10, 11, 12, 13],
@@ -21,6 +21,7 @@
     console.log(ht)
     //var container = $("#example").handsontable('getInstance');
     //console.log(container);
+    */
     /*
     $container.handsontable({
         data: data,
