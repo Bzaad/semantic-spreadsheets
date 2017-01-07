@@ -108,4 +108,11 @@ function sendMessage()
     doSend(document.getElementById("msg").value);
 }
 
+var DATA={}, INPUTS=[].slice.call(document.querySelectorAll("input"));
+
+function readData (DATA, INPUTS){
+    console.log("DATA: " + JSON.stringify(DATA));
+    console.log("INPUTS: " + JSON.stringify(INPUTS));
+};
+
 window.addEventListener("load", init, false);
