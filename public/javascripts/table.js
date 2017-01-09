@@ -1,7 +1,7 @@
 
 (function(){
-    var rows = 42+1;
-    var columns = 23+1;
+    var rows = 5+1;
+    var columns = 5+1;
     for (var i=0; i<rows; i++) {
         var row = document.querySelector("table").insertRow(-1);
         for (var j=0; j<columns; j++) {
