@@ -13,10 +13,14 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
   "org.webjars" %% "webjars-play" % "2.5.0",
   "org.webjars" % "requirejs" % "2.3.2",
+  "org.webjars" % "bootstrap" % "3.2.0",
   "org.webjars" % "jquery" % "3.1.1-1",
-  "org.webjars" % "bootstrap" % "3.1.1-2",
   "org.webjars" % "handsontable" % "0.26.0",
-  "org.webjars" % "SlickGrid" % "2.1"
+  "org.webjars" % "SlickGrid" % "2.1",
+  "com.typesafe.akka" %% "akka-actor" % "2.3.4",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.3.4",
+  "org.webjars" % "flot" % "0.8.0",
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.4" % "test"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
