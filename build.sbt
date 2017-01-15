@@ -4,6 +4,8 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+val akkaVersion = "2.4.2"
+
 scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq(
@@ -20,7 +22,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.3.4",
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.4",
   "org.webjars" % "flot" % "0.8.0",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.4" % "test"
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
+  "com.typesafe.akka" %% "akka-cluster" % akkaVersion
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
