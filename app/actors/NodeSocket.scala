@@ -67,7 +67,6 @@ object NodeSocket {
 class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
 
   import NodeSocket._
-  import NodeSocket.Message
 
   val headersKey = GSetKey[String]("headers")
   var lastSubscribed: Option[String] = None
@@ -145,7 +144,19 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
             lastSubscribed = Some(header)
             replicator ! Get(GSetKey(header), ReadMajority(timeout = 5.seconds))
           }
-        case "message" => ???
+        case "message" =>
+          js.validate[Message](messageReads)
+            .map(message => (message.header, message.msg))
+            .foreach { case (header, msg) =>
+              val eventData = EventData(header, uid, msg, new java.util.Date())
+              replicator ! Update(GSetKey[EventData](header), GSet.empty[EventData], WriteLocal) {
+                _ + eventData
+              }
+              replicator ! Update(headerMsgKey(header), LWWRegister[EventData](null), WriteLocal){
+                reg => reg.withValue(eventData)
+              }
+              replicator ! FlushChanges
+            }
       }
   }
 }
