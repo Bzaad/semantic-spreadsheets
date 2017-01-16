@@ -1,16 +1,20 @@
 package actors
 
-import scala.concurrent.duration._
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.cluster.Cluster
-import akka.cluster.ddata.Replicator._
-import akka.cluster.ddata.{DistributedData, GSetKey, LWWRegisterKey}
-import akka.event.LoggingReceive
-import play.api.libs.json._
-
 /**
   * Created by behzadfarokhi on 16/01/17.
   */
+
+import scala.xml.Utility
+import actors.NodeSocket.Message.messageReads
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.event.LoggingReceive
+import play.api.libs.json.{Writes, JsPath, JsValue, JsString, JsObject, JsArray, Json}
+import scala.concurrent.duration._
+import akka.cluster.Cluster
+import akka.cluster.ddata.DistributedData
+import akka.cluster.ddata.Replicator._
+import akka.cluster.ddata.{GSet, GSetKey, LWWRegister, LWWRegisterKey}
+
 object NodeSocket {
 
   def props(user: String)(out: ActorRef) = Props(new NodeSocket(user, out))
@@ -41,40 +45,106 @@ object NodeSocket {
       def writes(headersListMessage: HeadersListMessage): JsValue = {
         Json.obj(
           "type" -> "headers",
-          "type" -> JsArray(headersListMessage.headers.map(JsString(_)))
+          "headers" -> JsArray(headersListMessage.headers.map(JsString(_)))
+        )
+      }
+    }
+  }
+
+  case class EventDataListMessage(msgs: Seq[EventData])
+  object EventDataListMessage {
+    implicit val eventDataListWrites = new Writes[EventDataListMessage] {
+      def writes(eventData: EventDataListMessage): JsValue ={
+        Json.obj(
+          "type" -> "messages",
+          "Messages" -> JsArray(eventData.msgs.map(Json.toJson(_)))
         )
       }
     }
   }
 }
 
-class NodeSocket(uid: String, actorRef: ActorRef) extends Actor with ActorLogging {
+class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
+
+  import NodeSocket._
+  import NodeSocket.Message
 
   val headersKey = GSetKey[String]("headers")
   var lastSubscribed: Option[String] = None
   var initialHistory: Option[Set[EventData]] = None
 
-  val replicator = DistributedData(context.system).replicator
+  var replicator = DistributedData(context.system).replicator
   implicit val node = Cluster(context.system)
 
   replicator ! Get(headersKey, ReadMajority(timeout = 5.seconds))
 
   def receive = LoggingReceive {
-    case g @ GetSuccess(key, reg) if key == headersKey => ???
-    case NotFound(_, _) => ???
-    case GetFailure(key, req) if key == headersKey => ???
+    case g @ GetSuccess(key, req) if key == headersKey =>
+      val data = g.get(headersKey).elements.toSeq
+      out ! Json.toJson(HeadersListMessage(data))
+      replicator ! Subscribe(headersKey, self)
+      context become afterKeys
+    case NotFound(_, _) =>
+      replicator ! Subscribe(headersKey,  self)
+      context become afterKeys
+    case GetFailure(key, req) if key == headersKey =>
+      replicator ! Get(headersKey, ReadMajority(timeout = 5.seconds))
   }
 
   def afterKeys = LoggingReceive{
-    case c @ Changed(key) if key == headersKey => ???
-    case c @ Changed(LWWRegisterKey(header)) => ???
-    case g @ GetSuccess(GSetKey(key), req) => ???
-    case g @ NotFound(GSetKey(key), req) => ???
-    case g @ GetFailure(GSetKey(key), req) => ???
-    case JsString(keyName) => ???
+    case c @ Changed(key) if key == headersKey =>
+      val data = c.get[GSet[String]](headersKey).elements.toSeq
+      out ! Json.toJson(HeadersListMessage(data))
+    case c @ Changed(LWWRegisterKey(header)) =>
+      for {
+        subscribedHeader <- lastSubscribed if (subscribedHeader + "-lwwreq").equals(header)
+      } {
+        val eventData = c.get(LWWRegisterKey[EventData](header)).value
+        initialHistory foreach { historySet =>
+          if (!historySet(eventData))
+            out ! Json.toJson(eventData)
+        }
+      }
+    case g @ GetSuccess(GSetKey(header), req) =>
+      for {
+        subscribedHeader <- lastSubscribed if subscribedHeader.equals(header)
+      } {
+        val elements = g.get(GSetKey[EventData](header)).elements
+        initialHistory = Some(elements)
+        val data = elements.toSeq.sortWith(_.created.getTime < _.created.getTime)
+        out ! Json.toJson(EventDataListMessage(data))
+        replicator ! Subscribe(headerMsgKey(header), self)
+      }
+    case g @ NotFound(GSetKey(header), req) =>
+      for {
+        subscribedHeader <- lastSubscribed if subscribedHeader.equals(header)
+      } {
+        initialHistory = Some(Set.empty[EventData])
+        replicator ! Subscribe(headerMsgKey(header), self)
+      }
+    case g @ GetFailure(GSetKey(header), req) =>
+      for {
+        subscribedHeaders <- lastSubscribed if subscribedHeaders.equals(header)
+      } {
+        initialHistory = Some(Set.empty[EventData])
+        replicator ! Subscribe(key = headerMsgKey(header), self)
+      }
+    case JsString(headerName) =>
+      replicator ! Update(headersKey, GSet.empty[String], WriteLocal) {
+        set => set + headerName
+      }
+      replicator ! FlushChanges
     case js: JsValue =>
       ((js \ "type").as[String]) match {
-        case "subscribe" => ???
+        case "subscribe" =>
+          val header = (js \ "header").as[String]
+          if (header != null) {
+            lastSubscribed foreach { oldHeader =>
+              replicator ! Unsubscribe(headerMsgKey(oldHeader), self)
+            }
+            lastSubscribed = Some(header)
+            replicator ! Get(GSetKey(header), ReadMajority(timeout = 5.seconds))
+          }
         case "message" => ???
       }
   }
