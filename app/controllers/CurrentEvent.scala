@@ -27,12 +27,12 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
 
   val eventCluster = system.actorOf(Props[EventCluster], "event-cluster")
 
-  val tempForm = Form(single("tempform" -> nonEmptyText))
+  val tempForm = Form(single("tempid" -> nonEmptyText))
 
   def index = Action { implicit request =>
     request.session.get(Node).map { node =>
       Redirect(routes.CurrentEvent.event()).flashing("info" -> s"Redirected to chat as $node node")
-    }getOrElse(Ok(views.html.iindex(tempForm)))
+    }getOrElse(Ok(views.html.index(tempForm)))
   }
 
   def event = Action { implicit request =>
@@ -48,7 +48,7 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
   def tempid = Action { implicit request =>
     tempForm.bindFromRequest.fold(
       formWithErrors => {
-        BadRequest(views.html.iindex(formWithErrors))
+        BadRequest(views.html.index(formWithErrors))
       },
       tempid => {
         Redirect(routes.CurrentEvent.event())
