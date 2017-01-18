@@ -18,7 +18,8 @@ import pdstore.GUID
 class teststream @Inject() extends Controller{
 
   def teststreamview = Action {
-    Ok(views.html.teststream("welcome to web-socket!"))
+    Ok("hello!")
+    //Ok(views.html.teststream("welcome to web-socket!"))
   }
 
   var addCounter = 0

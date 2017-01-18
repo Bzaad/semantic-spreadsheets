@@ -4,18 +4,15 @@ import javax.inject.Inject
 import java.security.MessageDigest
 
 import play.api.mvc._
-import play.api.libs.ws._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.functional.syntax._
 
 import scala.collection.mutable.ArrayBuffer
-import models.{DB, triple}
+import models.triple
 import pdstore._
 import pdstore.GUID
-
-import scala.util.parsing.json.JSONObject
 
 class PdStore @Inject() extends Controller {
 
