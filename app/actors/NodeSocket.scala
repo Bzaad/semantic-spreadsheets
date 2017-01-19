@@ -96,7 +96,7 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
       out ! Json.toJson(HeadersListMessage(data))
     case c @ Changed(LWWRegisterKey(header)) =>
       for {
-        subscribedHeader <- lastSubscribed if (subscribedHeader + "-lwwreq").equals(header)
+        subscribedHeader <- lastSubscribed if (subscribedHeader + "-lwwreg").equals(header)
       } {
         val eventData = c.get(LWWRegisterKey[EventData](header)).value
         initialHistory foreach { historySet =>
@@ -144,7 +144,7 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
             lastSubscribed = Some(header)
             replicator ! Get(GSetKey(header), ReadMajority(timeout = 5.seconds))
           }
-        case "message" =>
+        case "change" =>
           js.validate[Message](messageReads)
             .map(message => (message.header, message.msg))
             .foreach { case (header, msg) =>
