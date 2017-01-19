@@ -1,0 +1,10 @@
+@(form: Form[_])
+
+@if(form.hasGlobalErrors){
+    <div class="alert alert-danger">
+    @form.globalError.map { e =>
+        @e.message
+    }
+    </div>
+}
+
