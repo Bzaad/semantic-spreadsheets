@@ -1,37 +1,36 @@
-@*
- * This template takes a single argument, a String containing a
- * message to display.
- *@
-@(message: String)
+@(tempForm: Form[String])(implicit messages: Messages, flash: Flash)
 
-@*
- * Call the `main` template with two arguments. The first
- * argument is a `String` with the title of the page, the second
- * argument is an `Html` object containing the body of the page.
- *@
-@main("Welcome to PDstore") {
+@import views.html.elements.flashMessages
 
-    @*
-     * Get an `Html` object by calling the built-in Play welcome
-     * template and passing a `String` message.
-    *     @play20.welcome(message, style = "Scala")
-     *@
-    <div style="margin: 10px">
-        <title>PDStore Test</title>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Push</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/tempid.css")">
+        <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/bootstrap.min.css"))'>
+        <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
+        <script type='text/javascript' src='@routes.Assets.versioned("javascripts/main.js")'></script>
 
-        <h2>PDStore Test</h2>
-        <table></table>
-        <textarea id="msg" type="text" name="message" style="width: 600px; height: 600px; padding: 10px; margin: 10px;
-            display: block; font-family:Sans-serif; font-size:1.2em;"></textarea>
-        <div style="margin: 10px;">
-            <button type="button" onclick="openWebSocket()">CONNECT</button>
-            <button type="submit" onclick="sendMessage()">SEND</button>
-            <button type="button" onclick="closeWebSocket()">DISCONNECT</button>
-            <button type="button" onclick="clean()">CLEAN</button>
+    </head>
+
+    <body>
+        <div class="container">
+            @flashMessages(flash)
+            <div class="row">
+                <div class="col-sm-6 col-md-4 col-md-offset-4">
+                    <h1 class="text-center login-title">Push Demo</h1>
+                    <div class="account-wall">
+                        <img class="profile-img" src='@routes.Assets.versioned("images/photo.png")' alt="">
+                        <form action="@routes.CurrentEvent.tempid" class="form-signin" method="POST">
+                            @elements.formErrors(tempForm)
+                            <input type="text" class="form-control" placeholder="Please Enter Your ID" required autofocus name=@tempForm("tempid").name>
+                            <button class="btn btn-lg btn-primary btn-block" type="submit">Enter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="output" style="max-height: 200px; margin: 10px;"></div>
-    </div>
+    </body>
+</html>
 
-    <script src="@routes.Assets.versioned("javascripts/addTriple.js")" type="text/javascript"></script>
-    <script src="@routes.Assets.versioned("javascripts/table.js")" type="text/javascript"></script>
-}

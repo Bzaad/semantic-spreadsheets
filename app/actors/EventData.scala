@@ -17,8 +17,7 @@ object EventData {
         "type" -> "change",
         "header" -> eventData.header,
         "user" -> eventData.user,
-        "changes" -> eventData.changes,
-        "created" -> eventData.created
+        "changes" -> eventData.changes
       )
     }
   }

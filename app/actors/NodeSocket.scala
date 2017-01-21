@@ -4,11 +4,11 @@ package actors
   * Created by behzadfarokhi on 16/01/17.
   */
 
-import scala.xml.Utility
 import actors.NodeSocket.Message.messageReads
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.LoggingReceive
-import play.api.libs.json.{Writes, JsPath, JsValue, JsString, JsObject, JsArray, Json}
+import play.api.libs.json._
+
 import scala.concurrent.duration._
 import akka.cluster.Cluster
 import akka.cluster.ddata.DistributedData
@@ -62,6 +62,32 @@ object NodeSocket {
       }
     }
   }
+
+  case class PdChange(ta: String, ch: String, sub: String, pred: String, obj: String)
+  object PdChange {
+    implicit val pdChangeWrites = new Writes[PdChange] {
+      def writes(pdChange: PdChange): JsValue ={
+        Json.obj(
+          "ta" -> pdChange.ta,
+          "ch" -> pdChange.ch,
+          "sub" -> pdChange.sub,
+          "pred" -> pdChange.pred,
+          "obj" -> pdChange.obj
+        )
+      }
+    }
+  }
+
+  case class PdChangeList(changes: Seq[PdChange])
+  object PdChangeList {
+    implicit val pdChangeListWrites = new Writes[PdChangeList] {
+      def writes(pdChangeList: PdChangeList): JsValue ={
+        Json.obj(
+          "changes" -> JsArray(pdChangeList.changes.map(Json.toJson(_)))
+        )
+      }
+    }
+  }
 }
 
 class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
@@ -77,6 +103,22 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
 
   replicator ! Get(headersKey, ReadMajority(timeout = 5.seconds))
 
+  def parseChanges(msg: JsValue): Unit = {
+    val theChanges = ( msg \ "msg" \ "changes" ).as[List[JsValue]]
+    PDStoreModel.beginStore
+    theChanges.foreach{ change =>
+      PDStoreModel.addTriple(
+        Triple(
+          ta = (change \ "ta").as[String],
+          ch = (change \ "ch").as[String],
+          sub = (change \ "sub").as[String],
+          pred = (change \  "pred").as[String],
+          obj = (change \ "obj").as[String]
+        )
+      )
+    }
+    PDStoreModel.commitStore
+  }
   def receive = LoggingReceive {
     case g @ GetSuccess(key, req) if key == headersKey =>
       val data = g.get(headersKey).elements.toSeq
@@ -96,7 +138,7 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
       out ! Json.toJson(HeadersListMessage(data))
     case c @ Changed(LWWRegisterKey(header)) =>
       for {
-        subscribedHeader <- lastSubscribed if (subscribedHeader + "-lwwreq").equals(header)
+        subscribedHeader <- lastSubscribed if (subscribedHeader + "-lwwreg").equals(header)
       } {
         val eventData = c.get(LWWRegisterKey[EventData](header)).value
         initialHistory foreach { historySet =>
@@ -144,7 +186,8 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
             lastSubscribed = Some(header)
             replicator ! Get(GSetKey(header), ReadMajority(timeout = 5.seconds))
           }
-        case "message" =>
+        case "change" =>
+          parseChanges(js)
           js.validate[Message](messageReads)
             .map(message => (message.header, message.msg))
             .foreach { case (header, msg) =>

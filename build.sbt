@@ -9,24 +9,17 @@ val akkaVersion = "2.4.2"
 scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq(
-  jdbc,
-  cache,
-  ws,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-  "org.webjars" %% "webjars-play" % "2.5.0",
-  "org.webjars" % "requirejs" % "2.3.2",
-  "org.webjars" % "bootstrap" % "3.2.0",
-  "org.webjars" % "jquery" % "3.1.1-1",
-  "org.webjars" % "handsontable" % "0.26.0",
-  "org.webjars" % "SlickGrid" % "2.1",
-  "com.typesafe.akka" %% "akka-actor" % "2.3.4",
-  "com.typesafe.akka" %% "akka-slf4j" % "2.3.4",
-  "org.webjars" % "flot" % "0.8.0",
   "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion,
   "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
   "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+  "org.webjars" %% "webjars-play" % "2.4.0",
+  "org.webjars" % "bootstrap" % "3.3.4",
+  "org.webjars" % "jquery" % "2.1.4",
+  "org.webjars" % "handlebars" % "4.0.2",
+  specs2 % Test
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
