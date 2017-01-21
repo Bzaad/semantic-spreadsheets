@@ -2,15 +2,17 @@ package actors
 
 import play.api.libs.json._
 
-case class Triple(tSubject: String, tPredicate: String, tObject: String)
+case class Triple(ta: String, ch: String, sub: String, pred: String, obj: String)
 
 object Triple {
 	implicit val tripleWrites = new Writes[Triple] {
 		def writes(triple: Triple): JsValue = {
 			Json.obj(
-				"subject" -> triple.tSubject,
-				"predicate" -> triple.tPredicate,
-				"object" -> triple.tObject
+				"ta" -> triple.ta,
+				"ch" -> triple.ch,
+				"sub" -> triple.sub,
+				"pred" -> triple.pred,
+				"obj" -> triple.obj
 			)
 		}
 	}
