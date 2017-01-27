@@ -1,7 +1,80 @@
 
 (function(){
-    var rows = 5+1;
-    var columns = 5+1;
+
+    var headers = function () {
+        return $(".nav-tabs");
+    }
+
+    var addTab = function () {}
+
+    var headerNames = {};
+    var currentHeader = void 0;
+
+    var strhash = function(str) {
+        var chr, hash, i, _i, _ref;
+        if (str.length === 0) {
+            return 0;
+        }
+        hash = 0;
+        for (i = _i = 0, _ref = str.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0;
+        }
+        return hash;
+    };
+
+    ws = new WebSocket($("body").data("ws-url"));
+
+    ws.onmessage = function(event){
+        var message;
+        message = JSON.parse(event.data)
+        switch (message.type){
+            case "messages":
+                console.log(message);
+            case "change":
+                console.log(message);
+            case "headers":
+                // empty all the headers
+                headers().html("");
+                message.headers.forEach(function(header){
+                    var el, headerEl, headerId;
+                    headerId = strhash(header);
+                    headerNames[headerId] = header;
+                    headerEl = '<li><a data-toggle="tab" href="#header_' + headerId + '">' + header + '</a></li>'
+                    return headers().append(headerEl)
+                })
+        }
+    }
+
+
+    $(".nav-tabs").on("click", "a", function(e){
+        e.preventDefault();
+        if(!$(this).hasClass('add-header')) {
+            $(this).tab('show');
+        }
+    })
+
+    $('.add-header').click(function(e){
+        e.preventDefault();
+        var id = $(".nav-tabs").children().length;
+        var tabId = 'header_' + id;
+        $(this).closest('li').before('<li><a data-toggle="tab" href="#header_' + id + '">' + 'header_' + id + '</a></li>');
+        $('.nav-tabs li:nth-child(' + id + ') a').click();
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
+            var target = $(e.target).attr("href");
+            if (target === "#add"){
+                console.log("a new header is being added!")
+            } else {
+                console.log("the tab changed to: " + target.toString());
+            }
+        })
+
+    })
+
+    var rows = 25+1;
+    var columns = 14+1;
     for (var i=0; i<rows; i++) {
         var row = document.querySelector("table").insertRow(-1);
         for (var j=0; j<columns; j++) {

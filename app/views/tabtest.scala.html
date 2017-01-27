@@ -6,67 +6,12 @@
 @main("event") {
     <div class="container">
         <ul class="nav nav-tabs">
-            <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
-            <li><a data-toggle="tab" href="#menu1">Menu 1</a></li>
-            <li><a data-toggle="tab" href="#menu2">Menu 2</a></li>
-            <li><a data-toggle="tab" href="#add"> + </a></li>
+            <li ><a href="#add" class="add-header"> + </a></li>
         </ul>
 
-        <div class="tab-content">
-            <div id="home" class="tab-pane fade in active">
-                <h3>HOME</h3>
+        <div class="tab-content" style="margin-top: 10px">
+            <div class="tab-pane fade in active">
                 <table></table>
-            </div>
-            <div id="menu1" class="tab-pane fade">
-                @flashMessages(flash)
-                <div class="row">
-                    <div class="col-xs-4">
-                        <div id="topics-panel">
-                            <h3>Headers</h3>
-                            <form id="topicform" class="form-inline form-group-xs">
-                                <input id="topicName" type="text" class="form-control " placeholder="header" required name="topic">
-                                <button id="createTopicButton" class="btn btn-xs btn-default" type="submit">ADD</button>
-                            </form>
-                            <div class="topics-panel">
-                                <div id="topics">
-
-                                </div>
-                                @handlebars("topics-on-left-template") {
-                                    <div>
-                                        <div class="chatname-container">
-                                            <span class="chatname bold">{{{topicName}}}</span>
-                                        </div>
-                                        <span class="label label-default subscribe" data-topic-id="{{{topicId}}}">
-                                            subscribe
-                                        </span>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="col-xs-8">
-                        <div id="conversation">
-                            <div class="messages-panel">
-                                <h3>Current Header: <span id="current-topic">---</span> </h3>
-                                <div id="messages">
-                                </div>
-                                @handlebars("message-on-left-template") {
-                                    <p class="conversation_comment bold">{{{user}}}</p>
-                                    <p class="conversation_comment">{{{message}}}</p>
-                                }
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            <div id="menu2" class="tab-pane fade">
-                <h3>Menu 2</h3>
-            </div>
-            <div id="createTopicButton" class="tab-pane fade" type="submit">
-                <h3>Add Table</h3>
-                <p>You can add a new table here!</p>
             </div>
         </div>
     </div>
