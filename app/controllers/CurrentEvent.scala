@@ -65,4 +65,10 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
     })
   }
 
+  def tabs = Action { implicit request =>
+    request.session.get(Node).map { node =>
+      Ok(views.html.tabtest(node))
+    }.getOrElse(Redirect(routes.CurrentEvent.index()))
+  }
+
 }
