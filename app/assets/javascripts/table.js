@@ -37,9 +37,11 @@
         message = JSON.parse(event.data);
         switch (message.type){
             case "messages":
-                console.log(message);
+                console.log(JSON.stringify(message.Messages));
+                return;
             case "change":
                 console.log(message);
+                return;
             case "headers":
                 // empty all the headers
                 headers().html("");
@@ -47,12 +49,23 @@
                     var el, headerEl, headerId;
                     headerId = strhash(header);
                     headerNames[headerId] = header;
-                    headerEl = '<li><a data-toggle="tab" href="#header_' + headerId + '">' + header + '</a></li>'
+                    headerEl = '<li><a data-toggle="tab" href="#header_' + headerId + '">' + header + '</a></li>';
                     return headers().append(headerEl);
                 });
+                addToggleEvent();
                 headers().append(addEl);
+                return;
         }
     };
+
+    var addToggleEvent = function() {
+        $('a[data-toggle="tab"]').each(function (e) {
+            $(this).on('shown.bs.tab', function(el){
+                changeTable(el.target.text);
+            });
+        });
+    };
+
     ws.onerror = function (event) {
         return console.log("WS error: " + event);
     };
@@ -65,6 +78,14 @@
     };
 
     var createLable= function(message){
+        ws.send(JSON.stringify(message));
+    }
+
+    var changeTable = function(tableName){
+        message = {
+            type: "subscribe",
+            header: tableName
+        }
         ws.send(JSON.stringify(message));
     }
 
@@ -98,15 +119,6 @@
             var tabId = 'header_' + id;
             $(this).closest('li').before('<li><a data-toggle="tab" href="#header_' + id + '">' + 'header_' + id + '</a></li>');
             $('.nav-tabs li:nth-child(' + id + ') a').click();
-
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
-                var target = $(e.target).attr("href");
-                if (target === "#add"){
-                    console.log("a new header is being added!")
-                } else {
-                    console.log("the tab changed to: " + target.toString());
-                }
-            })
         })
     }
 
