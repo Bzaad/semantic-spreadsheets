@@ -5,7 +5,13 @@
         return $(".nav-tabs");
     }
 
+    var addModal = function () {
+        return $("#add-worksheet-modal");
+    }
+
     var addTab = function () {}
+
+    var addEl = '<li ><a href="#add" class="add-header" data-toggle="modal" data-target="#add-worksheet-modal"> + </a></li>'
 
     var headerNames = {};
     var currentHeader = void 0;
@@ -28,7 +34,7 @@
 
     ws.onmessage = function(event){
         var message;
-        message = JSON.parse(event.data)
+        message = JSON.parse(event.data);
         switch (message.type){
             case "messages":
                 console.log(message);
@@ -42,36 +48,67 @@
                     headerId = strhash(header);
                     headerNames[headerId] = header;
                     headerEl = '<li><a data-toggle="tab" href="#header_' + headerId + '">' + header + '</a></li>'
-                    return headers().append(headerEl)
-                })
+                    return headers().append(headerEl);
+                });
+                headers().append(addEl);
         }
-    }
+    };
+    ws.onerror = function (event) {
+        return console.log("WS error: " + event);
+    };
+    ws.onclose = function (event) {
+        return console.log("WS closed: " + event.code + ": " + event.reason + " " + event);
+    };
+    window.onbeforeunload = function(){
+        ws.onclose = function() {};
+        return ws.close();
+    };
 
+    var createLable= function(message){
+        ws.send(JSON.stringify(message));
+    }
 
     $(".nav-tabs").on("click", "a", function(e){
         e.preventDefault();
         if(!$(this).hasClass('add-header')) {
             $(this).tab('show');
         }
-    })
+    });
 
-    $('.add-header').click(function(e){
-        e.preventDefault();
-        var id = $(".nav-tabs").children().length;
-        var tabId = 'header_' + id;
-        $(this).closest('li').before('<li><a data-toggle="tab" href="#header_' + id + '">' + 'header_' + id + '</a></li>');
-        $('.nav-tabs li:nth-child(' + id + ') a').click();
+    addModal().on('show.bs.modal', function (event) {
+        $('textarea#worksheet-lable').val('');
+    });
 
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
-            var target = $(e.target).attr("href");
-            if (target === "#add"){
-                console.log("a new header is being added!")
-            } else {
-                console.log("the tab changed to: " + target.toString());
-            }
+    $('#add-worksheet').click(function(){
+        createLable($('textarea#worksheet-lable').val());
+        addModal().modal('hide');
+    });
+
+    addModal().on('hidden.bs.modal', function (e) {
+        var modal = $(this);
+        modal.find('.modal-body input').val('');
+    });
+
+
+
+    var addHeaderOnClick = function(){
+        $('.add-header').click(function(e){
+            e.preventDefault();
+            var id = $(".nav-tabs").children().length;
+            var tabId = 'header_' + id;
+            $(this).closest('li').before('<li><a data-toggle="tab" href="#header_' + id + '">' + 'header_' + id + '</a></li>');
+            $('.nav-tabs li:nth-child(' + id + ') a').click();
+
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
+                var target = $(e.target).attr("href");
+                if (target === "#add"){
+                    console.log("a new header is being added!")
+                } else {
+                    console.log("the tab changed to: " + target.toString());
+                }
+            })
         })
-
-    })
+    }
 
     var rows = 25+1;
     var columns = 14+1;

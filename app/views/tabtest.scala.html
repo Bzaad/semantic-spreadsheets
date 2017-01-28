@@ -6,12 +6,35 @@
 @main("event") {
     <div class="container">
         <ul class="nav nav-tabs">
-            <li ><a href="#add" class="add-header"> + </a></li>
+            <li ><a href="#add" class="add-header" data-toggle="modal" data-target="#add-worksheet-modal"> + </a></li>
         </ul>
 
         <div class="tab-content" style="margin-top: 10px">
             <div class="tab-pane fade in active">
                 <table></table>
+            </div>
+        </div>
+        <!-- add modal (this has to move to a separate file so it can be used elsewhere without a neet to duplicate code! -->
+        <div class="modal fade" id="add-worksheet-modal" tabindex="-1" role="dialog" aria-labelledby="worksheet-lable">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="worksheet-lable">New Worksheet</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="worksheet-lable" class="control-label">Worksheet Lable:</label>
+                                <textarea class="form-control" rows="1" id="worksheet-lable"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="add-worksheet">Create Worksheet</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
