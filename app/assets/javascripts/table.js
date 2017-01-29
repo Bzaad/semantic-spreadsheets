@@ -37,7 +37,7 @@
         message = JSON.parse(event.data);
         switch (message.type){
             case "messages":
-                console.log(JSON.stringify(message.Messages));
+                chartifyChanges(message.Messages[0]);
                 return;
             case "change":
                 console.log(message);
@@ -88,6 +88,19 @@
         }
         ws.send(JSON.stringify(message));
     }
+
+    var chartifyChanges = function (msg){
+        var newChanges = msg.changes.changes;
+        var subjects = [];
+        var predicates = [];
+        var objects = [];
+        newChanges.forEach(function(c){
+            subjects.push(c.sub);
+            predicates.push(c.pred);
+            objects.push(c.obj);
+        });
+        console.log(subjects, predicates, objects);
+    };
 
     $(".nav-tabs").on("click", "a", function(e){
         e.preventDefault();
@@ -150,41 +163,6 @@
         Object.defineProperty(DATA, elm.id.toLowerCase(), {get:getter,configurable:true});
 
     });
-    (window.constructJson = function(dArray){
-        var pdChangeArray = [];
-        if(!dArray) return;
-        var message = {
-            changes: [
-
-            ]
-        }
-        dArray.forEach(function(elm){
-            var tempTriple = {sub: "", pred: "", obj: ""};
-            try {
-                if(elm.id.charAt(0) === "A" || elm.id.charAt(1) === "1"){
-                    console.log("pred or Obj : " + elm);
-                    // its either a subject or a predicate
-                    // do nothing
-                }
-                else {
-                    tempTriple.obj = elm.val;
-                    dArray.forEach(function(a){
-                        if(a.id.charAt(0) === elm.id.charAt(0)){
-                            tempTriple.pred = a.val;
-                        }
-                        if(a.id.charAt(1) === elm.id.charAt(1)){
-                            tempTriple.obj = a.val;
-                        }
-                    })
-                }
-                pdChangeArray.push(tempTriple);
-                tempTriple = {sub: "", pred: "", obj: ""};
-            }
-            catch (e) {
-            }
-        })
-        //console.log(pdChangeArray);
-    })();
     (window.computeAll = function() {
         var dArray = [];
         INPUTS.forEach(function(elm) { try { elm.value = DATA[elm.id]; } catch(e) {} });
@@ -200,7 +178,6 @@
                 //console.log(e);
             }
         })
-        constructJson(dArray);
     })();
 
 })();
