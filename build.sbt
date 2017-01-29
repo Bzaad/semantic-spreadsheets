@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.4.0",
   "org.webjars" % "bootstrap" % "3.3.4",
   "org.webjars" % "jquery" % "2.1.4",
+  "org.webjars" % "lodash" % "4.15.0",
   "org.webjars" % "handlebars" % "4.0.2",
   specs2 % Test
 )
