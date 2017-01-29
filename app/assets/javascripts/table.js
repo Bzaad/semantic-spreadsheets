@@ -1,5 +1,43 @@
 
 (function(){
+    var DATA, INPUTS;
+    var rows = 25+1;
+    var columns = 14+1;
+    var subjects = [];
+    var predicates = [];
+    var objects = [];
+
+    initTable = function(){
+        for (var i=0; i<rows; i++) {
+            var row = document.querySelector("table").insertRow(-1);
+            for (var j=0; j<columns; j++) {
+                var letter = String.fromCharCode("A".charCodeAt(0)+j-1);
+                row.insertCell(-1).innerHTML = i&&j ? "<input type='cell' id='"+ letter+i +"'/>" : i||letter;
+            }
+        }
+    };
+    DATA = {};
+    INPUTS = [].slice.call(document.querySelectorAll("input"));
+    initLocalStorage = function(){
+        INPUTS.forEach(function(elm) {
+            elm.onfocus = function(e) {
+                e.target.value = localStorage[e.target.id] || "";
+            };
+            elm.onblur = function(e) {
+                localStorage[e.target.id] = e.target.value;
+                computeAll();
+            };
+            var getter = function() {
+                var value = localStorage[elm.id] || "";
+                if (value.charAt(0) == "=") {
+                    with (DATA) return eval(value.substring(1));
+                } else { return isNaN(parseFloat(value)) ? value : parseFloat(value); }
+            };
+            Object.defineProperty(DATA, elm.id, {get:getter,configurable:true});
+            Object.defineProperty(DATA, elm.id.toLowerCase(), {get:getter,configurable:true});
+
+        });
+    };
 
     var headers = function () {
         return $(".nav-tabs");
@@ -37,10 +75,11 @@
         message = JSON.parse(event.data);
         switch (message.type){
             case "messages":
-                chartifyChanges(message.Messages[0]);
+                chartifyChanges(message.Messages, "reload");
                 return;
             case "change":
                 console.log(message);
+                chartifyChanges(message.changes, "update");
                 return;
             case "headers":
                 // empty all the headers
@@ -89,17 +128,52 @@
         ws.send(JSON.stringify(message));
     }
 
-    var chartifyChanges = function (msg){
-        var newChanges = msg.changes.changes;
-        var subjects = [];
-        var predicates = [];
-        var objects = [];
-        newChanges.forEach(function(c){
+    var alphabet = _.map(_.range(
+        'A'.charCodeAt(0),
+        'Z'.charCodeAt(0)+1
+    ), function (a) {
+        return String.fromCharCode(a);
+    });
+
+    var chartifyChanges = function (msgs, condition){
+        var newChanges, dirtyChanges = [];
+        switch(condition){
+            case "update":
+                dirtyChanges = msgs.changes;
+                break;
+            case "reload":
+                subjects = [];
+                predicates = [];
+                objects = [];
+                _.each(msgs, function (m) {
+                    _.each(m.changes.changes, function(c){
+                        dirtyChanges.push(c);
+                    });
+                });
+                break;
+        }
+         _.uniqWith(dirtyChanges, _.isEqual).forEach(function(c){
             subjects.push(c.sub);
             predicates.push(c.pred);
             objects.push(c.obj);
         });
+        $('#table-area').empty();
+        $('#table-area').append('<table></table>');
+        initTable();
+        DATA = {};
+        INPUTS = [].slice.call(document.querySelectorAll("input"));
+        initLocalStorage();
+        for (var i = 0; i < subjects.length; i++){
+            var cell = "#A" + (i + 1).toString();
+            $(cell).val(subjects[i]);
+        }
+
+        /*
+        for (var i = 0; i<predicates.length; i++ ){
+            var cell = ""
+        }
         console.log(subjects, predicates, objects);
+        */
     };
 
     $(".nav-tabs").on("click", "a", function(e){
@@ -123,8 +197,6 @@
         modal.find('.modal-body input').val('');
     });
 
-
-
     var addHeaderOnClick = function(){
         $('.add-header').click(function(e){
             e.preventDefault();
@@ -133,36 +205,9 @@
             $(this).closest('li').before('<li><a data-toggle="tab" href="#header_' + id + '">' + 'header_' + id + '</a></li>');
             $('.nav-tabs li:nth-child(' + id + ') a').click();
         })
-    }
-
-    var rows = 25+1;
-    var columns = 14+1;
-    for (var i=0; i<rows; i++) {
-        var row = document.querySelector("table").insertRow(-1);
-        for (var j=0; j<columns; j++) {
-            var letter = String.fromCharCode("A".charCodeAt(0)+j-1);
-            row.insertCell(-1).innerHTML = i&&j ? "<input type='cell' id='"+ letter+i +"'/>" : i||letter;
-        }
-    }
-    var DATA={}, INPUTS=[].slice.call(document.querySelectorAll("input"));
-    INPUTS.forEach(function(elm) {
-        elm.onfocus = function(e) {
-            e.target.value = localStorage[e.target.id] || "";
-        };
-        elm.onblur = function(e) {
-            localStorage[e.target.id] = e.target.value;
-            computeAll();
-        };
-        var getter = function() {
-            var value = localStorage[elm.id] || "";
-            if (value.charAt(0) == "=") {
-                with (DATA) return eval(value.substring(1));
-            } else { return isNaN(parseFloat(value)) ? value : parseFloat(value); }
-        };
-        Object.defineProperty(DATA, elm.id, {get:getter,configurable:true});
-        Object.defineProperty(DATA, elm.id.toLowerCase(), {get:getter,configurable:true});
-
-    });
+    };
+    initTable();
+    initLocalStorage();
     (window.computeAll = function() {
         var dArray = [];
         INPUTS.forEach(function(elm) { try { elm.value = DATA[elm.id]; } catch(e) {} });
@@ -175,9 +220,7 @@
                 }
             }
             catch(e){
-                //console.log(e);
             }
-        })
+        });
     })();
-
 })();
