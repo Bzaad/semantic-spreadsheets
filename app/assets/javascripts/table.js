@@ -136,7 +136,15 @@
     });
 
     var chartifyChanges = function (msgs, condition){
-        var newChanges, dirtyChanges = [];
+        var dirtyChanges = [];
+        var clearTable = function() {
+            $('#table-area').empty();
+            $('#table-area').append('<table></table>');
+            initTable();
+            DATA = {};
+            INPUTS = [].slice.call(document.querySelectorAll("input"));
+            initLocalStorage();
+        };
         switch(condition){
             case "update":
                 dirtyChanges = msgs.changes;
@@ -145,6 +153,7 @@
                 subjects = [];
                 predicates = [];
                 objects = [];
+                clearTable();
                 _.each(msgs, function (m) {
                     _.each(m.changes.changes, function(c){
                         dirtyChanges.push(c);
@@ -152,28 +161,36 @@
                 });
                 break;
         }
-         _.uniqWith(dirtyChanges, _.isEqual).forEach(function(c){
+        var cleanChanges = _.uniqWith(dirtyChanges, _.isEqual);
+         cleanChanges.forEach(function(c){
             subjects.push(c.sub);
             predicates.push(c.pred);
             objects.push(c.obj);
         });
-        $('#table-area').empty();
-        $('#table-area').append('<table></table>');
-        initTable();
-        DATA = {};
-        INPUTS = [].slice.call(document.querySelectorAll("input"));
-        initLocalStorage();
+
+        subjects = _.uniq(subjects);
+        predicates = _.uniq(predicates);
+        // add subjects to the table
         for (var i = 0; i < subjects.length; i++){
-            var cell = "#A" + (i + 1).toString();
+            var cell = "#A" + (i + 2).toString();
             $(cell).val(subjects[i]);
         }
 
-        /*
+        // add predicates and objects to the table
         for (var i = 0; i<predicates.length; i++ ){
-            var cell = ""
+            var cell = "#" + alphabet[i+1] + "1";
+            $(cell).val(predicates[i]);
+            for (var j = 0; j<subjects.length; j++ ){
+                _.forEach(cleanChanges, function(c){
+                    if (c.pred === predicates[i] && c.sub === subjects[j]){
+                        var objCell = "#" + alphabet[i+1] + (j + 2).toString();
+                        $(objCell).val(c.obj);
+                        return;
+                    }
+                })
+            }
         }
-        console.log(subjects, predicates, objects);
-        */
+
     };
 
     $(".nav-tabs").on("click", "a", function(e){
