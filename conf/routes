@@ -5,7 +5,6 @@
 GET     /                                               @controllers.CurrentEvent.index
 POST    /tempid                                         @controllers.CurrentEvent.tempid
 POST    /leave                                          @controllers.CurrentEvent.leave
-GET     /event                                          @controllers.CurrentEvent.event
 GET     /socket                                         @controllers.CurrentEvent.socket
 GET     /tabs                                           @controllers.CurrentEvent.tabs
 
@@ -23,26 +22,3 @@ GET     /webjars/*file                                  @controllers.WebJarAsset
 
 # Query and return the results along with a 200
 # GET 	/triples/query/:qObject/:qPredicate/:qSubject 	@controllers.PdStore.query(qObject: String, qPredicate: String, qSubject: String)
-
-# Returns a predefined Json Object (for Testing porpuses only!)
-# GET     /testjson                                       @controllers.PdStore.getJsonTest
-
-# Echoes whatever Object is sent to it through the post request (for Testing porpuses only!)
-# POST    /echojson                                       @controllers.PdStore.echoJson
-
-#websocket link -> recieves a message as a string and broadcasts it to all the clients that are connected to the websocket (for Testing porpuses only!)
-# GET     /stream                                         @controllers.PdStore.stream
-
-# GET     /teststream                                     @controllers.teststream.socket
-
-# GET     /teststreamview                                 @controllers.teststream.teststreamview
-
-# Create a nes set of triples.
-# POST 	/triples/create 								@controllers.PdStore.create
-
-# GET     /assets/*file                                   @controllers.Assets.at(path="/public", file)
-
-# Yeoman routes
-# GET 	/ui 	@com.tuplejump.playYeoman.Yeoman.index
-	
-# -> 		/ui/ 	yeoman.Routes
