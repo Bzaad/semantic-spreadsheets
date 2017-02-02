@@ -50,10 +50,11 @@ input:hover {
 
 input:focus {
     background-color: #ccf;
+    text-align: center;
 }
 
 input:not(:focus) {
-    text-align: right;
+    text-align: center;
 }
 
 table {
