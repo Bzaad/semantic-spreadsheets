@@ -6,6 +6,7 @@
     var subjects = [];
     var predicates = [];
     var objects = [];
+    var dirtyChanges = [];
 
 
     var initTable = function(){
@@ -41,7 +42,6 @@
                     msg: pdChange,
                     created: ""
                 };
-                console.log(message);
                 ws.send(JSON.stringify(message));
             };
         });
@@ -79,14 +79,12 @@
     ws = new WebSocket($("body").data("ws-url"));
 
     ws.onmessage = function(event){
-        var message;
-        message = JSON.parse(event.data);
+        var message = JSON.parse(event.data);
         switch (message.type){
             case "messages":
                 chartifyChanges(message.Messages, "reload");
                 return;
             case "change":
-                console.log(message);
                 chartifyChanges(message.changes, "update");
                 return;
             case "headers":
@@ -108,6 +106,7 @@
     var addToggleEvent = function() {
         $('a[data-toggle="tab"]').each(function (e) {
             $(this).on('shown.bs.tab', function(el){
+                clearTable();
                 changeTable(el.target.text);
             });
         });
@@ -156,26 +155,25 @@
             }
         }
     }
+    var clearTable = function() {
+        subjects = [];
+        predicates = [];
+        objects = [];
+        $('#table-area').empty();
+        $('#table-area').append('<table></table>');
+        initTable();
+        DATA = {};
+        INPUTS = [].slice.call(document.querySelectorAll("input"));
+        initCellListeners();
+    };
 
     var chartifyChanges = function (msgs, condition){
-        var dirtyChanges = [];
-        var clearTable = function() {
-            $('#table-area').empty();
-            $('#table-area').append('<table></table>');
-            initTable();
-            DATA = {};
-            INPUTS = [].slice.call(document.querySelectorAll("input"));
-            initCellListeners();
-        };
         switch(condition){
             case "update":
-                dirtyChanges = msgs.changes;
+                dirtyChanges.push(msgs.changes[0]);
                 break;
             case "reload":
-                subjects = [];
-                predicates = [];
-                objects = [];
-                clearTable();
+                dirtyChanges = [];
                 _.each(msgs, function (m) {
                     _.each(m.changes.changes, function(c){
                         dirtyChanges.push(c);
@@ -192,6 +190,7 @@
 
         subjects = _.uniq(subjects);
         predicates = _.uniq(predicates);
+        wipeTable();
         // add subjects to the table
         for (var i = 0; i < subjects.length; i++){
             var cell = "#A" + (i + 2).toString();
