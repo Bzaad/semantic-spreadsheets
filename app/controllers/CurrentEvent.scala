@@ -31,18 +31,12 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
 
   def index = Action { implicit request =>
     request.session.get(Node).map { node =>
-      Redirect(routes.CurrentEvent.event()).flashing("info" -> s"Redirected to chat as $node node")
+      Redirect(routes.CurrentEvent.tabs()).flashing("info" -> s"Redirected to chat as $node node")
     }getOrElse(Ok(views.html.index(tempForm)))
   }
 
-  def event = Action { implicit request =>
-    request.session.get(Node).map { node =>
-      Ok(views.html.event(node))
-    }.getOrElse(Redirect(routes.CurrentEvent.index()))
-  }
-
   def leave = Action { implicit request =>
-    Redirect(routes.CurrentEvent.index()).withNewSession.flashing("success" -> "See you soon!")
+    Redirect(routes.CurrentEvent.tabs()).withNewSession.flashing("success" -> "See you soon!")
   }
 
   def tempid = Action { implicit request =>
@@ -51,7 +45,7 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
         BadRequest(views.html.index(formWithErrors))
       },
       tempid => {
-        Redirect(routes.CurrentEvent.event())
+        Redirect(routes.CurrentEvent.tabs())
           .withSession(request.session + (Node -> tempid))
       }
     )
@@ -68,7 +62,7 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
   def tabs = Action { implicit request =>
     request.session.get(Node).map { node =>
       Ok(views.html.tabtest(node))
-    }.getOrElse(Redirect(routes.CurrentEvent.index()))
+    }.getOrElse(Redirect(routes.CurrentEvent.tabs()))
   }
 
 }

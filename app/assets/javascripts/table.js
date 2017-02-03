@@ -7,7 +7,8 @@
     var predicates = [];
     var objects = [];
 
-    initTable = function(){
+
+    var initTable = function(){
         for (var i=0; i<rows; i++) {
             var row = document.querySelector("table").insertRow(-1);
             for (var j=0; j<columns; j++) {
@@ -16,26 +17,33 @@
             }
         }
     };
-    DATA = {};
-    INPUTS = [].slice.call(document.querySelectorAll("input"));
-    initLocalStorage = function(){
+    var initCellListeners = function(){
         INPUTS.forEach(function(elm) {
-            elm.onfocus = function(e) {
-                e.target.value = localStorage[e.target.id] || "";
-            };
             elm.onblur = function(e) {
-                localStorage[e.target.id] = e.target.value;
-                computeAll();
+                if(
+                    e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1" || e.target.value === "") return;
+                var $sub = $("#A" + e.target.id.charAt(1)).val();
+                var $pred = $("#" + e.target.id.charAt(0) + (1).toString()).val();
+                var pdChange = {"changes": [
+                    {
+                    "ta": "_",
+                    "ch": "+",
+                    "sub": $sub,
+                    "pred": $pred,
+                    "obj": e.target.value
+                    }
+                ]}
+                if(!pdChange.changes[0].sub || !pdChange.changes[0].pred || !pdChange.changes[0].obj) return;
+                var message = {
+                    type: "change",
+                    header: currentHeader,
+                    user: "",
+                    msg: pdChange,
+                    created: ""
+                };
+                console.log(message);
+                ws.send(JSON.stringify(message));
             };
-            var getter = function() {
-                var value = localStorage[elm.id] || "";
-                if (value.charAt(0) == "=") {
-                    with (DATA) return eval(value.substring(1));
-                } else { return isNaN(parseFloat(value)) ? value : parseFloat(value); }
-            };
-            Object.defineProperty(DATA, elm.id, {get:getter,configurable:true});
-            Object.defineProperty(DATA, elm.id.toLowerCase(), {get:getter,configurable:true});
-
         });
     };
 
@@ -105,6 +113,10 @@
         });
     };
 
+    document.activeElement.onblur = function(e){
+        console.log(e);
+    }
+
     ws.onerror = function (event) {
         return console.log("WS error: " + event);
     };
@@ -121,10 +133,12 @@
     }
 
     var changeTable = function(tableName){
+        wipeTable();
         message = {
             type: "subscribe",
             header: tableName
         }
+        currentHeader = tableName;
         ws.send(JSON.stringify(message));
     }
 
@@ -135,6 +149,14 @@
         return String.fromCharCode(a);
     });
 
+    var wipeTable = function(){
+        for (var i = 0; i < alphabet.length; i++){
+            for(var j = 0; j < rows; j++ ){
+                $("#" + alphabet[i] + (j).toString()).val('');
+            }
+        }
+    }
+
     var chartifyChanges = function (msgs, condition){
         var dirtyChanges = [];
         var clearTable = function() {
@@ -143,7 +165,7 @@
             initTable();
             DATA = {};
             INPUTS = [].slice.call(document.querySelectorAll("input"));
-            initLocalStorage();
+            initCellListeners();
         };
         switch(condition){
             case "update":
@@ -213,31 +235,8 @@
         var modal = $(this);
         modal.find('.modal-body input').val('');
     });
-
-    var addHeaderOnClick = function(){
-        $('.add-header').click(function(e){
-            e.preventDefault();
-            var id = $(".nav-tabs").children().length;
-            var tabId = 'header_' + id;
-            $(this).closest('li').before('<li><a data-toggle="tab" href="#header_' + id + '">' + 'header_' + id + '</a></li>');
-            $('.nav-tabs li:nth-child(' + id + ') a').click();
-        })
-    };
     initTable();
-    initLocalStorage();
-    (window.computeAll = function() {
-        var dArray = [];
-        INPUTS.forEach(function(elm) { try { elm.value = DATA[elm.id]; } catch(e) {} });
-        INPUTS.forEach(function(elm){
-            try {
-                if(elm.value !== ""){
-                    var tId = elm.id;
-                    var tValue = elm.value;
-                    dArray.push({id : tId , val : tValue});
-                }
-            }
-            catch(e){
-            }
-        });
-    })();
+    DATA = {};
+    INPUTS = [].slice.call(document.querySelectorAll("input"));
+    initCellListeners();
 })();
