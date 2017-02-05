@@ -21,31 +21,66 @@
     var initCellListeners = function(){
         INPUTS.forEach(function(elm) {
             elm.onblur = function(e) {
-                if(
-                    e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1" || e.target.value === "") return;
-                var $sub = $("#A" + e.target.id.charAt(1)).val();
-                var $pred = $("#" + e.target.id.charAt(0) + (1).toString()).val();
-                var pdChange = {"changes": [
-                    {
-                    "ta": "_",
-                    "ch": "+",
-                    "sub": $sub,
-                    "pred": $pred,
-                    "obj": e.target.value
-                    }
-                ]}
-                if(!pdChange.changes[0].sub || !pdChange.changes[0].pred || !pdChange.changes[0].obj) return;
-                var message = {
-                    type: "change",
-                    header: currentHeader,
-                    user: "",
-                    msg: pdChange,
-                    created: ""
-                };
-                ws.send(JSON.stringify(message));
+                if(e.target.value === "") return;
+                else if (e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1") queryChange(e);
+                else addChange(e);
             };
         });
     };
+
+    var addChange = function(e){
+        var $sub = $("#A" + e.target.id.charAt(1)).val();
+        var $pred = $("#" + e.target.id.charAt(0) + (1).toString()).val();
+        var pdChange = {"changes": [
+            {
+                "ta": "_",
+                "ch": "+",
+                "sub": $sub,
+                "pred": $pred,
+                "obj": e.target.value
+            }
+        ]}
+        if(!pdChange.changes[0].sub || !pdChange.changes[0].pred || !pdChange.changes[0].obj) return;
+        var message = {
+            type: "change",
+            header: currentHeader,
+            user: "",
+            msg: pdChange,
+            created: ""
+        };
+        ws.send(JSON.stringify(message));
+    }
+
+    var queryChange = function (e) {
+        var qObj = { "subs" : [], "preds" : []};
+        var message = {
+            type: "query",
+            header: currentHeader,
+            user: "",
+            msg: qObj,
+            created: ""
+        }
+        if(e.target.id.charAt(0) === "A"){
+            qObj.subs.push(e.target.value);
+            for (var i = 1; i < columns; i++){
+                var cellPred = $("#" + alphabet[i] + (1).toString()).val();
+                var cellObj = $("#" + alphabet[i] + e.target.id.charAt(1)).val();
+                if(cellPred && !cellObj) qObj.preds.push(cellPred);
+            }
+
+        } else if (e.target.id.charAt(1) === "1"){
+            qObj.preds.push(e.target.value);
+            for(var i = 2; i < rows; i++){
+                var cellSub = $("#A" + (i).toString()).val();
+                var cellObj = $("#" + e.target.id.charAt(0) + (i).toString()).val();
+                if(cellSub && !cellObj) qObj.subs.push(cellSub);
+            }
+        }
+        qObj.preds = _.uniq(qObj.preds);
+        qObj.subs = _.uniq(qObj.subs);
+        if(_.isEmpty(qObj.preds) || _.isEmpty(qObj.subs)) return;
+        else ws.send(JSON.stringify(message));
+    }
 
     var headers = function () {
         return $(".nav-tabs");
