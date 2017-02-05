@@ -119,6 +119,9 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
     }
     PDStoreModel.commitStore
   }
+  def queryChanges(msg: JsValue): Unit = {
+    PDStoreModel.query(msg)
+  }
   def receive = LoggingReceive {
     case g @ GetSuccess(key, req) if key == headersKey =>
       val data = g.get(headersKey).elements.toSeq
@@ -200,6 +203,14 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
               }
               replicator ! FlushChanges
             }
+        case "query" =>
+          //incomplete
+          js.validate[Message](messageReads)
+            .map(message => (message.header, message.msg))
+            .foreach{case (header, msg) =>
+                println(header, msg)
+            }
+          queryChanges(js)
       }
   }
 }
