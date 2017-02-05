@@ -8,7 +8,6 @@
     var objects = [];
     var dirtyChanges = [];
 
-
     var initTable = function(){
         for (var i=0; i<rows; i++) {
             var row = document.querySelector("table").insertRow(-1);
@@ -18,6 +17,7 @@
             }
         }
     };
+
     var initCellListeners = function(){
         INPUTS.forEach(function(elm) {
             elm.onblur = function(e) {
@@ -54,8 +54,6 @@
     var addModal = function () {
         return $("#add-worksheet-modal");
     }
-
-    var addTab = function () {}
 
     var addEl = '<li ><a href="#add" class="add-header" data-toggle="modal" data-target="#add-worksheet-modal"> + </a></li>'
 

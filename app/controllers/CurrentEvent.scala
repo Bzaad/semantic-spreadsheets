@@ -36,7 +36,7 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
   }
 
   def leave = Action { implicit request =>
-    Redirect(routes.CurrentEvent.tabs()).withNewSession.flashing("success" -> "See you soon!")
+    Redirect(routes.CurrentEvent.index()).withNewSession.flashing("success" -> "See you soon!")
   }
 
   def tempid = Action { implicit request =>

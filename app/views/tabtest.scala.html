@@ -16,6 +16,18 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-sm-10">
+                User : @user
+            </div>
+            <div class="col-sm-2">
+                <a class="button-form-link" href="#">
+                    <span class="glyphicon glyphicon-log-out"></span> Logout
+                </a>
+                @helper.form(routes.CurrentEvent.leave, 'class -> "button-form"){
+                }
+            </div>
+        </div>
         <!-- add modal (this has to move to a separate file so it can be used elsewhere without a neet to duplicate code! -->
         <div class="modal fade" id="add-worksheet-modal" tabindex="-1" role="dialog" aria-labelledby="worksheet-lable">
             <div class="modal-dialog modal-sm" role="document">
