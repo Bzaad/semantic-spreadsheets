@@ -17,3 +17,15 @@ object Triple {
 		}
 	}
 }
+
+case class QMessage(changes: JsValue)
+
+object QMessage {
+	implicit val qmessageWrites = new Writes[QMessage]{
+		def writes(qmessage: QMessage): JsValue ={
+			Json.obj(
+				"changes" -> qmessage.changes
+			)
+		}
+	}
+}
