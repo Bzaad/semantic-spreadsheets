@@ -19,14 +19,41 @@
     };
 
     var initCellListeners = function(){
+        var currentEvent = JSON.parse(localStorage.getItem('currentEvent'));
         INPUTS.forEach(function(elm) {
             elm.onblur = function(e) {
-                if(e.target.value === "") return;
+                var thisCell = {"id": e.target.id, "val": e.target.value};
+                if(!e.target.value || !currentHeader ) return;
                 else if (e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1") queryChange(e);
                 else addChange(e);
+                // TODO: need to be fixed ASAP
+                if(!_.some(currentEvent[currentHeader].cells, thisCell) || !currentEvent[currentHeader].cells) return;
+                else {
+                    var BreakException = {};
+                    try {
+                        _.each(currentEvent[currentHeader].cells, function (c) {
+                            if(c.id === thisCell.id && thisCell.value){
+                                currentEvent[currentHeader].cells  = _.filter(function(el){ return el.id !== c.id});
+                                throw BreakException;
+                            }
+                        });
+                    } catch (e) {
+                        if(e !== BreakException) throw e;
+                    }
+                    currentEvent[currentHeader].cells.push(thisCell);
+                }
+                console.log(currentEvent[currentHeader].cells);
+
             };
         });
     };
+
+    var initLocalStorage = function(){
+        window.localStorage.clear();
+        var eventObject = {};
+        localStorage.setItem('currentEvent', JSON.stringify(eventObject));
+        console.log(localStorage.getItem('currentEvent'));
+    }
 
     var addChange = function(e){
         var $sub = $("#A" + e.target.id.charAt(1)).val();
@@ -123,13 +150,22 @@
             case "headers":
                 // empty all the headers
                 headers().html("");
+                var allTables = JSON.parse(localStorage.getItem('currentEvent'));
                 message.headers.forEach(function(header){
                     var el, headerEl, headerId;
                     headerId = strhash(header);
                     headerNames[headerId] = header;
                     headerEl = '<li><a data-toggle="tab" href="#header_' + headerId + '">' + header + '</a></li>';
-                    return headers().append(headerEl);
+                    var table = {
+                        "headerId" : headerId,
+                        "headerEl" : headerEl,
+                        "header" : header,
+                        "cells" : []
+                    }
+                    if(!_.some(allTables, table)) allTables[header] = table;
+                    return headers().append(allTables[header].headerEl);
                 });
+                localStorage.setItem('currentEvent', JSON.stringify(allTables));
                 addToggleEvent();
                 headers().append(addEl);
                 return;
@@ -141,6 +177,7 @@
             $(this).on('shown.bs.tab', function(el){
                 clearTable();
                 changeTable(el.target.text);
+                console.log(JSON.parse(localStorage.getItem('currentEvent'))[currentHeader])
             });
         });
     };
@@ -192,18 +229,23 @@
         subjects = [];
         predicates = [];
         objects = [];
+        dirtyChanges = [];
         $('#table-area').empty();
         $('#table-area').append('<table></table>');
-        initTable();
-        DATA = {};
-        INPUTS = [].slice.call(document.querySelectorAll("input"));
-        initCellListeners();
+        initEvent();
     };
 
     var chartifyChanges = function (msgs, condition){
+
+        var currentEvent = JSON.parse(localStorage.getItem('currentEvent'));
+
         switch(condition){
             case "update":
-                dirtyChanges.push(msgs.changes[0]);
+                if(msgs.changes instanceof Array){
+                    _.forEach(msgs.changes, function (c) {
+                        dirtyChanges.push(c);
+                    })
+                } else dirtyChanges.push(msgs.changes);
                 break;
             case "reload":
                 dirtyChanges = [];
@@ -215,7 +257,8 @@
                 break;
         }
         var cleanChanges = _.uniqWith(dirtyChanges, _.isEqual);
-         cleanChanges.forEach(function(c){
+        cleanChanges.forEach(function(c){
+             if(!c) return;
             subjects.push(c.sub);
             predicates.push(c.pred);
             objects.push(c.obj);
@@ -223,28 +266,32 @@
 
         subjects = _.uniq(subjects);
         predicates = _.uniq(predicates);
-        wipeTable();
+        //wipeTable();
         // add subjects to the table
         for (var i = 0; i < subjects.length; i++){
             var cell = "#A" + (i + 2).toString();
-            $(cell).val(subjects[i]);
+            if(subjects[i]) currentEvent[currentHeader].cells.push({"id":cell,"val":subjects[i]});
         }
 
         // add predicates and objects to the table
         for (var i = 0; i<predicates.length; i++ ){
             var cell = "#" + alphabet[i+1] + "1";
-            $(cell).val(predicates[i]);
+            if(predicates[i]) currentEvent[currentHeader].cells.push({"id":cell,"val":predicates[i]});
             for (var j = 0; j<subjects.length; j++ ){
                 _.forEach(cleanChanges, function(c){
                     if (c.pred === predicates[i] && c.sub === subjects[j]){
                         var objCell = "#" + alphabet[i+1] + (j + 2).toString();
-                        $(objCell).val(c.obj);
+                        if(c.obj) currentEvent[currentHeader].cells.push({"id":objCell,"val":c.obj});
                         return;
                     }
                 })
             }
         }
-
+        currentEvent[currentHeader].cells = _.uniqWith(currentEvent[currentHeader].cells, _.isEqual);
+        _.forEach(currentEvent[currentHeader].cells, function (c) {
+            $(c.id).val(c.val);
+        });
+        localStorage.setItem("currentEvent", JSON.stringify(currentEvent));
     };
 
     $(".nav-tabs").on("click", "a", function(e){
@@ -267,8 +314,15 @@
         var modal = $(this);
         modal.find('.modal-body input').val('');
     });
-    initTable();
-    DATA = {};
-    INPUTS = [].slice.call(document.querySelectorAll("input"));
-    initCellListeners();
+
+    var initEvent = function(){
+        initTable();
+        DATA = {};
+        INPUTS = [].slice.call(document.querySelectorAll("input"));
+        initCellListeners()
+    };
+
+    initLocalStorage();
+    initEvent();
+
 })();
