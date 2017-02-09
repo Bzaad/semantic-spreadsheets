@@ -17,10 +17,8 @@ object PDStoreModel {
 
   def beginStore = {
     store.begin
-    println("beginning the store!")
   }
   def commitStore = {
-    println("committing to store!")
     store.commit
   }
 
@@ -34,17 +32,28 @@ object PDStoreModel {
   }
 
   def query(query: JsValue): JsValue = {
+    beginStore
+    val changes = (query \ "msg" \ "changes").as[List[JsObject]]
+    var subjects = ListBuffer.empty[String]
+    var predicates = ListBuffer.empty[String]
+    var allQueries = ListBuffer.empty[JsValue]
 
-    val subjects = (query \ "msg" \ "subs").as[List[String]]
-    val predicates = (query \ "msg" \ "preds").as[List[String]]
-    var allQueries = ListBuffer[JsValue]()
+    changes.foreach{ change =>
+      val s = (change \ "sub").as[String]
+      val p = (change \ "pred").as[String]
+      subjects += s
+      predicates += p
+    }
+
+    subjects = subjects.distinct
+    predicates = predicates.distinct
 
     if (subjects.length == 1 ){
       predicates.foreach{ predicate =>
         val qGuid = computeGuid(predicate)
         val results = store.query((subjects(0), qGuid, v"x"))
         while(results.hasNext) {
-          var triple = new Triple(
+          val triple = new Triple(
             ta = "_",
             ch = "_",
             sub = subjects(0),
@@ -59,7 +68,7 @@ object PDStoreModel {
       subjects.foreach { subject =>
         val results = store.query((subject, qGuid, v"x"))
         while(results.hasNext){
-          var triple = new Triple(
+          val triple = new Triple(
             ta = "_",
             ch = "_",
             sub = subject,
@@ -74,7 +83,7 @@ object PDStoreModel {
     val message = new QMessage(
       changes = Json.toJson(allQueries)
     )
-
+    commitStore
     return Json.toJson(message)
   }
 

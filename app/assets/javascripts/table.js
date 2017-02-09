@@ -16,6 +16,8 @@
                 row.insertCell(-1).innerHTML = i&&j ? "<input type='cell' id='"+ letter+i +"'/>" : i||letter;
             }
         }
+        $("#A1").prop("disabled", true);
+        $('#A1').css("background-color", "#ccc");
     };
 
     var initCellListeners = function(){
@@ -26,24 +28,6 @@
                 if(!e.target.value || !currentHeader ) return;
                 else if (e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1") queryChange(e);
                 else addChange(e);
-                // TODO: need to be fixed ASAP
-                if(!_.some(currentEvent[currentHeader].cells, thisCell) || !currentEvent[currentHeader].cells) return;
-                else {
-                    var BreakException = {};
-                    try {
-                        _.each(currentEvent[currentHeader].cells, function (c) {
-                            if(c.id === thisCell.id && thisCell.value){
-                                currentEvent[currentHeader].cells  = _.filter(function(el){ return el.id !== c.id});
-                                throw BreakException;
-                            }
-                        });
-                    } catch (e) {
-                        if(e !== BreakException) throw e;
-                    }
-                    currentEvent[currentHeader].cells.push(thisCell);
-                }
-                console.log(currentEvent[currentHeader].cells);
-
             };
         });
     };
@@ -80,13 +64,14 @@
 
     var queryChange = function (e) {
         var qObj = { "subs" : [], "preds" : []};
+        var pdChange = {"changes": []};
         var message = {
             type: "query",
             header: currentHeader,
             user: "",
-            msg: qObj,
+            msg: pdChange,
             created: ""
-        }
+        };
         if(e.target.id.charAt(0) === "A"){
             qObj.subs.push(e.target.value);
             for (var i = 1; i < columns; i++){
@@ -103,19 +88,35 @@
                 if(cellSub && !cellObj) qObj.subs.push(cellSub);
             }
         }
+
         qObj.preds = _.uniq(qObj.preds);
         qObj.subs = _.uniq(qObj.subs);
+
         if(_.isEmpty(qObj.preds) || _.isEmpty(qObj.subs)) return;
-        else ws.send(JSON.stringify(message));
-    }
+
+        _.forEach(qObj.preds, function(p){
+            _.forEach(qObj.subs, function (s){
+                var chObj = {
+                    "ta": "_",
+                    "ch": "+",
+                    "sub": s,
+                    "pred": p,
+                    "obj": "_"
+                };
+                pdChange.changes.push(chObj);
+            });
+        });
+        console.log(pdChange);
+        ws.send(JSON.stringify(message));
+    };
 
     var headers = function () {
         return $(".nav-tabs");
-    }
+    };
 
     var addModal = function () {
         return $("#add-worksheet-modal");
-    }
+    };
 
     var addEl = '<li ><a href="#add" class="add-header" data-toggle="modal" data-target="#add-worksheet-modal"> + </a></li>'
 
@@ -177,14 +178,22 @@
             $(this).on('shown.bs.tab', function(el){
                 clearTable();
                 changeTable(el.target.text);
-                console.log(JSON.parse(localStorage.getItem('currentEvent'))[currentHeader])
+            });
+            $(this).on('hidden.bs.tab', function(el){
+                var eventData = JSON.parse(localStorage.getItem('currentEvent'));
+                eventData[currentHeader].cells = [];
+                INPUTS = [].slice.call(document.querySelectorAll("input"));
+                _.forEach(INPUTS, function(i){
+                    if(i.value) eventData[currentHeader].cells.push({"id":i.id, "val": i.value});
+                });
+               localStorage.setItem('currentEvent', JSON.stringify(eventData));
             });
         });
     };
 
     document.activeElement.onblur = function(e){
         console.log(e);
-    }
+    };
 
     ws.onerror = function (event) {
         return console.log("WS error: " + event);
@@ -199,17 +208,17 @@
 
     var createLable= function(message){
         ws.send(JSON.stringify(message));
-    }
+    };
 
     var changeTable = function(tableName){
         wipeTable();
         message = {
             type: "subscribe",
             header: tableName
-        }
+        };
         currentHeader = tableName;
         ws.send(JSON.stringify(message));
-    }
+    };
 
     var alphabet = _.map(_.range(
         'A'.charCodeAt(0),
@@ -224,7 +233,8 @@
                 $("#" + alphabet[i] + (j).toString()).val('');
             }
         }
-    }
+    };
+
     var clearTable = function() {
         subjects = [];
         predicates = [];
@@ -237,6 +247,7 @@
 
     var chartifyChanges = function (msgs, condition){
 
+        var previousEvent = jQuery.extend(true, {}, JSON.parse(localStorage.getItem('currentEvent')));
         var currentEvent = JSON.parse(localStorage.getItem('currentEvent'));
 
         switch(condition){
@@ -268,19 +279,20 @@
         predicates = _.uniq(predicates);
         //wipeTable();
         // add subjects to the table
+
         for (var i = 0; i < subjects.length; i++){
-            var cell = "#A" + (i + 2).toString();
+            var cell = "A" + (i + 2).toString();
             if(subjects[i]) currentEvent[currentHeader].cells.push({"id":cell,"val":subjects[i]});
         }
 
         // add predicates and objects to the table
         for (var i = 0; i<predicates.length; i++ ){
-            var cell = "#" + alphabet[i+1] + "1";
+            var cell = alphabet[i+1] + "1";
             if(predicates[i]) currentEvent[currentHeader].cells.push({"id":cell,"val":predicates[i]});
             for (var j = 0; j<subjects.length; j++ ){
                 _.forEach(cleanChanges, function(c){
                     if (c.pred === predicates[i] && c.sub === subjects[j]){
-                        var objCell = "#" + alphabet[i+1] + (j + 2).toString();
+                        var objCell = alphabet[i+1] + (j + 2).toString();
                         if(c.obj) currentEvent[currentHeader].cells.push({"id":objCell,"val":c.obj});
                         return;
                     }
@@ -289,9 +301,10 @@
         }
         currentEvent[currentHeader].cells = _.uniqWith(currentEvent[currentHeader].cells, _.isEqual);
         _.forEach(currentEvent[currentHeader].cells, function (c) {
-            $(c.id).val(c.val);
+            $("#" + c.id).val(c.val);
         });
         localStorage.setItem("currentEvent", JSON.stringify(currentEvent));
+        console.log(currentEvent, previousEvent);
     };
 
     $(".nav-tabs").on("click", "a", function(e){
