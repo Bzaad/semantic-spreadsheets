@@ -72,3 +72,12 @@ tr:first-child td, td:first-child {
     font-weight: bold;
     text-align: center;
 }
+
+.panel-group {
+    margin-bottom: 2px !important;
+    margin-top: 4px;
+}
+
+.time-btn {
+    float: right;
+}

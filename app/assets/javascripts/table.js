@@ -8,6 +8,8 @@
     var objects = [];
     var dirtyChanges = [];
 
+    $('#datetime').combodate();
+
     var initTable = function(){
         for (var i=0; i<rows; i++) {
             var row = document.querySelector("table").insertRow(-1);
@@ -44,7 +46,7 @@
         var $pred = $("#" + e.target.id.charAt(0) + (1).toString()).val();
         var pdChange = {"changes": [
             {
-                "ta": "_",
+                "ta": moment().format(),
                 "ch": "+",
                 "sub": $sub,
                 "pred": $pred,
@@ -97,7 +99,7 @@
         _.forEach(qObj.preds, function(p){
             _.forEach(qObj.subs, function (s){
                 var chObj = {
-                    "ta": "_",
+                    "ta": moment().format(),
                     "ch": "+",
                     "sub": s,
                     "pred": p,
