@@ -31,6 +31,12 @@ object PDStoreModel {
     store.setName(computeGuid(triple.pred), triple.pred)
   }
 
+  def tQuery(query: JsValue): JsValue = {
+    val changes = (query \ "msg" \ "changes").as[List[JsObject]]
+
+    return Json.toJson(query);
+  }
+
   def query(query: JsValue): JsValue = {
     beginStore
     val changes = (query \ "msg" \ "changes").as[List[JsObject]]
@@ -48,38 +54,22 @@ object PDStoreModel {
     subjects = subjects.distinct
     predicates = predicates.distinct
 
-    if (subjects.length == 1 ){
-      predicates.foreach{ predicate =>
+    predicates.foreach{ predicate =>
+      subjects.foreach{ subject =>
         val qGuid = computeGuid(predicate)
-        val results = store.query((subjects(0), qGuid, v"x"))
-        while(results.hasNext) {
+        val results = store.query((subject, qGuid, v"x"))
+        if(!results.isEmpty){
           val triple = new Triple(
             ta = "_",
             ch = "_",
-            sub = subjects(0),
+            sub = subject,
             pred = predicate,
             obj = results.next.get(v"x").toString
           )
           allQueries += Json.toJson(triple)
         }
       }
-    } else if (predicates.length == 1){
-      var qGuid = computeGuid(predicates(0))
-      subjects.foreach { subject =>
-        val results = store.query((subject, qGuid, v"x"))
-        while(results.hasNext){
-          val triple = new Triple(
-            ta = "_",
-            ch = "_",
-            sub = subject,
-            pred = predicates(0),
-            obj = results.next.get(v"x").toString
-          )
-          allQueries += Json.toJson(triple)
-        }
-      }
     }
-
     val message = new QMessage(
       changes = Json.toJson(allQueries)
     )

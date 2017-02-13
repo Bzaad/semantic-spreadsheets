@@ -8,7 +8,11 @@
     var objects = [];
     var dirtyChanges = [];
 
-    $('#datetime').combodate();
+    var datetime = $('#datetime').combodate({
+        minYear : 1975,
+        maxYear : moment().format("YYYY"),
+        value : moment().format("DD-MM-YYYY HH:mm")
+    });
 
     var initTable = function(){
         for (var i=0; i<rows; i++) {
@@ -25,6 +29,7 @@
     var initCellListeners = function(){
         var currentEvent = JSON.parse(localStorage.getItem('currentEvent'));
         INPUTS.forEach(function(elm) {
+            if (elm.id.length > 2 ) return;
             elm.onblur = function(e) {
                 var thisCell = {"id": e.target.id, "val": e.target.value};
                 if(!e.target.value || !currentHeader ) return;
@@ -38,7 +43,6 @@
         window.localStorage.clear();
         var eventObject = {};
         localStorage.setItem('currentEvent', JSON.stringify(eventObject));
-        console.log(localStorage.getItem('currentEvent'));
     }
 
     var addChange = function(e){
@@ -62,7 +66,64 @@
             created: ""
         };
         ws.send(JSON.stringify(message));
-    }
+    };
+
+    var queryAll = function(queryTime) {
+        var currentTable = JSON.parse(localStorage.getItem("currentEvent"))[currentHeader].cells;
+        var subs = [];
+        var preds = [];
+        var pdChange = {"changes": []};
+        var message = {
+            type: "t-query",
+            header: currentHeader,
+            user: "",
+            msg: pdChange,
+            created: ""
+        };
+
+        _.forEach(currentTable, function (cell) {
+            if(cell.id.charAt(0) === "A"){
+                subs.push(cell.val)
+            }else if(cell.id.charAt(1) === (1).toString()){
+                preds.push(cell.val);
+            }
+        });
+
+        subs = _.uniq(subs);
+        preds = _.uniq(preds);
+
+        _.forEach(subs, function(s){
+            _.forEach(preds, function (p) {
+                var ch = {
+                    "ta": queryTime,
+                    "ch": "_",
+                    "sub": s,
+                    "pred": p,
+                    "obj": "_"
+                }
+                pdChange.changes.push(ch);
+            })
+        });
+        ws.send(JSON.stringify(message));
+    };
+
+    var queryTemporal = function(e){
+        var queryTime = "";
+        switch (this.id){
+            case "temporal-q":
+                queryTime = $('#datetime').val();
+                break;
+            case "current-q":
+                queryTime = moment().format("DD-MM-YYY HH:mm")
+                break;
+        }
+        queryAll(queryTime);
+
+    };
+
+    $("#temporal-q").click(queryTemporal);
+
+    $("#current-q").click(queryTemporal);
 
     var queryChange = function (e) {
         var qObj = { "subs" : [], "preds" : []};
@@ -186,6 +247,7 @@
                 eventData[currentHeader].cells = [];
                 INPUTS = [].slice.call(document.querySelectorAll("input"));
                 _.forEach(INPUTS, function(i){
+                    if (i.id.length > 2 ) return;
                     if(i.value) eventData[currentHeader].cells.push({"id":i.id, "val": i.value});
                 });
                localStorage.setItem('currentEvent', JSON.stringify(eventData));
@@ -306,7 +368,6 @@
             $("#" + c.id).val(c.val);
         });
         localStorage.setItem("currentEvent", JSON.stringify(currentEvent));
-        console.log(currentEvent, previousEvent);
     };
 
     $(".nav-tabs").on("click", "a", function(e){
