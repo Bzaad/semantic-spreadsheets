@@ -207,7 +207,7 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
           val theMessage = PDStoreModel.query(js)
           js.validate[Message](messageReads)
             .map(message => (message.header, message.msg))
-            .foreach{case (header, msg) =>
+            .foreach{ case (header, msg) =>
                 val eventData = EventData(header, uid, theMessage, new java.util.Date())
               replicator ! Update(GSetKey[EventData](header), GSet.empty[EventData], WriteLocal) {
                 _ + eventData
@@ -217,10 +217,6 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
               }
               replicator ! FlushChanges
             }
-
-        case "t-query" =>
-          val theMessage = PDStoreModel.tQuery(js);
-          println(theMessage);
       }
   }
 }

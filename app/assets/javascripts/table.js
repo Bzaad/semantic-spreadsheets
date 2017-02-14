@@ -27,13 +27,21 @@
     };
 
     var initCellListeners = function(){
-        var currentEvent = JSON.parse(localStorage.getItem('currentEvent'));
+        if (!currentHeader) return;
         INPUTS.forEach(function(elm) {
             if (elm.id.length > 2 ) return;
             elm.onblur = function(e) {
-                var thisCell = {"id": e.target.id, "val": e.target.value};
-                if(!e.target.value || !currentHeader ) return;
-                else if (e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1") queryChange(e);
+                currentCells = JSON.parse(localStorage.getItem('currentEvent'))[currentHeader].cells;
+                if(!e.target.value || e.target.value === "_"|| !currentHeader) return;
+                else if (e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1"){
+                    _.forEach(currentCells, function(cc){
+                        if (cc.val === e.target.value && cc.id !== e.target.id){
+                            e.target.value = "";
+                            return;
+                        }
+                    })
+                    if(e.target.value) queryChange(e);
+                }
                 else addChange(e);
             };
         });
@@ -50,13 +58,13 @@
         var $pred = $("#" + e.target.id.charAt(0) + (1).toString()).val();
         var pdChange = {"changes": [
             {
-                "ta": moment().format(),
+                "ta": "_",
                 "ch": "+",
                 "sub": $sub,
                 "pred": $pred,
-                "obj": e.target.value
+                "obj": e.target.value.trim()
             }
-        ]}
+        ]};
         if(!pdChange.changes[0].sub || !pdChange.changes[0].pred || !pdChange.changes[0].obj) return;
         var message = {
             type: "change",
@@ -74,7 +82,7 @@
         var preds = [];
         var pdChange = {"changes": []};
         var message = {
-            type: "t-query",
+            type: "query",
             header: currentHeader,
             user: "",
             msg: pdChange,
@@ -114,7 +122,7 @@
                 queryTime = $('#datetime').val();
                 break;
             case "current-q":
-                queryTime = moment().format("DD-MM-YYY HH:mm")
+                queryTime = "_"
                 break;
         }
         queryAll(queryTime);
@@ -136,7 +144,7 @@
             created: ""
         };
         if(e.target.id.charAt(0) === "A"){
-            qObj.subs.push(e.target.value);
+            qObj.subs.push(e.target.value.trim());
             for (var i = 1; i < columns; i++){
                 var cellPred = $("#" + alphabet[i] + (1).toString()).val();
                 var cellObj = $("#" + alphabet[i] + e.target.id.charAt(1)).val();
@@ -144,7 +152,7 @@
             }
 
         } else if (e.target.id.charAt(1) === "1"){
-            qObj.preds.push(e.target.value);
+            qObj.preds.push(e.target.value.trim());
             for(var i = 2; i < rows; i++){
                 var cellSub = $("#A" + (i).toString()).val();
                 var cellObj = $("#" + e.target.id.charAt(0) + (i).toString()).val();
@@ -160,7 +168,7 @@
         _.forEach(qObj.preds, function(p){
             _.forEach(qObj.subs, function (s){
                 var chObj = {
-                    "ta": moment().format(),
+                    "ta": "_",
                     "ch": "+",
                     "sub": s,
                     "pred": p,
@@ -281,6 +289,8 @@
             header: tableName
         };
         currentHeader = tableName;
+        console.log(currentHeader);
+        initCellListeners();
         ws.send(JSON.stringify(message));
     };
 
@@ -316,6 +326,7 @@
 
         switch(condition){
             case "update":
+                //TODO: fix the current version query.
                 if(msgs.changes instanceof Array){
                     _.forEach(msgs.changes, function (c) {
                         dirtyChanges.push(c);
