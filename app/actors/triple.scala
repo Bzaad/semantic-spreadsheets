@@ -29,3 +29,19 @@ object QMessage {
 		}
 	}
 }
+
+case class PDChangeObj(ta: String, ch: String, sub: String, pred: String, obj: String)
+
+object PDChangeObj {
+	implicit val pDChangeObj = new Writes[PDChangeObj]{
+		def writes(pDChangeObj: PDChangeObj): JsValue = {
+			Json.obj(
+				"ta" -> pDChangeObj.ta,
+				"ch" -> pDChangeObj.ch,
+				"sub" -> pDChangeObj.sub,
+				"pred" -> pDChangeObj.pred,
+				"obj" -> pDChangeObj.obj
+			)
+		}
+	}
+}

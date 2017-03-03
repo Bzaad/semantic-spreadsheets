@@ -29,7 +29,7 @@
     var initCellListeners = function(){
         if (!currentHeader) return;
         INPUTS.forEach(function(elm) {
-            if (elm.id.length > 2 ) return;
+            //if (elm.id.length > 3 ) return;
             elm.onblur = function(e) {
                 currentCells = JSON.parse(localStorage.getItem('currentEvent'))[currentHeader].cells;
                 if(!e.target.value || e.target.value === "_"|| !currentHeader) return;
@@ -75,6 +75,32 @@
         };
         ws.send(JSON.stringify(message));
     };
+
+    var sparqlQuery = function() {
+        var pdChange = {
+            "changes": [
+                {
+                    "ta": "_",
+                    "ch": "+",
+                    "sub": "",
+                    "pred": "",
+                    "obj": ""
+                }
+            ]
+        };
+        sendSparql(pdChange);
+    }
+    var sendSparql = function(pdChangeList){
+
+        var message = {
+            type: "sparql",
+            header: currentHeader,
+            user: "",
+            msg: pdChangeList,
+            created: ""
+        };
+        ws.send(JSON.stringify(message));
+    }
 
     var queryAll = function(queryTime) {
         var currentTable = JSON.parse(localStorage.getItem("currentEvent"))[currentHeader].cells;
@@ -255,7 +281,7 @@
                 eventData[currentHeader].cells = [];
                 INPUTS = [].slice.call(document.querySelectorAll("input"));
                 _.forEach(INPUTS, function(i){
-                    if (i.id.length > 2 ) return;
+                    if (i.id.length > 3 ) return;
                     if(i.value) eventData[currentHeader].cells.push({"id":i.id, "val": i.value});
                 });
                localStorage.setItem('currentEvent', JSON.stringify(eventData));

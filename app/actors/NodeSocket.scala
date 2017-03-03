@@ -15,6 +15,10 @@ import akka.cluster.ddata.DistributedData
 import akka.cluster.ddata.Replicator._
 import akka.cluster.ddata.{GSet, GSetKey, LWWRegister, LWWRegisterKey}
 
+/**
+  *  One object per active client.
+  */
+
 object NodeSocket {
 
   def props(user: String)(out: ActorRef) = Props(new NodeSocket(user, out))
@@ -176,6 +180,13 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
       }
       replicator ! FlushChanges
     case js: JsValue =>
+
+      /**
+        * subscribe to different tables
+        * users can subscribe to one table at a time
+        * all changes that are being made to that particulart table will be instantly pushed
+        * to all the clients that have subscribed to that table
+        */
       ((js \ "type").as[String]) match {
         case "subscribe" =>
           val header = (js \ "header").as[String]
@@ -186,10 +197,13 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
             lastSubscribed = Some(header)
             replicator ! Get(GSetKey(header), ReadMajority(timeout = 5.seconds))
           }
+
+        /**
+          * add the changes to pdstore and notifies all the client subscribed to the
+          * table that the changes are being added from about changes
+          */
         case "change" =>
           parseChanges(js)
-          println(new java.util.Date())
-          println(js)
           js.validate[Message](messageReads)
             .map(message => (message.header, message.msg))
             .foreach { case (header, msg) =>
@@ -202,13 +216,30 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
               }
               replicator ! FlushChanges
             }
+
+        /**
+          * query changes based on the list of change objects recieved from the front-end
+          */
         case "query" =>
-          //incomplete
-          val theMessage = PDStoreModel.query(js)
+          val theMessage = PDStoreModel.tableQuery(js)
           js.validate[Message](messageReads)
             .map(message => (message.header, message.msg))
             .foreach{ case (header, msg) =>
                 val eventData = EventData(header, uid, theMessage, new java.util.Date())
+              replicator ! Update(GSetKey[EventData](header), GSet.empty[EventData], WriteLocal) {
+                _ + eventData
+              }
+              replicator ! Update(headerMsgKey(header), LWWRegister[EventData](null), WriteLocal){
+                reg => reg.withValue(eventData)
+              }
+              replicator ! FlushChanges
+            }
+        case "sparql" =>
+          val theMessage = PDStoreModel.sparqlQuery(js)
+          js.validate[Message](messageReads)
+            .map(message => (message.header, message.msg))
+            .foreach{ case (header, msg) =>
+              val eventData = EventData(header, uid, theMessage, new java.util.Date())
               replicator ! Update(GSetKey[EventData](header), GSet.empty[EventData], WriteLocal) {
                 _ + eventData
               }
