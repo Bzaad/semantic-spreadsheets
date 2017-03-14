@@ -69,6 +69,17 @@
                 @helper.form(routes.CurrentEvent.leave, 'class -> "button-form"){
                 }
             </div>
+        </div>        <div class="row">
+            <div class="col-sm-10">
+                User : @user
+            </div>
+            <div class="col-sm-2">
+                <a class="button-form-link" href="#">
+                    <span class="glyphicon glyphicon-log-out"></span> Logout
+                </a>
+                @helper.form(routes.CurrentEvent.leave, 'class -> "button-form"){
+                }
+            </div>
         </div>
     </div>
 }
