@@ -1,14 +1,11 @@
 @(user: String)(implicit request: play.api.mvc.RequestHeader, flash: Flash)
 
-@import views.html.elements.flashMessages
-@import views.html.elements.handlebars
-
-@main("event") {
+@main("Worksheets") {
     <div class="container">
         <ul class="nav nav-tabs">
             <li ><a href="#add" class="add-header" data-toggle="modal" data-target="#add-worksheet-modal"> + </a></li>
         </ul>
-        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <!-- <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
             <div class="panel panel-default">
                 <div class="panel-heading" role="tab" id="headingOne">
                     <h4 class="panel-title">
@@ -25,7 +22,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <div class="tab-content" style="margin-top: 10px">
             <div class="tab-pane fade in active">
                 <div id="table-area">
