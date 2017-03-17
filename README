@@ -1,12 +1,23 @@
 Semantic Spreadsheets Application
 =================================
 
-This is repository for the Semantic Spreadsheets application. 
-The project is built using Play Framework 2.5, Scala, and PDStore.
+This is the repository for the Semantic Spreadsheets application. 
+The project is built using Play Framework 2.5, Scala, and PDStore
+
 
 Installation
-===========
+============
 
 You need to have "IntellJ IDEA Ultimate" and "JDK 8" installed to be able to run the project
 
 A full guide on how to setup and run the project can be found in "\docs\" folder.
+
+Important Points
+================
+
+A full documentation of Play Framework and it's associated libraries can be found in "https://www.playframework.com/documentation/2.5.x/Home"
+
+A full documentation of Akka can be found in "http://akka.io/docs/"
+
+Important starting points are:
+-
