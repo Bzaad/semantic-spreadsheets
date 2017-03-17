@@ -20,4 +20,20 @@ A full documentation of Play Framework and it's associated libraries can be foun
 A full documentation of Akka can be found in "http://akka.io/docs/"
 
 Important starting points are:
--
+
+- "app/controllers/CurrentEvent.scala" and "conf/routes" that act as a gateway to the front-end and handles through WebSocket communications between the client and the server
+- "app/actors/NodeSocket.scala" that supports of request handling and publish/subscribe channels
+- "app/actors/PDStoreModel.scala" that supports all the function related to interacting with PDStore
+- "app/assets/javascripts/main.js" that handles the login page
+- "app/assets/javascribts/table.js" constracts and handles all the functions related to spreadsheet worksheets
+
+Other important files and folders are:
+- "app/views" that contains all the views in form of play-scala-HTML template
+- "app/assets/stylesheets/" that contains all the stylesheets for the HTML web pages
+- "public/" that contains additional javascript libraries and images used in the project
+- "test/" that contains all the test files for the project
+
+
+almost all of the javascript dependencies are being managed using WebJars. a complete documentation can be found in "http://www.webjars.org/documentation"
+The project (following the Play Framework)uses SBT as the build tool and task runner
+all the SBT plugins can be managed in "project/plugins.sbt"
