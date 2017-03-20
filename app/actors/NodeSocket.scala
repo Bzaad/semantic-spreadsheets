@@ -29,20 +29,10 @@ object NodeSocket {
   object Message {
     implicit val messageReads = Json.reads[Message]
   }
-
-  case class HeaderNameMessage(headerName: String)
-  object HeaderNameMessage {
-    implicit val headerNameMessageWrites = new Writes[HeaderNameMessage] {
-      def writes(headerNameMessage: HeaderNameMessage): JsValue = {
-        Json.obj(
-          "type" -> "headerName",
-          "headerName" -> headerNameMessage.headerName,
-          "headerId" -> headerNameMessage.headerName.hashCode
-        )
-      }
-    }
-  }
-
+  /**
+    * Ok
+    * @param headers
+    */
   case class HeadersListMessage(headers: Seq[String])
   object HeadersListMessage {
     implicit val headersListMessageWrites = new Writes[HeadersListMessage] {
@@ -55,6 +45,10 @@ object NodeSocket {
     }
   }
 
+  /**
+    * Ok
+    * @param msgs
+    */
   case class EventDataListMessage(msgs: Seq[EventData])
   object EventDataListMessage {
     implicit val eventDataListWrites = new Writes[EventDataListMessage] {
@@ -62,32 +56,6 @@ object NodeSocket {
         Json.obj(
           "type" -> "messages",
           "Messages" -> JsArray(eventData.msgs.map(Json.toJson(_)))
-        )
-      }
-    }
-  }
-
-  case class PdChange(ta: String, ch: String, sub: String, pred: String, obj: String)
-  object PdChange {
-    implicit val pdChangeWrites = new Writes[PdChange] {
-      def writes(pdChange: PdChange): JsValue ={
-        Json.obj(
-          "ta" -> pdChange.ta,
-          "ch" -> pdChange.ch,
-          "sub" -> pdChange.sub,
-          "pred" -> pdChange.pred,
-          "obj" -> pdChange.obj
-        )
-      }
-    }
-  }
-
-  case class PdChangeList(changes: Seq[PdChange])
-  object PdChangeList {
-    implicit val pdChangeListWrites = new Writes[PdChangeList] {
-      def writes(pdChangeList: PdChangeList): JsValue ={
-        Json.obj(
-          "changes" -> JsArray(pdChangeList.changes.map(Json.toJson(_)))
         )
       }
     }
@@ -107,22 +75,6 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
 
   replicator ! Get(headersKey, ReadMajority(timeout = 5.seconds))
 
-  def parseChanges(msg: JsValue): Unit = {
-    val theChanges = ( msg \ "msg" \ "changes" ).as[List[JsValue]]
-    PDStoreModel.beginStore
-    theChanges.foreach{ change =>
-      PDStoreModel.addTriple(
-        Triple(
-          ta = (change \ "ta").as[String],
-          ch = (change \ "ch").as[String],
-          sub = (change \ "sub").as[String],
-          pred = (change \  "pred").as[String],
-          obj = (change \ "obj").as[String]
-        )
-      )
-    }
-    PDStoreModel.commitStore
-  }
   def receive = LoggingReceive {
     case g @ GetSuccess(key, req) if key == headersKey =>
       val data = g.get(headersKey).elements.toSeq
@@ -202,7 +154,7 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
           * table that the changes are being added from about changes
           */
         case "change" =>
-          parseChanges(js)
+          PDStoreModel.addChanges(js)
           js.validate[Message](messageReads)
             .map(message => (message.header, message.msg))
             .foreach { case (header, msg) =>
