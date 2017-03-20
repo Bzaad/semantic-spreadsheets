@@ -13,12 +13,3 @@ GET     /assets/*file                                   @controllers.Assets.vers
 
 # map webjars assets
 GET     /webjars/*file                                  @controllers.WebJarAssets.at(file)
-
-# Get the triple and return the gotten triple along with a 200 message
-# POST 	/triples/add/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.add(tObject: String, tPredicate: String, tSubject: String)
-
-# Remove the triple and return a removed 200 message
-# DELETE /triples/delete/:tObject/:tPredicate/:tSubject 	@controllers.PdStore.remove(tObject: String, tPredicate: String, tSubject: String)
-
-# Query and return the results along with a 200
-# GET 	/triples/query/:qObject/:qPredicate/:qSubject 	@controllers.PdStore.query(qObject: String, qPredicate: String, qSubject: String)
