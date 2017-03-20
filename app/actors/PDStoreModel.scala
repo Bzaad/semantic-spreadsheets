@@ -22,8 +22,20 @@ object PDStoreModel {
     store.commit
   }
 
-  def addTriple(triple: Triple) = {
-    store.addLink(triple.sub, store.getGUIDwithName(triple.pred), triple.obj)
+  def addChanges(msg: JsValue) = {
+    val theChanges = ( msg \ "msg" \ "changes" ).as[List[JsValue]]
+    beginStore
+    theChanges.foreach{ change =>
+      val triple = Triple(
+        ta = (change \ "ta").as[String],
+        ch = (change \ "ch").as[String],
+        sub = (change \ "sub").as[String],
+        pred = (change \  "pred").as[String],
+        obj = (change \ "obj").as[String]
+      )
+      store.addLink(triple.sub, store.getGUIDwithName(triple.pred), triple.obj)
+    }
+    commitStore
   }
 
   def sparqlQuery(sparqlQ: JsValue): JsValue = {
@@ -122,9 +134,5 @@ object PDStoreModel {
   // just a place holder for remove function
   def remove(tSubject: String, tPredicate: String, tObject: String) = {
     println("removed the triple { " + tObject + "," + tPredicate + "," + tSubject + "}" )
-  }
-
-  def testFunc(triple: Triple) = {
-    println(triple)
   }
 }
