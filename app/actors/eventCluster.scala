@@ -9,6 +9,9 @@ import akka.cluster.Cluster
 import akka.cluster.ClusterEvent.{InitialStateAsEvents, MemberEvent, MemberRemoved, MemberUp, UnreachableMember}
 import akka.event.LoggingReceive
 
+/**
+  * TODO: document the code
+  */
 class EventCluster extends Actor with ActorLogging {
   val cluster = Cluster(context.system)
 

@@ -180,7 +180,6 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
       }
       replicator ! FlushChanges
     case js: JsValue =>
-
       /**
         * subscribe to different tables
         * users can subscribe to one table at a time
@@ -234,6 +233,10 @@ class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
               }
               replicator ! FlushChanges
             }
+
+        /**
+          * revices a query in form of sparql
+          */
         case "sparql" =>
           val theMessage = PDStoreModel.sparqlQuery(js)
           js.validate[Message](messageReads)

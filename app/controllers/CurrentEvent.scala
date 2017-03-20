@@ -31,7 +31,7 @@ class CurrentEvent @Inject() (val messagesApi: MessagesApi, system: ActorSystem,
 
   def index = Action { implicit request =>
     request.session.get(Node).map { node =>
-      Redirect(routes.CurrentEvent.tabs()).flashing("info" -> s"Redirected to chat as $node node")
+      Redirect(routes.CurrentEvent.tabs()).flashing("info" -> s"Redirected to event as $node node")
     }getOrElse(Ok(views.html.index(tempForm)))
   }
 
