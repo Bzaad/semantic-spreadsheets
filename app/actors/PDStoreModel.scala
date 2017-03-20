@@ -46,16 +46,15 @@ object PDStoreModel {
     var ta: String = (jsobject \ "ta").as[String]
     val currentTa = store.getCurrentTransaction
 
-    if (obj.charAt(0) == "?") {
+    if (obj.charAt(0) == '?') {
       obj = store.gV(obj.stripPrefix("?")).toString()
     }
-    if(pred.charAt(0) == "?"){
+    if(pred.charAt(0) == '?'){
       pred = store.gV(pred.stripPrefix("?")).toString()
     }
-    if(sub.charAt(0) == "?"){
+    if(sub.charAt(0) == '?'){
       sub = store.gV(pred.stripPrefix("?")).toString()
     }
-
     (currentTa, (pdstore.ChangeType.fromStringSymbol((jsobject \ "ch").as[String])), sub, pred, obj)
   }
 
