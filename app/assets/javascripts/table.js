@@ -1,3 +1,27 @@
+/*
+    Specification  for  a JSON format
+    for a list of PDChange objects, which is simply:
+
+    {changes:
+        [{ta: ..... , ch: ,  sub:..... , pred: .... , obj: ....},
+        {ta: ..... , ch: ,  sub:..... , pred: .... , obj: ....},
+            ....
+        {ta: ..... , ch: , sub:..... , pred: .... , obj: ....}]
+    }
+
+    ta: is the transaction, for the first moment this is a timestamp.
+    ch: is the change type, this should be "+" or "-" and be translated into ADD/DELETE.
+        the rest are subject, predicate, object.
+
+    Such an object is passed to :
+    addTransaction() as a transaction
+    sparql() as a query, containing the change templates.
+
+    e.g. the routes-file should probably contain:
+    # Submit a complete transaction
+    POST     /pdcore/addTransaction/:transaction
+    @controllers.PdStore.add(transaction: JSONObject)
+*/
 
 (function(){
     var DATA, INPUTS;
