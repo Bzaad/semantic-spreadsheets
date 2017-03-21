@@ -29,37 +29,6 @@ object NodeSocket {
   object Message {
     implicit val messageReads = Json.reads[Message]
   }
-  /**
-    * Ok
-    * @param headers
-    */
-  case class HeadersListMessage(headers: Seq[String])
-  object HeadersListMessage {
-    implicit val headersListMessageWrites = new Writes[HeadersListMessage] {
-      def writes(headersListMessage: HeadersListMessage): JsValue = {
-        Json.obj(
-          "type" -> "headers",
-          "headers" -> JsArray(headersListMessage.headers.map(JsString(_)))
-        )
-      }
-    }
-  }
-
-  /**
-    * Ok
-    * @param msgs
-    */
-  case class EventDataListMessage(msgs: Seq[EventData])
-  object EventDataListMessage {
-    implicit val eventDataListWrites = new Writes[EventDataListMessage] {
-      def writes(eventData: EventDataListMessage): JsValue ={
-        Json.obj(
-          "type" -> "messages",
-          "Messages" -> JsArray(eventData.msgs.map(Json.toJson(_)))
-        )
-      }
-    }
-  }
 }
 
 class NodeSocket(uid: String, out: ActorRef) extends Actor with ActorLogging {
