@@ -1,13 +1,8 @@
 package actors
 
-import java.security.MessageDigest
 import pdstore._
 import pdstore.GUID
-import actors.Triple._
-
-
 import scala.collection.mutable.ListBuffer
-
 import play.api.libs.json._
 
 case class PDStoreModel()
@@ -15,15 +10,20 @@ case class PDStoreModel()
 object PDStoreModel {
   val store = new PDStore("pdstore_dd")
 
-  def beginStore = {
+  def addChanges(msg: JsValue) = {
+    val theChanges = ( msg \ "msg" \ "changes" ).as[List[JsValue]]
     store.begin
-  }
-  def commitStore = {
+    theChanges.foreach{ change =>
+      val triple = Triple(
+        ta = (change \ "ta").as[String],
+        ch = (change \ "ch").as[String],
+        sub = (change \ "sub").as[String],
+        pred = (change \  "pred").as[String],
+        obj = (change \ "obj").as[String]
+      )
+      store.addLink(triple.sub, store.getGUIDwithName(triple.pred), triple.obj)
+    }
     store.commit
-  }
-
-  def addTriple(triple: Triple) = {
-    store.addLink(triple.sub, store.getGUIDwithName(triple.pred), triple.obj)
   }
 
   def sparqlQuery(sparqlQ: JsValue): JsValue = {
@@ -59,7 +59,7 @@ object PDStoreModel {
   }
 
   def tableQuery(query: JsValue): JsValue = {
-    beginStore
+    store.begin
     val changes = (query \ "msg" \ "changes").as[List[JsObject]]
     var subjects = ListBuffer.empty[String]
     var predicates = ListBuffer.empty[String]
@@ -115,16 +115,12 @@ object PDStoreModel {
     val message = new QMessage(
       changes = Json.toJson(allQueries)
     )
-    commitStore
+    store.commit
     return Json.toJson(message)
   }
 
   // just a place holder for remove function
   def remove(tSubject: String, tPredicate: String, tObject: String) = {
     println("removed the triple { " + tObject + "," + tPredicate + "," + tSubject + "}" )
-  }
-
-  def testFunc(triple: Triple) = {
-    println(triple)
   }
 }
