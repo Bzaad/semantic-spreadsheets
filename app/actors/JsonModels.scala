@@ -1,5 +1,10 @@
 package actors
 
+/**
+	* Full documentation for how to handle JSON objects in Play Framework:
+	* "https://www.playframework.com/documentation/2.5.x/ScalaJson"
+	*/
+
 import play.api.libs.json._
 
 /**
@@ -20,6 +25,27 @@ object Triple {
 				"sub" -> triple.sub,
 				"pred" -> triple.pred,
 				"obj" -> triple.obj
+			)
+		}
+	}
+}
+
+/**
+	* Event data Json Object for the messages sent and received by users
+	* @param header
+	* @param user
+	* @param changes
+	* @param created
+	*/
+case class EventData(header: String, user: String, changes: JsValue, created: java.util.Date)
+object EventData {
+	implicit val eventDataWrites = new Writes[EventData] {
+		def writes(eventData: EventData): JsValue = {
+			Json.obj(
+				"type" -> "change",
+				"header" -> eventData.header,
+				"user" -> eventData.user,
+				"changes" -> eventData.changes
 			)
 		}
 	}
