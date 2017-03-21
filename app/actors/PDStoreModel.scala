@@ -10,16 +10,9 @@ case class PDStoreModel()
 object PDStoreModel {
   val store = new PDStore("pdstore_dd")
 
-  def beginStore = {
-    store.begin
-  }
-  def commitStore = {
-    store.commit
-  }
-
   def addChanges(msg: JsValue) = {
     val theChanges = ( msg \ "msg" \ "changes" ).as[List[JsValue]]
-    beginStore
+    store.begin
     theChanges.foreach{ change =>
       val triple = Triple(
         ta = (change \ "ta").as[String],
@@ -30,7 +23,7 @@ object PDStoreModel {
       )
       store.addLink(triple.sub, store.getGUIDwithName(triple.pred), triple.obj)
     }
-    commitStore
+    store.commit
   }
 
   def sparqlQuery(sparqlQ: JsValue): JsValue = {
@@ -66,7 +59,7 @@ object PDStoreModel {
   }
 
   def tableQuery(query: JsValue): JsValue = {
-    beginStore
+    store.begin
     val changes = (query \ "msg" \ "changes").as[List[JsObject]]
     var subjects = ListBuffer.empty[String]
     var predicates = ListBuffer.empty[String]
@@ -122,7 +115,7 @@ object PDStoreModel {
     val message = new QMessage(
       changes = Json.toJson(allQueries)
     )
-    commitStore
+    store.commit
     return Json.toJson(message)
   }
 
