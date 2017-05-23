@@ -32,6 +32,10 @@
     var objects = [];
     var dirtyChanges = [];
 
+    /**
+     * date and time configuration object for combodate.js
+     * documentation: "http://vitalets.github.io/combodate/"
+     */
     var datetime = $('#datetime').combodate({
         minYear : 1975,
         maxYear : moment().format("YYYY"),
