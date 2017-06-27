@@ -1,34 +1,17 @@
 name := """semantic-spreadsheets"""
+organization := "com.aucklanduni"
 
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-val akkaVersion = "2.4.2"
+scalaVersion := "2.11.11"
 
-scalaVersion := "2.11.7"
+libraryDependencies += filters
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % Test
 
-libraryDependencies ++= Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-  "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion,
-  "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
-  "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
-  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
-  "org.webjars" %% "webjars-play" % "2.4.0",
-  "org.webjars" % "bootstrap" % "3.3.4",
-  "org.webjars" % "jquery" % "2.1.4",
-  "org.webjars" % "lodash" % "4.15.0",
-  "org.webjars" % "momentjs" % "2.17.1",
-  specs2 % Test
-)
+// Adds additional packages into Twirl
+//TwirlKeys.templateImports += "com.aucklanduni.controllers._"
 
-resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
-
-LessKeys.compress in Assets := true
-
-pipelineStages := Seq(digest)
-
-includeFilter in (Assets, LessKeys.less) := "*.less"
-
-javaOptions in Test ++= Seq("-Dlogger.resource=logback-test.xml")
+// Adds additional packages into conf/routes
+// play.sbt.routes.RoutesKeys.routesImport += "com.aucklanduni.binders._"

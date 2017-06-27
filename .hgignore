@@ -2,6 +2,7 @@
 syntax: glob
 bin/
 /db
+‫.‬
 .eclipse
 /lib/
 /logs/
