@@ -17,6 +17,7 @@ server.pid
 logs
 target
 .idea
+.idea/modules.xml
 .idea_modules
 ‫/‬.classpath
 ‫/‬.project
