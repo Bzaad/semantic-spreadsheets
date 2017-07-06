@@ -12,12 +12,14 @@ object UserGroup {
   def props(groupId: String): Props = Props(new UserGroup(groupId))
 }
 
-class userGroup (groupId: String) extends Actor with ActorLogging {
+class UserGroup (groupId: String) extends Actor with ActorLogging {
   var userIdToActor = Map.empty[String, ActorRef]
 
   override def preStart(): Unit = log.info("UserGroup {} started!", groupId)
 
   override def postStop(): Unit = log.info("UserGroup {} stopped!", groupId)
+
+  override def receive: Receive = ???
 }
 
 object UserManager {
@@ -58,7 +60,7 @@ class User(groupId: String, userId: String) extends Actor with ActorLogging {
 
   override def preStart(): Unit = log.info("User Actor {}-{} Started!", groupId, userId)
 
-  override def postStop(): Unit = log.info("User Actor {}-{} Stoped!", groupId, userId)
+  override def postStop(): Unit = log.info("User Actor {}-{} Stopped!", groupId, userId)
 
   override def receive: Receive = {
 
