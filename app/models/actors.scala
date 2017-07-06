@@ -1,6 +1,6 @@
 package models
 
-import akka.actor._
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import models.User._
 import models.UserManager._
 
@@ -12,22 +12,37 @@ object UserGroup {
   def props(groupId: String): Props = Props(new UserGroup(groupId))
 }
 
-class UserGroup (groupId: String) extends Actor with ActorLogging {
+class UserGroup(groupId: String) extends Actor with ActorLogging {
   var userIdToActor = Map.empty[String, ActorRef]
 
   override def preStart(): Unit = log.info("UserGroup {} started!", groupId)
 
   override def postStop(): Unit = log.info("UserGroup {} stopped!", groupId)
 
-  override def receive: Receive = ???
+  override def receive: Receive = {
+    case trackMsg @ RequestTrackUser(`groupId`, _) =>
+      userIdToActor.get(trackMsg.userId) match {
+        case Some(userActor) =>
+          userActor forward trackMsg
+        case None =>
+          log.info("Creating user actor for {}!", trackMsg.userId)
+          val userActor = context.actorOf(User.props(groupId, trackMsg.userId), s"device-${trackMsg.userId}")
+          userIdToActor += trackMsg.userId -> userActor
+          userActor forward trackMsg
+      }
+    case RequestTrackUser(groupId, userId) =>
+      log.warning(
+        "Ignoring TrackUser request for {}. This actor is responsible for {}.",
+        groupId, this.groupId
+      )
+  }
 }
-
 object UserManager {
 
   def props: Props = Props(new UserManager)
 
   final case class RequestTrackUser(groupId: String, userId: String)
-  case object DeviceRegistered
+  case object UserRegistered
 }
 
 class UserManager extends Actor with ActorLogging {
@@ -65,7 +80,7 @@ class User(groupId: String, userId: String) extends Actor with ActorLogging {
   override def receive: Receive = {
 
     case RequestTrackUser(`groupId`, `userId`) =>
-      sender() ! DeviceRegistered
+      sender() ! UserRegistered
 
     case RequestTrackUser(groupId, userId) =>
       log.warning(
