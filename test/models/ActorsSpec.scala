@@ -16,18 +16,18 @@ import scala.concurrent.duration._
 class ActorsSpec extends Specification {
 
   "User Actor" should {
-    val actorSystem = ActorSystem("test")
+    implicit val system = ActorSystem("test")
 
-    class Actors extends TestKit(actorSystem) with Scope
+    class Actors extends TestKit(system) with Scope
 
     val app = new GuiceApplicationBuilder()
-      .overrides(bind[ActorSystem].toInstance(actorSystem))
+      .overrides(bind[ActorSystem].toInstance(system))
       .build()
 
       "reply with empty reading if no data exists" in new Actors {
         running(app) {
           val probe = TestProbe()
-          val userActor = actorSystem.actorOf(User.props("group", "user"))
+          val userActor = system.actorOf(User.props("group", "user"))
 
           userActor.tell(User.ReadData(requestId = 42), probe.ref)
           val response = probe.expectMsgType[User.RespondData]
@@ -39,7 +39,7 @@ class ActorsSpec extends Specification {
       "reply to registration requests" in new Actors{
         running(app) {
           val probe = TestProbe()
-          val userActor = actorSystem.actorOf(User.props("group", "user"))
+          val userActor = system.actorOf(User.props("group", "user"))
 
           userActor.tell(UserManager.RequestTrackUser("group", "user"), probe.ref)
           probe.expectMsg(UserManager.UserRegistered)
@@ -51,13 +51,66 @@ class ActorsSpec extends Specification {
       "ignore wrong regesteration requests" in new Actors{
         running(app) {
           val probe = TestProbe()
-          val userActor = actorSystem.actorOf(User.probs("group", "user"))
+          val userActor = system.actorOf(User.props("group", "user"))
 
           userActor.tell(UserManager.RequestTrackUser("wrongGroup", "user"), probe.ref)
           probe.expectNoMsg(500.milliseconds)
 
           userActor.tell(UserManager.RequestTrackUser("group", "wrongUser"), probe.ref)
           probe.expectNoMsg(500.millisecond)
+        }
+      }
+
+      "be able to register a device actor" in {
+        running(app){
+          val probe = TestProbe()
+          val groupActor = system.actorOf(UserGroup.props("group"))
+
+          groupActor.tell(UserManager.RequestTrackUser("group", "user1"), probe.ref)
+          probe.expectMsg(UserManager.UserRegistered)
+          val userActor1 = probe.lastSender
+
+          groupActor.tell(UserManager.RequestTrackUser("group", "user2"), probe.ref)
+          probe.expectMsg(UserManager.UserRegistered)
+          val userActor2 = probe.lastSender
+          userActor1 should !== (userActor2)
+
+          // TODO: try to find why these two don't work!
+          /**
+          // Check that the user actors are working
+          userActor1.tell(User.RecordData(requestId = 0, value = 1.0), probe.ref)
+          probe.expectMsg(User.DataRecorded(requestId = 0))
+          userActor2.tell(User.RecordData(requestId = 1, value = 2.0), probe.ref)
+          probe.expectMsg(User.DataRecorded(requestId = 1))
+            */
+        }
+      }
+      /**
+      "ignore requests for wrong groupId" in {
+        running(app) {
+          val probe = TestProbe()
+          val groupActor = system.actorOf(UserGroup.props("group"))
+
+          groupActor.tell(UserManager.RequestTrackUser("wrongGroup","user1"), probe.ref)
+          probe.expectNoMsg(500.milliseconds)
+        }
+      }
+        */
+
+      "return same actor for same userId" in {
+        running(app) {
+          val probe = TestProbe()
+          val groupActor = system.actorOf(UserGroup.props("group"))
+
+          groupActor.tell(UserManager.RequestTrackUser("group", "user1"), probe.ref)
+          probe.expectMsg(UserManager.UserRegistered)
+          val userActor1 = probe.lastSender
+
+          groupActor.tell(UserManager.RequestTrackUser("group", "user1"), probe.ref)
+          probe.expectMsg(UserManager.UserRegistered)
+          val userActor2 = probe.lastSender
+
+          userActor1 should ===(userActor2)
         }
       }
 
