@@ -1,6 +1,6 @@
 package models
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, PoisonPill}
 import akka.testkit.{TestKit, TestProbe}
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -111,6 +111,77 @@ class ActorsSpec extends Specification {
           userActor1 should ===(userActor2)
         }
       }
+
+    "be able to list active users" in new WithApplication {
+      running(app) {
+        val probe = TestProbe()
+        val groupActor = system.actorOf(UserGroup.props("group"))
+
+        groupActor.tell(UserManager.RequestTrackUser("group", "user1"), probe.ref)
+        probe.expectMsg(UserManager.UserRegistered)
+
+        groupActor.tell(UserManager.RequestTrackUser("group", "user2"), probe.ref)
+        probe.expectMsg(UserManager.UserRegistered)
+
+        groupActor.tell(UserGroup.RequestUserList(requestId = 0), probe.ref)
+        probe.expectMsg(UserGroup.ReplyUserList(requestId = 0, Set("user1", "user2")))
+      }
+    }
+
+
+    "be able to list active users after one shuts down" in new WithApplication {
+      running(app) {
+        val probe = TestProbe()
+        val groupActor = system.actorOf(UserGroup.props("group"))
+
+        groupActor.tell(UserManager.RequestTrackUser("group", "user1"), probe.ref)
+        probe.expectMsg(UserManager.UserRegistered)
+        val toShutDown = probe.lastSender
+
+        groupActor.tell(UserManager.RequestTrackUser("group", "user2"), probe.ref)
+        probe.expectMsg(UserManager.UserRegistered)
+
+        groupActor.tell(UserGroup.RequestUserList(requestId = 0), probe.ref)
+        probe.expectMsg(UserGroup.ReplyUserList(requestId = 0, Set("user1", "user2")))
+
+        probe.watch(toShutDown)
+        toShutDown ! PoisonPill
+        probe.expectTerminated(toShutDown)
+
+        // using awaitAssert to retry because it might take longer for the groupActor
+        // to see the Terminated, that order is undefined
+        probe.awaitAssert {
+          groupActor.tell(UserGroup.RequestUserList(requestId = 1), probe.ref)
+          probe.expectMsg(UserGroup.ReplyUserList(requestId = 1, Set("user2")))
+        }
+
+      }
+
+      "be able register multiple group actor and shout them down" in new WithApplication {
+        running(app) {
+          val probe = TestProbe()
+          val userGroupActor = system.actorOf(UserManager.props)
+
+          userGroupActor.tell(UserManager.RequestTrackUser("group1", "user"), probe.ref)
+          probe.expectMsg(UserManager.UserRegistered)
+          val toShutDown1 = probe.lastSender
+
+          userGroupActor.tell(UserManager.RequestTrackUser("group2", "user"), probe.ref)
+          probe.expectMsg(UserManager.UserRegistered)
+          val toShutDown2 = probe.lastSender
+
+          probe.watch(toShutDown1)
+          toShutDown1 ! PoisonPill
+          probe.expectTerminated(toShutDown1)
+
+          probe.watch(toShutDown2)
+          toShutDown2 ! PoisonPill
+          probe.expectTerminated(toShutDown2)
+
+        }
+      }
+      
+    }
 
     }
 }
