@@ -7,8 +7,8 @@ import org.specs2.specification.Scope
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers._
+import play.api.test.WithApplication
 import scala.concurrent.duration._
-
 
 /**
   * Created by behzadfarokhi on 28/06/17.
@@ -24,7 +24,7 @@ class ActorsSpec extends Specification {
       .overrides(bind[ActorSystem].toInstance(system))
       .build()
 
-      "reply with empty reading if no data exists" in new Actors {
+      "reply with empty reading if no data exists" in new WithApplication {
         running(app) {
           val probe = TestProbe()
           val userActor = system.actorOf(User.props("group", "user"))
@@ -36,7 +36,7 @@ class ActorsSpec extends Specification {
         }
       }
 
-      "reply to registration requests" in new Actors{
+      "reply to registration requests" in new WithApplication{
         running(app) {
           val probe = TestProbe()
           val userActor = system.actorOf(User.props("group", "user"))
@@ -48,7 +48,7 @@ class ActorsSpec extends Specification {
         }
       }
 
-      "ignore wrong regesteration requests" in new Actors{
+      "ignore wrong regesteration requests" in new WithApplication{
         running(app) {
           val probe = TestProbe()
           val userActor = system.actorOf(User.props("group", "user"))
@@ -61,7 +61,7 @@ class ActorsSpec extends Specification {
         }
       }
 
-      "be able to register a device actor" in {
+      "be able to register a device actor" in new WithApplication {
         running(app){
           val probe = TestProbe()
           val groupActor = system.actorOf(UserGroup.props("group"))
@@ -75,18 +75,16 @@ class ActorsSpec extends Specification {
           val userActor2 = probe.lastSender
           userActor1 should !== (userActor2)
 
-          // TODO: try to find why these two don't work!
-          /**
           // Check that the user actors are working
           userActor1.tell(User.RecordData(requestId = 0, value = 1.0), probe.ref)
           probe.expectMsg(User.DataRecorded(requestId = 0))
           userActor2.tell(User.RecordData(requestId = 1, value = 2.0), probe.ref)
           probe.expectMsg(User.DataRecorded(requestId = 1))
-            */
+
         }
       }
-      /**
-      "ignore requests for wrong groupId" in {
+
+      "ignore requests for wrong groupId" in new WithApplication {
         running(app) {
           val probe = TestProbe()
           val groupActor = system.actorOf(UserGroup.props("group"))
@@ -95,9 +93,9 @@ class ActorsSpec extends Specification {
           probe.expectNoMsg(500.milliseconds)
         }
       }
-        */
 
-      "return same actor for same userId" in {
+
+      "return same actor for same userId" in new WithApplication {
         running(app) {
           val probe = TestProbe()
           val groupActor = system.actorOf(UserGroup.props("group"))
