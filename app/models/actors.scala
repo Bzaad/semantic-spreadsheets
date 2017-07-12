@@ -1,13 +1,13 @@
 package models
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
-import models.User._
-import models.UserGroup._
-import models.UserManager._
-
 /**
   * Created by behzadfarokhi on 29/06/17.
   */
+
+import scala.concurrent.duration.FiniteDuration
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
+import models.UserManager._
+
 
 object UserGroup {
 
@@ -15,9 +15,99 @@ object UserGroup {
 
   final case class RequestUserList(requestId: Long)
   final case class ReplyUserList(requestId: Long, ids: Set[String])
+
+  final case class RequestAllData(requestId: Long)
+  final case class RespondAllData(requestId: Long, theData: Map[String, DataReading])
+
+  // TODO: Change the value to JsValue
+  sealed trait DataReading
+  final case class TheData(value: Double) extends DataReading
+  case object DataNotAvailable extends DataReading
+  case object UserNotAvailable extends DataReading
+  case object UserTimedOut extends DataReading
+}
+
+object UserGroupQuery {
+  case object CollectionTimeout
+
+  def props(
+    actorToUserId: Map[ActorRef, String],
+    requestId:     Long,
+    requester:     ActorRef,
+    timeout:       FiniteDuration
+  ): Props = {
+    Props(new UserGroupQuery(actorToUserId, requestId, requester, timeout))
+  }
+}
+
+class UserGroupQuery(
+  actorToUserId:  Map[ActorRef, String],
+  requestId:      Long,
+  requester:      ActorRef,
+  timeout:        FiniteDuration
+) extends Actor with ActorLogging {
+  import UserGroupQuery._
+  import context.dispatcher
+  val queryTimeoutTimer = context.system.scheduler.scheduleOnce(timeout, self, CollectionTimeout)
+
+  override def preStart(): Unit = {
+    actorToUserId.keysIterator.foreach { userActor =>
+      context.watch(userActor)
+      userActor ! User.ReadData(0)
+    }
+  }
+
+  override def postStop(): Unit = {
+    queryTimeoutTimer.cancel()
+  }
+
+  override def receive: Receive = waitingForReplies(Map.empty, actorToUserId.keySet)
+
+  def waitingForReplies(repliesSoFar: Map[String, UserGroup.DataReading], stillWaiting: Set[ActorRef]): Receive = {
+
+    case User.RespondData(0, valueOption) =>
+      val userActor = sender()
+      val reading = valueOption match {
+        case Some(value) => UserGroup.TheData(value)
+        case None => UserGroup.DataNotAvailable
+      }
+
+      receivedResponse(userActor, reading, stillWaiting, repliesSoFar)
+
+    case Terminated(userActor) =>
+      receivedResponse(userActor, UserGroup.UserNotAvailable, stillWaiting, repliesSoFar)
+
+    case CollectionTimeout =>
+      val timedOutReplies = stillWaiting.map { userActor =>
+        val userId = actorToUserId(userActor)
+        userId -> UserGroup.UserTimedOut
+      }
+    requester ! UserGroup.RespondAllData(requestId, repliesSoFar ++ timedOutReplies)
+      context.stop(self)
+  }
+
+  def receivedResponse(
+    userActor:    ActorRef,
+    reading:      UserGroup.DataReading,
+    stillWaiting: Set[ActorRef],
+    repliesSoFar: Map[String, UserGroup.DataReading]
+  ): Unit = {
+    context.unwatch(userActor)
+    val userId = actorToUserId(userActor)
+    val newStillWaiting = stillWaiting - userActor
+
+    val newRepliesSoFar = repliesSoFar + (userId -> reading)
+    if (newStillWaiting.isEmpty) {
+      requester ! UserGroup.RespondAllData(requestId, newRepliesSoFar)
+      context.stop(self)
+    } else {
+      context.become(waitingForReplies(newRepliesSoFar, newStillWaiting))
+    }
+  }
 }
 
 class UserGroup(groupId: String) extends Actor with ActorLogging {
+  import UserGroup._
 
   var userIdToActor = Map.empty[String, ActorRef]
   var actorToUserId = Map.empty[ActorRef, String]
@@ -110,6 +200,7 @@ object User {
 }
 
 class User(groupId: String, userId: String) extends Actor with ActorLogging {
+  import User._
 
   var lastDataReading: Option[Double] = None
 
