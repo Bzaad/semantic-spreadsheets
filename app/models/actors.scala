@@ -4,7 +4,7 @@ package models
   * Created by behzadfarokhi on 29/06/17.
   */
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import models.UserManager._
 
@@ -145,6 +145,14 @@ class UserGroup(groupId: String) extends Actor with ActorLogging {
       log.info("Device actor for {} has been terminated!", userId)
       actorToUserId -= userActor
       userIdToActor -= userId
+
+    case RequestAllData(requestId) =>
+      context.actorOf(UserGroupQuery.props(
+        actorToUserId = actorToUserId,
+        requestId = requestId,
+        requester = sender(),
+        3.seconds
+      ))
   }
 }
 object UserManager {
