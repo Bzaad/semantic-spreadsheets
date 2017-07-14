@@ -319,12 +319,25 @@ class ActorsSpec extends Specification {
         probe.expectMsg(UserManager.UserRegistered)
         val userActor3 = probe.lastSender
 
+
+        // Check that the user actors are working
         userActor1.tell(User.RecordData(requestId = 0, 1.0), probe.ref)
         probe.expectMsg(User.DataRecorded(requestId = 0))
         userActor2.tell(User.RecordData(requestId = 1, 2.0), probe.ref)
         probe.expectMsg(User.DataRecorded(requestId = 1))
-        userActor1.tell(User.RecordData(requestId = 2, 3.0), probe.ref)
-        probe.expectMsg(User.DataRecorded(requestId = 2))
+        // No data for user3
+
+        groupActor.tell(UserGroup.RequestAllData(requestId = 0), probe.ref)
+        probe.expectMsg(
+          UserGroup.RespondAllData(
+            requestId = 0,
+            theData = Map(
+              "user1" -> UserGroup.TheData(1.0),
+              "user2" -> UserGroup.TheData(2.0),
+              "user3" -> UserGroup.DataNotAvailable
+            )
+          )
+        )
       }
     }
 
