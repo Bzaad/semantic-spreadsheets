@@ -61,7 +61,7 @@ class ActorsSpec extends Specification {
       }
     }
 
-    "be able to register a device actor" in new WithApplication {
+    "be able to register a user actor" in new WithApplication {
       running(app) {
         val probe = TestProbe()
         val groupActor = system.actorOf(UserGroup.props("group"))
