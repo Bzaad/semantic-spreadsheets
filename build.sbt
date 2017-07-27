@@ -3,7 +3,9 @@ organization := "com.aucklanduni"
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
+
+pipelineStages := Seq(rjs)
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -18,6 +20,11 @@ libraryDependencies += guice
 
 //WebJars Dependencies
 libraryDependencies += "org.webjars" %% "webjars-play" % "2.6.0"
+libraryDependencies += "org.webjars" % "jquery" % "3.2.1"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.3.7-1"
+libraryDependencies += "org.webjars.bower" % "lodash" % "4.17.4"
+libraryDependencies += "org.webjars" % "momentjs" % "2.18.1"
+
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.aucklanduni.controllers._"
