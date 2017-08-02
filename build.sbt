@@ -3,9 +3,13 @@ organization := "com.aucklanduni"
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
+/**
+  * rjs is the require js optimizer for sbt. although we do not use requirejs internally it comes included with WebJars
+  * not including it known to cause dependency injectrion issues. however, further investigation is necessary to determine
+  * if it would be possible ro remove it without causing dependency injection related issues.
+*/
 
-pipelineStages := Seq(rjs)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -24,10 +28,3 @@ libraryDependencies += "org.webjars" % "jquery" % "3.2.1"
 libraryDependencies += "org.webjars" % "bootstrap" % "3.3.7-1"
 libraryDependencies += "org.webjars.bower" % "lodash" % "4.17.4"
 libraryDependencies += "org.webjars" % "momentjs" % "2.18.1"
-
-
-// Adds additional packages into Twirl
-//TwirlKeys.templateImports += "com.aucklanduni.controllers._"
-
-// Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "com.aucklanduni.binders._"
