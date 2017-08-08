@@ -5,29 +5,33 @@ package controllers
   */
 
 import play.api.mvc._
+import play.api.libs.json.JsValue
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.streams.ActorFlow
 import javax.inject._
-
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import scala.concurrent.Future
+import akka.actor.ActorSystem
 import akka.stream.Materializer
+
+import actors.User
 
 @Singleton
 class SpreadsheetController @Inject() (components: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)extends AbstractController (components) {
 
-  val User = "user"
+
+  val UserName = "userName"
   val tempForm = Form(single("userid" -> nonEmptyText))
 
   def index = Action { implicit request =>
-    request.session.get(User).map { user =>
+    request.session.get(UserName).map { user =>
       Redirect(routes.SpreadsheetController.loadSpreadsheet()).flashing("info" -> s"Redirected to spreadsheet as $user user!")
     }getOrElse(Ok(views.html.index(tempForm)))
   }
 
 
   def loadSpreadsheet = Action { implicit request =>
-    request.session.get(User).map { user =>
+    request.session.get(UserName).map { user =>
       Ok(views.html.spreadsheet(user))
     }.getOrElse(Redirect(routes.SpreadsheetController.index()))
   }
@@ -40,7 +44,7 @@ class SpreadsheetController @Inject() (components: ControllerComponents) (implic
       },
       userid => {
         Redirect(routes.SpreadsheetController.loadSpreadsheet())
-          .withSession(request.session + (User -> userid))
+          .withSession(request.session + (UserName -> userid))
       }
     )
   }
@@ -49,21 +53,11 @@ class SpreadsheetController @Inject() (components: ControllerComponents) (implic
     Redirect(routes.SpreadsheetController.index).withNewSession.flashing("success" -> "See you soon!")
   }
 
-  def socketSpreadsheet = WebSocket.accept[String, String] { request =>
-    ActorFlow.actorRef { out =>
-      UserActor.props(out)
-    }
+  def socketSpreadsheet = WebSocket.acceptOrResult[JsValue, JsValue] { implicit request =>
+    Future.successful(request.session.get(UserName) match {
+      case None => Left(Forbidden)
+      case Some(uid) =>
+        Right(ActorFlow.actorRef(User.props(uid)))
+    })
   }
 }
-
-object UserActor {
-  def props(out: ActorRef) = Props(new UserActor(out))
-}
-
-class UserActor(out: ActorRef) extends Actor with ActorLogging {
-  override def receive: Receive = {
-    case msg: String =>
-      out ! ("something something something" + out)
-  }
-}
-
