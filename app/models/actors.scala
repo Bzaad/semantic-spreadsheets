@@ -236,17 +236,3 @@ class User(groupId: String, userId: String) extends Actor with ActorLogging {
       sender() ! RespondData(id, lastDataReading)
   }
 }
-
-object SpreadsheetSupervisor {
-  def props(): Props = Props(new SpreadsheetSupervisor)
-}
-
-class SpreadsheetSupervisor extends Actor with ActorLogging {
-
-  override def preStart(): Unit = log.info("Spreadsheet Server Started!")
-
-  override def postStop(): Unit = log.info("Spreadsheet Server Stopped!")
-
-  override def receive: Receive = Actor.emptyBehavior
-
-}
