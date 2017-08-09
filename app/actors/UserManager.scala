@@ -2,7 +2,8 @@ package actors
 
 import akka.actor.ActorRef
 import models.PdJson
-import play.api.libs.json.Json
+import play.api.Logger
+
 
 import scala.collection.mutable.Set
 
@@ -11,22 +12,48 @@ import scala.collection.mutable.Set
   */
 
 object UserManager {
+  var userMap: Map[String, ActorRef] = Map()
+  var roleSet: Map[String, Set[ActorRef]] = Map()
+  var userSet: Map[ActorRef, Set[String]] = Map()
 
-  val userSet = Set[ActorRef]()
-
-  def addUser(actor: ActorRef): Unit = {
-    UserManager.userSet += actor
-    println("this is the set: " + UserManager.userSet)
+  def addUser(userName: String, theActor: ActorRef): Unit = {
+    userMap += userName -> theActor
+    userSet += theActor -> Set()
   }
 
-  def removeUser(actor: ActorRef): Unit = {
-    UserManager.userSet -= actor
+  def removeUser(userName: String, theActor: ActorRef): Unit = {
+    userMap -= userName
+    removeFromListeners(theActor)
   }
 
-  def sendToAll(): Unit ={
-    for (user <- UserManager.userSet){
-      user ! Json.toJson(PdJson("time", "change", "subject", "predicate", "object"))
+  def removeFromListeners(theActor: ActorRef): Unit ={
+    if(userSet.contains(theActor)){
+      for (a <- userSet(theActor)){
+        roleSet(a) -= theActor
+      }
+      userSet -= theActor
     }
   }
 
+  def registerListener(theActor: ActorRef, msg: PdJson): Unit ={
+
+      userSet(theActor) += msg.pred
+
+      if(!roleSet.contains(msg.pred))
+        roleSet += msg.pred -> Set(theActor)
+      else
+        roleSet(msg.pred) += theActor
+
+      updateListeningActors(msg.pred, msg)
+  }
+
+  def updateListeningActors(pred: String, msg: PdJson): Unit = {
+    if (roleSet.contains(pred)) sendToAll(roleSet(pred), msg)
+  }
+
+  def sendToAll(receivers: Set[ActorRef], msg: PdJson): Unit = {
+    for (r <- receivers ){
+      Logger.debug(r.toString() + msg.toString())
+    }
+  }
 }

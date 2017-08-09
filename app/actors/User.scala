@@ -1,33 +1,44 @@
 package actors
 
 import akka.actor._
-import play.api.libs.json.JsValue
 import play.api.Logger
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
+import models.PdJson
 
 /**
   * Created by behzadfarokhi on 20/07/17.
   */
 
 object User {
-  def props(user: String)(out: ActorRef) = Props(new User(user, out))
+  def props(user: String)(theActor: ActorRef) = Props(new User(user, theActor))
 }
 
-class User(uid: String, out: ActorRef) extends Actor with ActorLogging {
+class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging {
 
   override def preStart(): Unit = {
-    UserManager.addUser(out)
-    Logger.debug(s"User actor $uid with actor reference $out has started!")
+    UserManager.addUser(userName, theActor)
+    Logger.debug(s"User actor $userName with actor reference $theActor has started!")
     // TODO: add the actor to list of all available actors
   }
 
   override def postStop(): Unit = {
 
-    UserManager.removeUser(out)
-    Logger.debug(s"User actor $uid with actor reference $out has stopped!" )
+    UserManager.removeUser(userName, theActor)
+    Logger.debug(s"User actor $userName with actor reference $theActor has stopped!" )
   }
 
   override def receive: Receive = {
     case msg: JsValue =>
-      UserManager.sendToAll()
+      msg.validate[PdJson] match {
+        case s: JsSuccess[PdJson] => {
+          val pdJson: PdJson = s.get
+          UserManager.registerListener(theActor, pdJson)
+        }
+        case e: JsError => {
+          Logger.debug("msg does not conform to PdJson object structure!")
+        }
+      }
   }
 }
