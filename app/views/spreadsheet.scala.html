@@ -11,15 +11,16 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-sm-10">
-                User : @user
+        <div class="row" style="margin-top: 10px">
+            <div class="col-sm-11">
+                <button id="connect-ws" type="button" class="btn btn-primary">Connect</button>
+                <button id="disconnect-ws" type="button" class="btn btn-danger">Disconnect</button>
             </div>
-            <div class="col-sm-2">
+            <div class="col-sm-1">
                 <a class="button-form-link" href="#">
                     <span class="glyphicon glyphicon-log-out"></span> Logout
                 </a>
-                @helper.form(routes.SpreadsheetController.leave, 'class -> "button-form"){
+                @helper.form(routes.SpreadsheetController.leave, 'class -> "btn-warning"){
                 }
             </div>
         </div>
