@@ -1,10 +1,10 @@
-package actors
+package models
 
 import pdstore._
-
+import play.api.Logger
+import pdstore.notify.PDListener
 import pdstore.notify.PDListenerAdapter
 
-import pdstore.GUID
 import scala.collection.mutable.ListBuffer
 import play.api.libs.json._
 
@@ -14,22 +14,36 @@ case class PDStoreModel()
 object PDStoreModel {
   val store = new PDStore("pdstore_dd")
 
-  def addChanges(msg: JsValue) = {
-    val theChanges = ( msg \ "msg" \ "changes" ).as[List[JsValue]]
+  def addChanges(pdChangeSeq: Seq[PdChange]) = {
+
     store.begin
-    theChanges.foreach{ change =>
-      val triple = Triple(
-        ta = (change \ "ta").as[String],
-        ch = (change \ "ch").as[String],
-        sub = (change \ "sub").as[String],
-        pred = (change \  "pred").as[String],
-        obj = (change \ "obj").as[String]
-      )
-      store.addLink(triple.sub, store.getGUIDwithName(triple.pred), triple.obj)
+    pdChangeSeq.foreach{ change =>
+      store.addLink(change.sub, store.getGUIDwithName(change.pred), change.obj)
     }
     store.commit
+    val rows = store.query(("table-a", store.getGUIDwithName("has-row"), v"x"))
+    val columns = store.query(("table-a", store.getGUIDwithName("has-col"), v"x"))
+    while(rows.hasNext){
+      print(rows.next().get(v"x").toString + " : ")
+    }
+    println("\n")
+    while(columns.hasNext){
+      print(columns.next().get(v"x").toString + " : ")
+    }
   }
 
+  def getTables(pdCHangeSeq: Seq[PdChange]): Seq[PdChange] = {
+
+    return Seq(PdChange("a", "v", "c", "e", "e"))
+
+  }
+
+  def testListener(): Unit ={
+
+    val roleA = new GUID()
+
+  }
+  /*
   def sparqlQuery(sparqlQ: JsValue): JsValue = {
     var pdChanges = ListBuffer.empty[pdstore.sparql.Constraint[GUID, AnyRef, GUID]]
     val changes = (sparqlQ \ "msg" \ "changes").as[List[JsObject]]
@@ -42,6 +56,8 @@ object PDStoreModel {
       */
     return sparqlQ
     }
+  */
+  /*
 
   def constraintFromJSChange(jsobject: JsObject): pdstore.sparql.Constraint[GUID, AnyRef, GUID] = {
     var obj: String = (jsobject \ "obj").as[String]
@@ -61,7 +77,8 @@ object PDStoreModel {
     }
     (currentTa, (pdstore.ChangeType.fromStringSymbol((jsobject \ "ch").as[String])), sub, pred, obj)
   }
-
+  */
+ /*
   def tableQuery(query: JsValue): JsValue = {
     store.begin
     val changes = (query \ "msg" \ "changes").as[List[JsObject]]
@@ -127,4 +144,5 @@ object PDStoreModel {
   def remove(tSubject: String, tPredicate: String, tObject: String) = {
     println("removed the triple { " + tObject + "," + tPredicate + "," + tSubject + "}" )
   }
+  */
 }
