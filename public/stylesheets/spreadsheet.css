@@ -1,0 +1,90 @@
+body {
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    height: 100%;
+    background-size: 10%;
+}
+#wrap {
+    margin-top: 20px;
+    margin-bottom: 50px;
+}
+.bold {
+    font-weight: bold;
+}
+p.conversation_comment {
+    margin-right: 10px;
+}
+#messages,
+#topics {
+    overflow: hidden;
+    height: 60vh;
+}
+#topics .subscribe {
+    cursor: pointer;
+}
+#topics:last-child {
+    height: 100%;
+}
+.chatname-container {
+    display: inline-block;
+    max-height: 15px;
+    width: 50%;
+    text-align: right;
+}
+#topicform  #topicName {
+    width: 50%;
+}
+
+input {
+    border: none;
+    width: 80px;
+    font-size: 14px;
+    padding: 2px;
+}
+
+input:hover {
+    background-color: #eee;
+}
+
+input:focus {
+    background-color: #ccf;
+    text-align: center;
+}
+
+input:not(:focus) {
+    text-align: center;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    border: 1px solid #999;
+    padding: 0;
+}
+
+tr:first-child td, td:first-child {
+    background-color: #ccc;
+    padding: 1px 3px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.panel-group {
+    margin-bottom: 2px !important;
+    margin-top: 4px;
+}
+
+.time-btn {
+    float: right;
+}
+
+#floating_alert {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 5000;
+}
