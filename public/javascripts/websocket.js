@@ -19,7 +19,14 @@ var onClose = function(evt) {
 };
 
 var onMessage = function(evt) {
-    //TODO: use Alert
+    var qData = JSON.parse(evt.data);
+
+    if (qData.reqType === "aTable")
+        creatTablePicker(qData.reqValue);
+    else if (qData.reqType === "cTable"){
+        $('#add-table-modal').modal('hide');
+    }
+
     bootstrap_alert.warning('Received a <strong>Message!</strong>', 'info', 4000);
 };
 
@@ -45,8 +52,18 @@ var connectWs = function(){
     initWebsocket();
 };
 
-var addTable = function(){
-
+var createTable = function(){
+    var newTable = {};
+    if($("#table-name").val()){
+        newTable = { "reqType" : "cTable", "reqValue": [{"ta"  : "t", "ch"  : "+", "sub" : $("#table-name").val() , "pred": "has-type", "obj" : "table"}]};
+        $('#add-table-modal').modal('hide');
+    }
+    websocket.send(JSON.stringify(newTable));
 };
 
 var clearQuery = function(){};
+
+var getAllTables = function(){
+    $("#table-name").val("");
+    websocket.send(JSON.stringify(aTable)) // get all the tables.
+}

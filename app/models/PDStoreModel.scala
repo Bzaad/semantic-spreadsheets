@@ -32,10 +32,15 @@ object PDStoreModel {
     }
   }
 
-  def getTables(pdCHangeSeq: Seq[PdChange]): Seq[PdChange] = {
-
-    return Seq(PdChange("a", "v", "c", "e", "e"))
-
+  def getAllTables(pdCHangeSeq: Seq[PdChange]): Seq[PdChange] = {
+    Logger.debug(pdCHangeSeq.toString)
+    val tables = store.query((v"x", store.getGUIDwithName("has-type"), "table"))
+    var allTables = ListBuffer.empty[PdChange]
+    while(tables.hasNext){
+      allTables += new PdChange("ts", "e", tables.next().get(v"x").toString, "has-type", "table")
+    }
+    Logger.debug(allTables.toString)
+    return allTables
   }
 
   def testListener(): Unit ={

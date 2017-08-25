@@ -10,10 +10,10 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.streams.ActorFlow
 import javax.inject._
+
 import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-
 import actors.User
 
 @Singleton

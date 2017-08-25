@@ -2,7 +2,7 @@
 @main("spreadsheet!"){
     <div class="container">
         <ul class="nav nav-tabs">
-            <li ><a href="#add" class="add-header" data-toggle="modal" data-target="#add-worksheet-modal"> + </a></li>
+            <li ><a href="#add" class="add-table" data-toggle="modal" data-target="#add-table-modal"> + </a></li>
         </ul>
         <div class="tab-content" style="margin-top: 10px">
             <div class="tab-pane fade in active">
@@ -26,25 +26,24 @@
         </div>
         <div class="row" style="margin-top: 10px">
             <class class="col-sm-12">
-                <button id="create-table" type="button" class="btn btn-primary">Create Table</button>
                 <button id="query-table" type="button" class="btn btn-primary">Query Table</button>
                 <button id="create-change" type="button" class="btn btn-primary">Create Chage</button>
                 <button id="query-change" type="button" class="btn btn-primary">Query Change</button>
             </class>
         </div>
             <!-- add modal (this has to move to a separate file so it can be used elsewhere without a neet to duplicate code! -->
-        <div class="modal fade" id="add-worksheet-modal" tabindex="-1" role="dialog" aria-labelledby="worksheet-lable">
+        <div class="modal fade" id="add-table-modal" tabindex="-1" role="dialog" aria-labelledby="worksheet-lable">
             <div class="modal-dialog modal-md" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="worksheet-lable">New Worksheet</h4>
+                        <h4 class="modal-title" id="worksheet-lable">New Table</h4>
                     </div>
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
                                 <label for="worksheet-lable" class="control-label">Enter New Table Name:</label>
-                                <textarea class="form-control" rows="1" id="worksheet-lable"></textarea>
+                                <textarea class="form-control" rows="1" id="table-name"></textarea>
                                 <h3>Or</h3>
                                 <label for="new-table-lable" class="control-lable">Select an Existing Table:</label><br>
                                 <select id="table-picker" class="selectpicker" multiple data-live-search="true">
