@@ -22,25 +22,26 @@ import play.api.libs.functional.syntax._
   * @param obj: Object
   */
 
-case class PdChange(ta: String, ch: String, sub: String, pred: String, obj: String )
+case class PdChangeJson(ta: String, ch: String, sub: String, pred: String, obj: String )
 
-object PdChange {
+object PdChangeJson
+{
 
-  implicit val pdChangeReads: Reads[PdChange] = (
+  implicit val pdChangeReads: Reads[PdChangeJson] = (
     (JsPath \ "ta").read[String] and
       (JsPath \ "ch").read[String] and
       (JsPath \ "sub").read[String] and
       (JsPath \ "pred").read[String] and
       (JsPath \ "obj").read[String]
-    )(PdChange.apply _)
+    )(PdChangeJson.apply _)
 
-  implicit val pdChangeWrites: Writes[PdChange] = (
+  implicit val pdChangeWrites: Writes[PdChangeJson] = (
     (JsPath \ "ta").write[String] and
       (JsPath \ "ch").write[String] and
       (JsPath \ "sub").write[String] and
       (JsPath \ "pred").write[String] and
       (JsPath \ "obj").write[String]
-  )(unlift(PdChange.unapply))
+  )(unlift(PdChangeJson.unapply))
 
 }
 

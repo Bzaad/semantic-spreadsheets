@@ -1,6 +1,8 @@
 package models
 
 import pdstore._
+import pdstore.notify.PDListenerAdapter
+import pdstore.log.PDCoreI
 import play.api.Logger
 import pdstore.notify.PDListener
 import pdstore.notify.PDListenerAdapter
@@ -14,7 +16,11 @@ case class PDStoreModel()
 object PDStoreModel {
   val store = new PDStore("pdstore_dd")
 
-  def addChanges(pdChangeSeq: Seq[PdChange]) = {
+  def getListener(): Unit ={
+    val changeTemplate = new PDChange()
+  }
+
+  def addChanges(pdChangeSeq: Seq[PdChangeJson]) = {
 
     store.begin
     pdChangeSeq.foreach{ change =>
@@ -32,12 +38,12 @@ object PDStoreModel {
     }
   }
 
-  def getAllTables(pdCHangeSeq: Seq[PdChange]): Seq[PdChange] = {
+  def getAllTables(pdCHangeSeq: Seq[PdChangeJson]): Seq[PdChangeJson] = {
     Logger.debug(pdCHangeSeq.toString)
     val tables = store.query((v"x", store.getGUIDwithName("has-type"), "table"))
-    var allTables = ListBuffer.empty[PdChange]
+    var allTables = ListBuffer.empty[PdChangeJson]
     while(tables.hasNext){
-      allTables += new PdChange("ts", "e", tables.next().get(v"x").toString, "has-type", "table")
+      allTables += new PdChangeJson("ts", "e", tables.next().get(v"x").toString, "has-type", "table")
     }
     Logger.debug(allTables.toString)
     return allTables

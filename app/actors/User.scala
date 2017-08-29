@@ -4,7 +4,7 @@ import akka.actor._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.json.Reads._
-import models.{PdChange, PdQuery}
+import models.{PdChangeJson, PdQuery}
 
 /**
   * Created by behzadfarokhi on 20/07/17.
@@ -39,8 +39,8 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
           */
         case s: JsSuccess[PdQuery] => {
 
-          val pdChangeSeq = (js \ "reqValue").as[Seq[PdChange]]
-
+          val pdChangeSeq = (js \ "reqValue").as[Seq[PdChangeJson]]
+          /*
           ((js \ "reqType").as[String]) match {
             case "aTable" =>
               UserManager.queryAllTables(pdChangeSeq, theActor)
@@ -53,7 +53,8 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
             case "qChange" =>
               UserManager.queryPdChange(pdChangeSeq)
           }
-        };
+          */
+        }
         /**
           * if message type is not "PdQuery"
           */

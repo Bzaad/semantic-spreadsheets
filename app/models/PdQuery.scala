@@ -16,18 +16,18 @@ import play.api.libs.functional.syntax._
   *               "query" : would start a read operation
   * @param reqValue: a sequence of one or more pdChange objects
   */
-case class PdQuery(reqType: String, reqValue: Seq[PdChange])
+case class PdQuery(reqType: String, reqValue: Seq[PdChangeJson])
 
 object PdQuery {
 
   implicit val queryMessageReads: Reads[PdQuery] = (
     (JsPath \ "reqType").read[String] and
-      (JsPath \ "reqValue").read[Seq[PdChange]]
+      (JsPath \ "reqValue").read[Seq[PdChangeJson]]
     )(PdQuery.apply _)
 
   implicit val queryMessageWrites: Writes[PdQuery] = (
     (JsPath \ "reqType").write[String] and
-      (JsPath \ "reqValue").write[Seq[PdChange]]
+      (JsPath \ "reqValue").write[Seq[PdChangeJson]]
     )(unlift(PdQuery.unapply))
 
 }

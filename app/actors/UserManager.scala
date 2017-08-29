@@ -1,14 +1,17 @@
 package actors
 
 import akka.actor.ActorRef
-import models.{PDStoreModel, PdChange, PdQuery}
+import models.{PDStoreModel, PdChangeJson, PdQuery}
 import play.api.Logger
 import play.api.libs.json.Json
 import scala.collection.mutable.Set
+import pdstore.notify.PDListenerAdapter
+import pdstore.log.PDCoreI
 
 /**
   * Created by behzadfarokhi on 8/08/17.
   */
+case class UserManager()
 
 object UserManager {
 
@@ -16,26 +19,26 @@ object UserManager {
   var roleSet: Map[String, Set[ActorRef]] = Map()
   var userSet: Map[ActorRef, Set[String]] = Map()
 
-  def queryPdChange(pdChangeSeq: Seq[PdChange]): Unit = {
+  def queryPdChange(pdChangeSeq: Seq[PdChangeJson]): Unit = {
     Logger.debug("query pdchange")
     Logger.debug(pdChangeSeq.toString())
   }
-  def applyPdChange(pdChangeSeq: Seq[PdChange]): Unit = {
+  def applyPdChange(pdChangeSeq: Seq[PdChangeJson]): Unit = {
     Logger.debug("apply pdChange")
     Logger.debug(pdChangeSeq.toString())
   }
-  def queryTable(pdChangeSeq: Seq[PdChange]): Unit = {
+  def queryTable(pdChangeSeq: Seq[PdChangeJson]): Unit = {
     Logger.debug("query table")
     //PDStoreModel.addChanges(pdChangeSeq)
   }
 
-  def queryAllTables(pdChangeSeq: Seq[PdChange], theActor: ActorRef): Unit = {
+  def queryAllTables(pdChangeSeq: Seq[PdChangeJson], theActor: ActorRef): Unit = {
     Logger.debug("getting all the tables!")
     val pdQuery = new PdQuery("aTable", PDStoreModel.getAllTables(pdChangeSeq))
     theActor ! Json.toJson(pdQuery)
   }
 
-  def createTable(pdChangeSeq: Seq[PdChange]): Unit = {
+  def createTable(pdChangeSeq: Seq[PdChangeJson]): Unit = {
     Logger.debug("create table")
     PDStoreModel.addChanges(pdChangeSeq)
   }
@@ -73,11 +76,11 @@ object UserManager {
       */
   }
 
-  def updateListeningActors(pred: String, msg: PdChange): Unit = {
+  def updateListeningActors(pred: String, msg: PdChangeJson): Unit = {
     if (roleSet.contains(pred)) sendToAll(roleSet(pred), msg)
   }
 
-  def sendToAll(receivers: Set[ActorRef], msg: PdChange): Unit = {
+  def sendToAll(receivers: Set[ActorRef], msg: PdChangeJson): Unit = {
     for (r <- receivers ){
       Logger.debug(r.toString() + msg.toString())
     }
