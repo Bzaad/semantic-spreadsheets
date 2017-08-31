@@ -4,11 +4,12 @@ import akka.actor._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.json.Reads._
-import models.{PdChangeJson, PdQuery}
+import models.{PDStoreModel, PdChangeJson, PdQuery, PdObj}
 
 /**
   * Created by behzadfarokhi on 20/07/17.
   */
+
 
 object User {
   def props(user: String)(theActor: ActorRef) = Props(new User(user, theActor))
@@ -39,21 +40,20 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
           */
         case s: JsSuccess[PdQuery] => {
 
-          val pdChangeSeq = (js \ "reqValue").as[Seq[PdChangeJson]]
-          /*
+          val cBundle = new PdObj((js \ "reqValue").as[Seq[PdChangeJson]], theActor, (js \ "listenTo").as[Boolean])
+
           ((js \ "reqType").as[String]) match {
             case "aTable" =>
-              UserManager.queryAllTables(pdChangeSeq, theActor)
+              UserManager.queryAllTables(cBundle)
             case "cTable" =>
-              UserManager.createTable(pdChangeSeq)
+              UserManager.createTable(cBundle)
             case "qTable" =>
-              UserManager.queryTable(pdChangeSeq)
+              UserManager.queryTable(cBundle)
             case "cChange" =>
-              UserManager.applyPdChange(pdChangeSeq)
+              UserManager.applyPdChange(cBundle)
             case "qChange" =>
-              UserManager.queryPdChange(pdChangeSeq)
+              UserManager.queryPdChange(cBundle)
           }
-          */
         }
         /**
           * if message type is not "PdQuery"
