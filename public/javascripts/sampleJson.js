@@ -6,6 +6,7 @@
 
 var cTable = {
     "reqType" : "cTable",
+    "listenTo": false,
     "reqValue": [
         // create an object type table
         {"ta"  : "t", "ch"  : "+", "sub" : "table-b", "pred": "has-type", "obj" : "table"},
@@ -26,6 +27,7 @@ var cTable = {
 
 var aTable = {
     "reqType" : "aTable",
+    "listenTo": false,
     "reqValue" : [
         {"ta": "t", "ch" : "e", "sub" : "_", "pred": "has-type", "obj" : "table"}
     ]
@@ -33,6 +35,7 @@ var aTable = {
 
 var qTable = {
     "reqType" : "qTable",
+    "listenTo": false,
     "reqValue": [
         {
             "ta"  : "time!",
@@ -46,6 +49,7 @@ var qTable = {
 
 var cChange = {
     "reqType" : "cChange",
+    "listenTo": true,
     "reqValue": [
         {
             "ta"  : "time!",
@@ -59,6 +63,7 @@ var cChange = {
 
 var qChange = {
     "reqType" : "qChange",
+    "listenTo": true,
     "reqValue": [
         {
             "ta"  : "time!",

@@ -1,24 +1,22 @@
 package models
 
+import akka.actor.ActorRef
 import pdstore._
-import pdstore.notify.PDListenerAdapter
-import pdstore.log.PDCoreI
+import PDStore._
 import play.api.Logger
-import pdstore.notify.PDListener
-import pdstore.notify.PDListenerAdapter
 
-import scala.collection.mutable.ListBuffer
-import play.api.libs.json._
+import scala.collection.mutable.{ListBuffer, Set}
 
 
 case class PDStoreModel()
 
 object PDStoreModel {
-  val store = new PDStore("pdstore_dd")
 
-  def getListener(): Unit ={
-    val changeTemplate = new PDChange()
+  def query(): Unit = {
+
   }
+
+  val store = new PDStore("pdstore_dd")
 
   def addChanges(pdChangeSeq: Seq[PdChangeJson]) = {
 
@@ -47,12 +45,6 @@ object PDStoreModel {
     }
     Logger.debug(allTables.toString)
     return allTables
-  }
-
-  def testListener(): Unit ={
-
-    val roleA = new GUID()
-
   }
   /*
   def sparqlQuery(sparqlQ: JsValue): JsValue = {

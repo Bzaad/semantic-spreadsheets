@@ -65,5 +65,5 @@ var clearQuery = function(){};
 
 var getAllTables = function(){
     $("#table-name").val("");
-    websocket.send(JSON.stringify(aTable)) // get all the tables.
-}
+    websocket.send(JSON.stringify(aTable)); // get all the tables.
+};

@@ -1,16 +1,15 @@
 package actors
 
 import akka.actor.ActorRef
-import models.{PDStoreModel, PdChangeJson, PdQuery}
+import models.{PDStoreModel, PdChangeJson, PdQuery, PdObj}
 import play.api.Logger
 import play.api.libs.json.Json
 import scala.collection.mutable.Set
-import pdstore.notify.PDListenerAdapter
-import pdstore.log.PDCoreI
 
 /**
   * Created by behzadfarokhi on 8/08/17.
   */
+
 case class UserManager()
 
 object UserManager {
@@ -18,30 +17,6 @@ object UserManager {
   var userMap: Map[String, ActorRef] = Map()
   var roleSet: Map[String, Set[ActorRef]] = Map()
   var userSet: Map[ActorRef, Set[String]] = Map()
-
-  def queryPdChange(pdChangeSeq: Seq[PdChangeJson]): Unit = {
-    Logger.debug("query pdchange")
-    Logger.debug(pdChangeSeq.toString())
-  }
-  def applyPdChange(pdChangeSeq: Seq[PdChangeJson]): Unit = {
-    Logger.debug("apply pdChange")
-    Logger.debug(pdChangeSeq.toString())
-  }
-  def queryTable(pdChangeSeq: Seq[PdChangeJson]): Unit = {
-    Logger.debug("query table")
-    //PDStoreModel.addChanges(pdChangeSeq)
-  }
-
-  def queryAllTables(pdChangeSeq: Seq[PdChangeJson], theActor: ActorRef): Unit = {
-    Logger.debug("getting all the tables!")
-    val pdQuery = new PdQuery("aTable", PDStoreModel.getAllTables(pdChangeSeq))
-    theActor ! Json.toJson(pdQuery)
-  }
-
-  def createTable(pdChangeSeq: Seq[PdChangeJson]): Unit = {
-    Logger.debug("create table")
-    PDStoreModel.addChanges(pdChangeSeq)
-  }
 
   def addUser(userName: String, theActor: ActorRef): Unit = {
     userMap += userName -> theActor
@@ -62,20 +37,6 @@ object UserManager {
     }
   }
 
-  def registerListener(theActor: ActorRef, msg: PdQuery): Unit ={
-      Logger.debug(msg.toString)
-      /*
-      userSet(theActor) += msg.pred
-
-      if(!roleSet.contains(msg.pred))
-        roleSet += msg.pred -> Set(theActor)
-      else
-        roleSet(msg.pred) += theActor
-
-      updateListeningActors(msg.pred, msg)
-      */
-  }
-
   def updateListeningActors(pred: String, msg: PdChangeJson): Unit = {
     if (roleSet.contains(pred)) sendToAll(roleSet(pred), msg)
   }
@@ -84,5 +45,30 @@ object UserManager {
     for (r <- receivers ){
       Logger.debug(r.toString() + msg.toString())
     }
+  }
+
+  def queryPdChange(p: PdObj): Unit = {
+    PDStoreModel.query
+    Logger.debug(p.pdChangeSeq.toString())
+  }
+
+  def applyPdChange(p: PdObj): Unit = {
+    Logger.debug("apply pdChange")
+    Logger.debug(p.pdChangeSeq.toString())
+  }
+
+  def queryTable(p: PdObj): Unit = {
+    Logger.debug("query table")
+  }
+
+  def createTable(p: PdObj): Unit = {
+    Logger.debug("create table")
+    PDStoreModel.addChanges(p.pdChangeSeq)
+  }
+
+  def queryAllTables(p: PdObj): Unit = {
+    Logger.debug("getting all the tables!")
+    val pdQuery = new PdQuery("aTable", false, PDStoreModel.getAllTables(p.pdChangeSeq))
+    p.actor ! Json.toJson(pdQuery)
   }
 }
