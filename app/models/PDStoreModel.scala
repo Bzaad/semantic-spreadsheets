@@ -1,8 +1,8 @@
 package models
 
 import pdstore._
+import PDStore._
 import play.api.Logger
-import play.api.libs.json.JsValue
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
@@ -18,17 +18,27 @@ object PDStoreModel {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
     for(p <- pdObj.pdChangeList){
+      val predGuid = store.getGUIDwithName(p.pred)
       if (p.sub == "?" && p.obj != "?"){
-        Logger.debug("getting subject")
-        val qResult = store.query((v"x", store.getGUIDwithName(p.pred), p.obj))
+        val qResult = store.query((v"x", predGuid, p.obj))
+
         while(qResult.hasNext){
-          queryResult += new PdChangeJson("ts", "e", qResult.next().get(v"x").toString, p.pred, p.obj)
+          val queriedSub = qResult.next().get(v"x").toString
+          val result = PdChangeJson("ts", "e", queriedSub, p.pred, p.obj)
+          store.listen((queriedSub, predGuid, null), (c: Change) => {
+            //TODO: send message to all listening users
+          })
+          queryResult += result
         }
-      }else if (p.sub != "?" && p.obj == "?"){
-        Logger.debug("getting object")
-        val qResult = store.query((p.sub, store.getGUIDwithName(p.pred), v"x"))
+      }else if(p.sub != "?" && p.obj == "?"){
+        val qResult = store.query((p.sub, predGuid, v"x"))
         while(qResult.hasNext){
-          queryResult += new PdChangeJson("ts", "e", p.sub, p.pred, qResult.next().get(v"x").toString)
+          val queriedObj = qResult.next().get(v"x").toString
+          val result = PdChangeJson("ts", "e", p.sub, p.pred, qResult.next().get(v"x").toString)
+          store.listen((null, predGuid, queriedObj), (c: Change) => {
+            //TODO: send message to all listening users
+          })
+          queryResult += result
         }
       }else{
         Logger.error("not a valid query")
@@ -36,7 +46,6 @@ object PDStoreModel {
     }
 
     Logger.debug(queryResult.toString())
-
 
     if (queryResult.nonEmpty){
       return PdQuery("cQuery", false , queryResult.toList)

@@ -15,6 +15,7 @@ case class UserManager()
 object UserManager {
 
   var userMap: Map[String, ActorRef] = Map()
+  
   var roleSet: Map[String, Set[ActorRef]] = Map()
   var userSet: Map[ActorRef, Set[String]] = Map()
 
