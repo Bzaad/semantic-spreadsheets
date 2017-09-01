@@ -4,7 +4,7 @@ import akka.actor._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.json.Reads._
-import models.{PDStoreModel, PdChangeJson, PdQuery, PdObj}
+import models.{PdChangeJson, PdQuery, PdObj}
 
 /**
   * Created by behzadfarokhi on 20/07/17.
@@ -40,7 +40,7 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
           */
         case s: JsSuccess[PdQuery] => {
 
-          val cBundle = new PdObj((js \ "reqValue").as[Seq[PdChangeJson]], theActor, (js \ "listenTo").as[Boolean])
+          val cBundle = new PdObj((js \ "reqValue").as[List[PdChangeJson]], theActor, (js \ "listenTo").as[Boolean])
 
           ((js \ "reqType").as[String]) match {
             case "aTable" =>

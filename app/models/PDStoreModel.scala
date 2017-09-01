@@ -1,30 +1,64 @@
 package models
 
-import akka.actor.ActorRef
 import pdstore._
-import PDStore._
 import play.api.Logger
+import play.api.libs.json.JsValue
 
-import scala.collection.mutable.{ListBuffer, Set}
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 
 case class PDStoreModel()
 
 object PDStoreModel {
 
-  def query(): Unit = {
+  val store = new PDStore("pdstore_dd")
+
+  def query(pdObj: PdObj): PdQuery = {
+
+    var queryResult = ArrayBuffer.empty[PdChangeJson]
+
+    for(p <- pdObj.pdChangeList){
+      if (p.sub == "?" && p.obj != "?"){
+        Logger.debug("getting subject")
+        val qResult = store.query((v"x", store.getGUIDwithName(p.pred), p.obj))
+        while(qResult.hasNext){
+          queryResult += new PdChangeJson("ts", "e", qResult.next().get(v"x").toString, p.pred, p.obj)
+        }
+      }else if (p.sub != "?" && p.obj == "?"){
+        Logger.debug("getting object")
+        val qResult = store.query((p.sub, store.getGUIDwithName(p.pred), v"x"))
+        while(qResult.hasNext){
+          queryResult += new PdChangeJson("ts", "e", p.sub, p.pred, qResult.next().get(v"x").toString)
+        }
+      }else{
+        Logger.error("not a valid query")
+      }
+    }
+
+    Logger.debug(queryResult.toString())
+
+
+    if (queryResult.nonEmpty){
+      return PdQuery("cQuery", false , queryResult.toList)
+    } else {
+      return PdQuery("cQuery", false, List[PdChangeJson]())
+    }
 
   }
 
-  val store = new PDStore("pdstore_dd")
-
-  def addChanges(pdChangeSeq: Seq[PdChangeJson]) = {
+  def applyChanges(pdObj: PdObj) = {
 
     store.begin
-    pdChangeSeq.foreach{ change =>
-      store.addLink(change.sub, store.getGUIDwithName(change.pred), change.obj)
+    for (p <- pdObj.pdChangeList){
+      if (p.sub != "?" && p.obj != "?" && p.pred != "") {
+        Logger.debug("adding change!")
+        store.addLink(p.sub, store.getGUIDwithName(p.pred), p.obj)
+      } else {
+        Logger.error("not a valid query!")
+      }
     }
     store.commit
+    /*
     val rows = store.query(("table-a", store.getGUIDwithName("has-row"), v"x"))
     val columns = store.query(("table-a", store.getGUIDwithName("has-col"), v"x"))
     while(rows.hasNext){
@@ -34,17 +68,18 @@ object PDStoreModel {
     while(columns.hasNext){
       print(columns.next().get(v"x").toString + " : ")
     }
+    */
   }
 
-  def getAllTables(pdCHangeSeq: Seq[PdChangeJson]): Seq[PdChangeJson] = {
-    Logger.debug(pdCHangeSeq.toString)
+  def getAllTables(pdCHangeList: List[PdChangeJson]): List[PdChangeJson] = {
+    Logger.debug(pdCHangeList.toString)
     val tables = store.query((v"x", store.getGUIDwithName("has-type"), "table"))
     var allTables = ListBuffer.empty[PdChangeJson]
     while(tables.hasNext){
       allTables += new PdChangeJson("ts", "e", tables.next().get(v"x").toString, "has-type", "table")
     }
     Logger.debug(allTables.toString)
-    return allTables
+    return allTables.toList
   }
   /*
   def sparqlQuery(sparqlQ: JsValue): JsValue = {

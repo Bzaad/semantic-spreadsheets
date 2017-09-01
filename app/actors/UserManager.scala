@@ -48,13 +48,12 @@ object UserManager {
   }
 
   def queryPdChange(p: PdObj): Unit = {
-    PDStoreModel.query
-    Logger.debug(p.pdChangeSeq.toString())
+    val returnMessage = PDStoreModel.query(p)
+    p.actor ! Json.toJson(returnMessage)
   }
 
   def applyPdChange(p: PdObj): Unit = {
-    Logger.debug("apply pdChange")
-    Logger.debug(p.pdChangeSeq.toString())
+    PDStoreModel.applyChanges(p)
   }
 
   def queryTable(p: PdObj): Unit = {
@@ -63,12 +62,12 @@ object UserManager {
 
   def createTable(p: PdObj): Unit = {
     Logger.debug("create table")
-    PDStoreModel.addChanges(p.pdChangeSeq)
+    PDStoreModel.applyChanges(p)
   }
 
   def queryAllTables(p: PdObj): Unit = {
     Logger.debug("getting all the tables!")
-    val pdQuery = new PdQuery("aTable", false, PDStoreModel.getAllTables(p.pdChangeSeq))
+    val pdQuery = new PdQuery("aTable", false, PDStoreModel.getAllTables(p.pdChangeList))
     p.actor ! Json.toJson(pdQuery)
   }
 }

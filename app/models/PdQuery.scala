@@ -17,28 +17,28 @@ import play.api.libs.functional.syntax._
   *               "query" : would start a read operation
   * @param reqValue: a sequence of one or more pdChange objects
   */
-case class PdQuery(reqType: String, listenTo: Boolean, reqValue: Seq[PdChangeJson])
+case class PdQuery(reqType: String, listenTo: Boolean, reqValue: List[PdChangeJson])
 
 object PdQuery {
 
   implicit val queryMessageReads: Reads[PdQuery] = (
     (JsPath \ "reqType").read[String] and
       (JsPath \ "listenTo").read[Boolean] and
-      (JsPath \ "reqValue").read[Seq[PdChangeJson]]
+      (JsPath \ "reqValue").read[List[PdChangeJson]]
     )(PdQuery.apply _)
 
   implicit val queryMessageWrites: Writes[PdQuery] = (
     (JsPath \ "reqType").write[String] and
       (JsPath \ "listenTo").write[Boolean] and
-      (JsPath \ "reqValue").write[Seq[PdChangeJson]]
+      (JsPath \ "reqValue").write[List[PdChangeJson]]
     )(unlift(PdQuery.unapply))
 
 }
 
 trait QBundle {
-  val pdChangeSeq: Seq[PdChangeJson]
+  val pdChangeList: List[PdChangeJson]
   val listenTo: Boolean
   val actor: ActorRef
 }
 
-class PdObj (val pdChangeSeq: Seq[PdChangeJson], val actor: ActorRef, val listenTo: Boolean) extends QBundle
+class PdObj (val pdChangeList: List[PdChangeJson], val actor: ActorRef, val listenTo: Boolean) extends QBundle

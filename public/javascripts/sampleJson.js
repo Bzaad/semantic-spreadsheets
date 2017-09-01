@@ -47,30 +47,58 @@ var qTable = {
     ]
 };
 
-var cChange = {
-    "reqType" : "cChange",
-    "listenTo": true,
+var qChange = {
+    "reqType": "qChange",
+    "listenTo": false,
     "reqValue": [
         {
-            "ta"  : "time!",
-            "ch"  : "e",
-            "sub" : "tableName",
-            "pred": "hasType",
-            "obj" : "table"
+            "ta": "time!",
+            "ch": "e",
+            "sub": "behzad",
+            "pred": "hasCar",
+            "obj": "?"
+        },
+        {
+            "ta": "time!",
+            "ch": "e",
+            "sub": "behzad",
+            "pred": "hasCar",
+            "obj": "?"
+        },
+        {
+            "ta": "time!",
+            "ch": "e",
+            "sub": "behrouz",
+            "pred": "hasCar",
+            "obj": "?"
         }
     ]
 };
 
-var qChange = {
-    "reqType" : "qChange",
+var cChange = {
+    "reqType": "cChange",
     "listenTo": true,
     "reqValue": [
         {
-            "ta"  : "time!",
-            "ch"  : "e",
-            "sub" : "tableName",
-            "pred": "hasType",
-            "obj" : "table"
+            "ta": "time!",
+            "ch": "e",
+            "sub": "behzad",
+            "pred": "hasCar",
+            "obj": "toyota"
+        },
+        {
+            "ta": "time!",
+            "ch": "e",
+            "sub": "behzad",
+            "pred": "hasCar",
+            "obj": "BMW"
+        },
+        {
+            "ta": "time!",
+            "ch": "e",
+            "sub": "behrouz",
+            "pred": "hasCar",
+            "obj": "Mrecedes"
         }
     ]
 };

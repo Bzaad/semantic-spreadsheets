@@ -23,9 +23,12 @@ var onMessage = function(evt) {
 
     if (qData.reqType === "aTable")
         creatTablePicker(qData.reqValue);
-    else if (qData.reqType === "cTable"){
+    else if (qData.reqType === "cTable")
         $('#add-table-modal').modal('hide');
-    }
+    else if (qData.reqType === "cQuery")
+        console.log(qData.reqValue);
+    else
+        console.log("request type doesn't match!")
 
     bootstrap_alert.warning('Received a <strong>Message!</strong>', 'info', 4000);
 };

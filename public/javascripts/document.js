@@ -22,10 +22,12 @@ var initDocument = function () {
     });
     $("#create-change").click(function () {
         bootstrap_alert.warning('Created the <strong>Change!</strong>', 'danger', 4000);
+        console.log(cChange);
         websocket.send(JSON.stringify(cChange));
     });
     $("#query-change").click(function () {
         bootstrap_alert.warning('Queried the <strong>Change!</strong>', 'danger', 4000);
+        qChange.reqValue = _.uniqWith(qChange.reqValue, _.isEqual);
         websocket.send(JSON.stringify(qChange));
     });
 
