@@ -42,3 +42,11 @@ trait QBundle {
 }
 
 class PdObj (val pdChangeList: List[PdChangeJson], val actor: ActorRef, val listenTo: Boolean) extends QBundle
+
+trait SimpleTriple {
+  val lSub: Any
+  val lPred: Any
+  val lObj: Any
+}
+
+class LTriple (val lSub: Any, val lPred: Any, val lObj: Any) extends SimpleTriple

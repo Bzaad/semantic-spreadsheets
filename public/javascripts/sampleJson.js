@@ -4,6 +4,9 @@
  * @type {{reqType: string, reqValue: [*]}}
  */
 
+
+//TODO: comment the sample json file
+
 var cTable = {
     "reqType" : "cTable",
     "listenTo": false,

@@ -27,8 +27,10 @@ var onMessage = function(evt) {
         $('#add-table-modal').modal('hide');
     else if (qData.reqType === "cQuery")
         console.log(qData.reqValue);
+    else if (qData.reqType = "lQuery")
+        console.log(qData.reqValue);
     else
-        console.log("request type doesn't match!")
+        console.log("request type doesn't match!");
 
     bootstrap_alert.warning('Received a <strong>Message!</strong>', 'info', 4000);
 };

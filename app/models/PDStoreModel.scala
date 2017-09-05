@@ -3,9 +3,8 @@ package models
 import pdstore._
 import PDStore._
 import play.api.Logger
-
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
-
+import actors.UserManager.{updateListeningActors, addToListeners}
 
 case class PDStoreModel()
 
@@ -14,38 +13,43 @@ object PDStoreModel {
   val store = new PDStore("pdstore_dd")
 
   def query(pdObj: PdObj): PdQuery = {
-
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
     for(p <- pdObj.pdChangeList){
       val predGuid = store.getGUIDwithName(p.pred)
       if (p.sub == "?" && p.obj != "?"){
         val qResult = store.query((v"x", predGuid, p.obj))
-
         while(qResult.hasNext){
+          val t = store.begin
           val queriedSub = qResult.next().get(v"x").toString
           val result = PdChangeJson("ts", "e", queriedSub, p.pred, p.obj)
           store.listen((queriedSub, predGuid, null), (c: Change) => {
-            //TODO: send message to all listening users
+            //updateListeningActors(new LTriple(queriedSub, predGuid, null), result)
           })
           queryResult += result
+          store.commit(t)
         }
       }else if(p.sub != "?" && p.obj == "?"){
         val qResult = store.query((p.sub, predGuid, v"x"))
         while(qResult.hasNext){
+          val t = store.begin
           val queriedObj = qResult.next().get(v"x").toString
-          val result = PdChangeJson("ts", "e", p.sub, p.pred, qResult.next().get(v"x").toString)
+          val result = new PdChangeJson("ts", "e", p.sub, p.pred, queriedObj)
+          val lTriple = "?_"+p.pred+"_"+queriedObj
+          addToListeners(lTriple, pdObj.actor, result)
+
           store.listen((null, predGuid, queriedObj), (c: Change) => {
+            updateListeningActors(pdObj.actor, lTriple, result)
             //TODO: send message to all listening users
           })
           queryResult += result
+          store.add("behzad", predGuid, "Peykan")
+          store.commit(t)
         }
       }else{
         Logger.error("not a valid query")
       }
     }
-
-    Logger.debug(queryResult.toString())
 
     if (queryResult.nonEmpty){
       return PdQuery("cQuery", false , queryResult.toList)
