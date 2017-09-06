@@ -6,7 +6,7 @@
 
 
 //TODO: comment the sample json file
-
+/*
 var cTable = {
     "reqType" : "cTable",
     "listenTo": false,
@@ -27,14 +27,7 @@ var cTable = {
         {"ta"  : "t", "ch"  : "+", "sub" : "table-b", "pred": "has-row", "obj" : "sub10"}
     ]
 };
-
-var aTable = {
-    "reqType" : "aTable",
-    "listenTo": false,
-    "reqValue" : [
-        {"ta": "t", "ch" : "e", "sub" : "_", "pred": "has-type", "obj" : "table"}
-    ]
-};
+*/
 
 var qTable = {
     "reqType" : "qTable",

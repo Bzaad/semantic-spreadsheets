@@ -57,7 +57,6 @@ object UserManager {
   }
 
   def addToListeners(lTriple: String, theActor: ActorRef, result: PdChangeJson): Unit ={
-    Logger.debug(tripleSet.mkString)
     if (tripleSet.contains(lTriple)){
       tripleSet(lTriple) += theActor
     }
@@ -76,7 +75,6 @@ object UserManager {
     * @param msg
     */
   def updateListeningActors(sender: ActorRef, lTriple: String, msg: PdChangeJson): Unit = {
-    Logger.error(lTriple.toString)
     if (tripleSet.contains(lTriple)) sendToAll(sender, tripleSet(lTriple), msg)
   }
 
@@ -107,14 +105,18 @@ object UserManager {
     Logger.debug("query table")
   }
 
+
+  /**
+    * create the table and send the result back to the actor.
+    * @param p
+    */
   def createTable(p: PdObj): Unit = {
-    Logger.debug("create table")
-    PDStoreModel.applyChanges(p)
+    val tables = PDStoreModel.createTable(p)
+    p.actor ! Json.toJson(tables)
   }
 
   def queryAllTables(p: PdObj): Unit = {
-    Logger.debug("getting all the tables!")
-    val pdQuery = new PdQuery("aTable", false, PDStoreModel.getAllTables(p.pdChangeList))
-    p.actor ! Json.toJson(pdQuery)
+    val pdQuery = new PdQuery("aTable", false, PDStoreModel.query(p).reqValue)
+      //p.actor ! Json.toJson(pdQuery)
   }
 }

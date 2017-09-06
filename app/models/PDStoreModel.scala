@@ -10,27 +10,32 @@ case class PDStoreModel()
 
 object PDStoreModel {
 
-  val store = new PDStore("pdstore_dd")
+  val store = PDStore("pdstore_dd")
 
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
     for(p <- pdObj.pdChangeList){
-      val predGuid = store.getGUIDwithName(p.pred)
+
       if (p.sub == "?" && p.obj != "?"){
-        val qResult = store.query((v"x", predGuid, p.obj))
+
+        val qResult = store.query((v"x", store.getGUIDwithName(p.pred), store.getGUIDwithName(p.obj)))
+
         while(qResult.hasNext){
           val t = store.begin
           val queriedSub = qResult.next().get(v"x").toString
+          val queriedSub2 = qResult.next().get(v"x")
+          Logger.error(store.getName(queriedSub2))
           val result = PdChangeJson("ts", "e", queriedSub, p.pred, p.obj)
-          store.listen((queriedSub, predGuid, null), (c: Change) => {
+          store.listen((queriedSub, store.getGUIDwithName(p.pred), null), (c: Change) => {
             //updateListeningActors(new LTriple(queriedSub, predGuid, null), result)
           })
           queryResult += result
+          Logger.error(result.sub.getClass.toString)
           store.commit(t)
         }
       }else if(p.sub != "?" && p.obj == "?"){
-        val qResult = store.query((p.sub, predGuid, v"x"))
+        val qResult = store.query((p.sub, store.getGUIDwithName(p.pred), v"x"))
         while(qResult.hasNext){
           val t = store.begin
           val queriedObj = qResult.next().get(v"x").toString
@@ -38,13 +43,11 @@ object PDStoreModel {
           val lTriple = "?_"+p.pred+"_"+queriedObj
           addToListeners(lTriple, pdObj.actor, result)
 
-          store.listen((null, predGuid, queriedObj), (c: Change) => {
+          store.listen((null, store.getGUIDwithName(p.pred), queriedObj), (c: Change) => {
             updateListeningActors(pdObj.actor, lTriple, result)
             //TODO: send message to all listening users
           })
           queryResult += result
-          store.add("behzad", predGuid, "Peykan")
-          store.commit(t)
         }
       }else{
         Logger.error("not a valid query")
@@ -56,7 +59,17 @@ object PDStoreModel {
     } else {
       return PdQuery("cQuery", false, List[PdChangeJson]())
     }
+  }
 
+  def createTable(p: PdObj) : PdQuery = {
+    //TODO: error handling if the table with the same name already exists
+    for (t <- p.pdChangeList){
+      if (t.pred == "has_type" && t.obj == "table"){
+        store.add(store.getGUIDwithName(t.sub), store.getGUIDwithName(t.pred), store.getGUIDwithName(t.obj))
+      }
+    }
+    store.commit
+    return PdQuery("success", false , p.pdChangeList)
   }
 
   def applyChanges(pdObj: PdObj) = {
@@ -64,7 +77,6 @@ object PDStoreModel {
     store.begin
     for (p <- pdObj.pdChangeList){
       if (p.sub != "?" && p.obj != "?" && p.pred != "") {
-        Logger.debug("adding change!")
         store.addLink(p.sub, store.getGUIDwithName(p.pred), p.obj)
       } else {
         Logger.error("not a valid query!")
@@ -84,16 +96,16 @@ object PDStoreModel {
     */
   }
 
+  /*
   def getAllTables(pdCHangeList: List[PdChangeJson]): List[PdChangeJson] = {
-    Logger.debug(pdCHangeList.toString)
     val tables = store.query((v"x", store.getGUIDwithName("has-type"), "table"))
     var allTables = ListBuffer.empty[PdChangeJson]
     while(tables.hasNext){
       allTables += new PdChangeJson("ts", "e", tables.next().get(v"x").toString, "has-type", "table")
     }
-    Logger.debug(allTables.toString)
     return allTables.toList
   }
+  */
   /*
   def sparqlQuery(sparqlQ: JsValue): JsValue = {
     var pdChanges = ListBuffer.empty[pdstore.sparql.Constraint[GUID, AnyRef, GUID]]

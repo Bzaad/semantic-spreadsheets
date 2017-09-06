@@ -9,12 +9,6 @@ var initDocument = function () {
     $("#create-table").click(createTable);
     $("#clear-query").click(clearQuery);
 
-    /*
-    $("#create-table").click(function () {
-        bootstrap_alert.warning('Created the <strong>Table!</strong>', 'danger', 4000);
-        websocket.send(JSON.stringify(cTable));
-    });
-    */
 
     $("#query-table").click(function () {
         bootstrap_alert.warning('Queried the <strong>Table!</strong>', 'danger', 4000);

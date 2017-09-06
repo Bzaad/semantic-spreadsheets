@@ -6,6 +6,17 @@ var predicates = [];
 var objects = [];
 var dirtyChanges = [];
 
+var currentSession = {
+    tables: [
+        {
+            name: "string",
+            rows: [],
+            columns: [],
+            pdChanges: []
+        }
+    ]
+}
+
 var initTable = function(){
     for (var i=0; i<rows; i++) {
         var row = document.querySelector("table").insertRow(-1);
@@ -16,4 +27,31 @@ var initTable = function(){
     }
     $("#A1").prop("disabled", true);
     $('#A1').css("background-color", "#ccc");
+};
+
+var initCellListeners = function(){
+    if (!currentHeader) return;
+    INPUTS.forEach(function(elm) {
+        //if (elm.id.length > 3 ) return;
+        elm.onblur = function(e) {
+            currentCells = JSON.parse(localStorage.getItem('currentEvent'))[currentHeader].cells;
+            if(!e.target.value || e.target.value === "_"|| !currentHeader) return;
+            else if (e.target.id.charAt(0) === "A" || e.target.id.charAt(1) === "1"){
+                _.forEach(currentCells, function(cc){
+                    if (cc.val === e.target.value && cc.id !== e.target.id){
+                        e.target.value = "";
+                        return;
+                    }
+                })
+                if(e.target.value) queryChange(e);
+            }
+            else addChange(e);
+        };
+    });
+};
+
+var initLocalStorage = function(){
+    window.localStorage.clear();
+    var eventObject = {};
+    localStorage.setItem('currentSession', JSON.stringify(eventObject));
 };

@@ -38,10 +38,10 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
         /**
           * if message type is "PdQuery"
           */
+
         case s: JsSuccess[PdQuery] => {
 
           val cBundle = new PdObj((js \ "reqValue").as[List[PdChangeJson]], theActor, (js \ "listenTo").as[Boolean])
-
           ((js \ "reqType").as[String]) match {
             case "aTable" =>
               UserManager.queryAllTables(cBundle)

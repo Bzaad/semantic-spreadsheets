@@ -5,7 +5,7 @@
 bootstrap_alert = function () {}
 
 bootstrap_alert.warning = function (message, alert, timeout) {
-
+    // available: success, info, warning, danger
     $('<div id="floating_alert" class="alert alert-' + alert +
         ' fade in"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
         message + '&nbsp;&nbsp;</div>').appendTo('body');
@@ -14,8 +14,3 @@ bootstrap_alert.warning = function (message, alert, timeout) {
         $(".alert").alert('close');
     }, timeout);
 };
-
-$('#clickme').on('click', function () {
-    bootstrap_alert.warning('Your text goes here <strong>html test</strong>', 'success', 4000);
-    // available: success, info, warning, danger
-});

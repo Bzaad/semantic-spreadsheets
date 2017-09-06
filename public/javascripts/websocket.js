@@ -21,22 +21,61 @@ var onClose = function(evt) {
 var onMessage = function(evt) {
     var qData = JSON.parse(evt.data);
 
-    if (qData.reqType === "aTable")
-        creatTablePicker(qData.reqValue);
-    else if (qData.reqType === "cTable")
-        $('#add-table-modal').modal('hide');
-    else if (qData.reqType === "cQuery")
-        console.log(qData.reqValue);
-    else if (qData.reqType = "lQuery")
-        console.log(qData.reqValue);
-    else
-        console.log("request type doesn't match!");
+    switch (qData.reqType){
+        case "aTable":
+            creatTablePicker(qData.reqValue);
+            break;
+        case "cTabel":
+            $('#add-table-modal').modal('hide');
+            break;
+        case "cQuery":
+            console.log(qData.reqValue);
+            break;
+        case "lQuery":
+            console.log(qData.reqValue);
+            break;
+        case "success":
+           handleSuccess(qData.reqValue);
+           break;
+        case "failure":
+            handleFailure(qData.reqValue);
+            break;
+        default:
+            console.log("response type doesn't match!");
+    }
+};
 
-    bootstrap_alert.warning('Received a <strong>Message!</strong>', 'info', 4000);
+
+var handleSuccess = function(reqValue){
+    //var message = JSON.stringify(reqValue);
+    var message = 'Request has a <strong> success </strong> result!';
+    switch (reqValue[0].obj){
+        case "table":
+            message =  'A table with the name <strong>' + reqValue[0].sub + '</strong> was created!';
+            loadTable(reqValue[0].sub);
+            updateTableTabs();
+            break;
+        default:
+            // Do nothing!
+    }
+    bootstrap_alert.warning(message, 'success', 4000);
+};
+
+var loadTable = function(tableName){
+    console.log("loading the table: " + tableName);
+};
+
+var updateTableTabs = function(){
+    console.log("updating all the tabs!");
+};
+
+var handleFailure = function(reqValue){
+    var message = JSON.stringify(reqValue);
+    bootstrap_alert.warning('Received a <strong>' + message + '</strong>', 'danger', 4000);
 };
 
 var onError = function(evt) {
-    writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    bootstrap_alert.warning('Received this error: <strong>' + evt + '</strong>', 'danger', 4000);
 };
 
 var doSend = function(message) {
@@ -58,17 +97,34 @@ var connectWs = function(){
 };
 
 var createTable = function(){
-    var newTable = {};
     if($("#table-name").val()){
-        newTable = { "reqType" : "cTable", "reqValue": [{"ta"  : "t", "ch"  : "+", "sub" : $("#table-name").val() , "pred": "has-type", "obj" : "table"}]};
+        var newTable = {
+            "reqType" : "cTable",
+            "listenTo": true,
+            "reqValue" : [
+                {"ta": "t", "ch" : "+", "sub" : $("#table-name").val(), "pred": "has_type", "obj" : "table"}
+            ]
+        };
         $('#add-table-modal').modal('hide');
     }
     websocket.send(JSON.stringify(newTable));
+    //TODO: move this to when you get a success return message!
+    //TODO: after creating the table instead of waiting for response you query if the table exits.
+    bootstrap_alert.warning('Created the <strong>Table!</strong>', 'danger', 4000);
 };
 
 var clearQuery = function(){};
 
 var getAllTables = function(){
+
+    var aTable = {
+        "reqType" : "aTable",
+        "listenTo": false,
+        "reqValue" : [
+            {"ta": "t", "ch" : "e", "sub" : "?", "pred": "has_type", "obj" : "table"}
+        ]
+    };
+
     $("#table-name").val("");
     websocket.send(JSON.stringify(aTable)); // get all the tables.
 };
