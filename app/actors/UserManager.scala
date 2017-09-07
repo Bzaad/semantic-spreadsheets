@@ -117,6 +117,7 @@ object UserManager {
 
   def queryAllTables(p: PdObj): Unit = {
     val pdQuery = new PdQuery("aTable", false, PDStoreModel.query(p).reqValue)
-      //p.actor ! Json.toJson(pdQuery)
+    Logger.error(pdQuery.toString)
+    p.actor ! Json.toJson(pdQuery)
   }
 }

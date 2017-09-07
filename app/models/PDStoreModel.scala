@@ -18,21 +18,19 @@ object PDStoreModel {
     for(p <- pdObj.pdChangeList){
 
       if (p.sub == "?" && p.obj != "?"){
-
         val qResult = store.query((v"x", store.getGUIDwithName(p.pred), store.getGUIDwithName(p.obj)))
 
         while(qResult.hasNext){
           val t = store.begin
-          val queriedSub = qResult.next().get(v"x").toString
-          val queriedSub2 = qResult.next().get(v"x")
-          Logger.error(store.getName(queriedSub2))
-          val result = PdChangeJson("ts", "e", queriedSub, p.pred, p.obj)
+          val queriedSub = qResult.next().get(v"x")
+          Logger.error(queriedSub.toString)
+          val result = PdChangeJson("ts", "e", store.getName(queriedSub), p.pred, p.obj)
+
           store.listen((queriedSub, store.getGUIDwithName(p.pred), null), (c: Change) => {
             //updateListeningActors(new LTriple(queriedSub, predGuid, null), result)
           })
           queryResult += result
-          Logger.error(result.sub.getClass.toString)
-          store.commit(t)
+          store.commit
         }
       }else if(p.sub != "?" && p.obj == "?"){
         val qResult = store.query((p.sub, store.getGUIDwithName(p.pred), v"x"))

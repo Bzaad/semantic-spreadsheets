@@ -2,12 +2,22 @@
  * All the button and value assignments are done here!
  */
 var initDocument = function () {
-
+    localStorage.setItem("currentTables", JSON.stringify({tables: []}))
     $("#connect-ws").click(connectWs);
     $("#disconnect-ws").click(disconnectWs);
     $("#submit-query").click(submitQuery);
     $("#create-table").click(createTable);
     $("#clear-query").click(clearQuery);
+   // $("#load-table").click(loadTable($("#table-picker").val()))
+    $("#load-table").click(function () {
+        loadTable($("#table-picker").val())
+    });
+    $("#table-picker").change(function () {
+        console.log($("#table-picker").val());
+        if($("#table-picker").val() != "" || $("#table-picker").val() != []) $("#table-name").prop("disabled", true);
+        if($("#table-picker").val() == "" || $("#table-picker").val() == []) $("#table-name").prop("disabled", false);
+    })
+
 
 
     $("#query-table").click(function () {
@@ -26,15 +36,11 @@ var initDocument = function () {
     });
 
     $('#add-table-modal').on('shown.bs.modal', getAllTables);
-};
 
-var creatTablePicker = function(allTables){
-
-    $("#table-picker").empty();
-    _.forEach(allTables, function(t){
-        $("#table-picker").append("<option>" + t.sub + "</option>");
+    $(".nav-tabs").on("click", "a", function(e){
+        e.preventDefault();
+        if(!$(this).hasClass('add-table')) {
+            $(this).tab('show');
+        }
     });
-
-    $("#table-picker").selectpicker('refresh');
-
-}
+};

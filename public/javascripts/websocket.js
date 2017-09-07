@@ -1,6 +1,8 @@
 
 var websocket;
 
+
+
 var initWebsocket = function(){
     websocket = new WebSocket($("body").data("ws-url"));
     websocket.onopen = function(evt) { onOpen(evt) };
@@ -20,10 +22,11 @@ var onClose = function(evt) {
 
 var onMessage = function(evt) {
     var qData = JSON.parse(evt.data);
+    console.log(qData)
 
     switch (qData.reqType){
         case "aTable":
-            creatTablePicker(qData.reqValue);
+            createTablePicker(qData.reqValue);
             break;
         case "cTabel":
             $('#add-table-modal').modal('hide');
@@ -61,8 +64,24 @@ var handleSuccess = function(reqValue){
     bootstrap_alert.warning(message, 'success', 4000);
 };
 
-var loadTable = function(tableName){
-    console.log("loading the table: " + tableName);
+var loadTable = function(tablesName){
+
+    var loadedTables = JSON.parse(localStorage.getItem("currentTables"));
+    localStorage.setItem("currentTables", JSON.stringify({tables: []}))
+    if(!loadedTables) loadedTables = {tables: []};
+
+    if(Array.isArray(tablesName)){
+        _.each(tablesName, function (t) {
+            loadedTables.tables.push(t);
+        })
+    }else{
+        loadedTables.tables.push(tablesName);
+    }
+
+    loadedTables.tables = _.uniq(loadedTables.tables)
+
+    localStorage.setItem("currentTables", JSON.stringify(loadedTables));
+    addCurrentTables(loadedTables.tables);
 };
 
 var updateTableTabs = function(){
@@ -124,7 +143,50 @@ var getAllTables = function(){
             {"ta": "t", "ch" : "e", "sub" : "?", "pred": "has_type", "obj" : "table"}
         ]
     };
-
     $("#table-name").val("");
     websocket.send(JSON.stringify(aTable)); // get all the tables.
+};
+
+var createTablePicker = function(allTables){
+    $("#table-picker").empty();
+    _.forEach(allTables, function(t){
+        $("#table-picker").append("<option>" + t.sub + "</option>");
+    });
+    $("#table-picker").selectpicker('refresh');
+
+};
+
+var addEl = '<li ><a href="#add" class="add-table" data-toggle="modal" data-target="#add-table-modal"> + </a></li>';
+
+var currentTables = function(){
+    return $(".nav-tabs");
+};
+
+var addCurrentTables = function(allTables){
+
+    if(!allTables) return;
+
+    currentTables().html("");
+
+    _.each(allTables, function(t){
+       var tableId = strhash(t);
+       var tableEl = '<li><a data-toggle="tab" href="#header_' + tableId + '">' + t + '</a></li>';
+       currentTables().append(tableEl);
+    });
+    currentTables().append(addEl);
+    $('#add-table-modal').modal('hide');
+};
+
+var strhash = function(str) {
+    var chr, hash, i, _i, _ref;
+    if (str.length === 0) {
+        return 0;
+    }
+    hash = 0;
+    for (i = _i = 0, _ref = str.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        chr = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0;
+    }
+    return hash;
 };
