@@ -15,7 +15,7 @@ var currentSession = {
             pdChanges: []
         }
     ]
-}
+};
 
 var initTable = function(){
     for (var i=0; i<rows; i++) {

@@ -12,23 +12,19 @@ var initDocument = function () {
     $("#load-table").click(function () {
         loadTable($("#table-picker").val())
     });
+
+    $("#add-subs").click(addSubs);
+
     $("#table-picker").change(function () {
         console.log($("#table-picker").val());
         if($("#table-picker").val() != "" || $("#table-picker").val() != []) $("#table-name").prop("disabled", true);
         if($("#table-picker").val() == "" || $("#table-picker").val() == []) $("#table-name").prop("disabled", false);
-    })
-
-
-
+    });
     $("#query-table").click(function () {
         bootstrap_alert.warning('Queried the <strong>Table!</strong>', 'danger', 4000);
         websocket.send(JSON.stringify(qTable));
     });
-    $("#create-change").click(function () {
-        bootstrap_alert.warning('Created the <strong>Change!</strong>', 'danger', 4000);
-        console.log(cChange);
-        websocket.send(JSON.stringify(cChange));
-    });
+
     $("#query-change").click(function () {
         bootstrap_alert.warning('Queried the <strong>Change!</strong>', 'danger', 4000);
         qChange.reqValue = _.uniqWith(qChange.reqValue, _.isEqual);
@@ -43,4 +39,11 @@ var initDocument = function () {
             $(this).tab('show');
         }
     });
+    /**
+     * an event listener that gets triggered by tab change
+     * reloads the sheet content on tab change
+     */
+    $(document).on( 'shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
+        loadTableTriples(e.target.text); // activated tab
+    })
 };

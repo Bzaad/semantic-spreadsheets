@@ -15,12 +15,12 @@ object PDStoreModel {
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
-    for(p <- pdObj.pdChangeList){
+    for (p <- pdObj.pdChangeList) {
 
-      if (p.sub == "?" && p.obj != "?"){
+      if (p.sub == "?" && p.obj != "?") {
         val qResult = store.query((v"x", store.getGUIDwithName(p.pred), store.getGUIDwithName(p.obj)))
 
-        while(qResult.hasNext){
+        while (qResult.hasNext) {
           val t = store.begin
           val queriedSub = qResult.next().get(v"x")
           Logger.error(queriedSub.toString)
@@ -32,13 +32,13 @@ object PDStoreModel {
           queryResult += result
           store.commit
         }
-      }else if(p.sub != "?" && p.obj == "?"){
+      } else if (p.sub != "?" && p.obj == "?") {
         val qResult = store.query((p.sub, store.getGUIDwithName(p.pred), v"x"))
-        while(qResult.hasNext){
+        while (qResult.hasNext) {
           val t = store.begin
           val queriedObj = qResult.next().get(v"x").toString
           val result = new PdChangeJson("ts", "e", p.sub, p.pred, queriedObj)
-          val lTriple = "?_"+p.pred+"_"+queriedObj
+          val lTriple = "?_" + p.pred + "_" + queriedObj
           addToListeners(lTriple, pdObj.actor, result)
 
           store.listen((null, store.getGUIDwithName(p.pred), queriedObj), (c: Change) => {
@@ -47,29 +47,59 @@ object PDStoreModel {
           })
           queryResult += result
         }
-      }else{
+      } else {
         Logger.error("not a valid query")
       }
     }
 
-    if (queryResult.nonEmpty){
-      return PdQuery("cQuery", false , queryResult.toList)
+    if (queryResult.nonEmpty) {
+      PdQuery("cQuery", false, queryResult.toList)
     } else {
-      return PdQuery("cQuery", false, List[PdChangeJson]())
+      PdQuery("cQuery", false, List[PdChangeJson]())
     }
   }
 
-  def createTable(p: PdObj) : PdQuery = {
+  def createTable(p: PdObj): PdQuery = {
     //TODO: error handling if the table with the same name already exists
-    for (t <- p.pdChangeList){
-      if (t.pred == "has_type" && t.obj == "table"){
+    for (t <- p.pdChangeList) {
+      if (t.pred == "has_type" && t.obj == "table") {
         store.add(store.getGUIDwithName(t.sub), store.getGUIDwithName(t.pred), store.getGUIDwithName(t.obj))
       }
     }
     store.commit
-    return PdQuery("success", false , p.pdChangeList)
+    PdQuery("success", false, p.pdChangeList)
   }
 
+  def queryTable(p: PdObj): PdQuery = {
+
+    var rowsColumns = ListBuffer.empty[PdChangeJson]
+
+    for (t <- p.pdChangeList) {
+      if (t.pred == "has_type" && t.obj == "table") {
+        val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("row"), v"x"))
+        val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("column"), v"x"))
+        while(rows.hasNext){
+          rowsColumns += new PdChangeJson("ts", "e", t.sub, "row", rows.next().get(v"x").toString)
+        }
+        while(columns.hasNext){
+          rowsColumns += new PdChangeJson("ts", "e", t.sub, "column", columns.next().get(v"x").toString)
+        }
+      }
+    }
+    PdQuery("success", false, rowsColumns.toList)
+  }
+
+  def applyPdc(pdc: PdObj): PdQuery = {
+    for (c <- pdc.pdChangeList) {
+      Logger.error(c.toString)
+      store.add(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+    }
+    store.commit
+    PdQuery("success", false, pdc.pdChangeList)
+  }
+}
+
+  /*
   def applyChanges(pdObj: PdObj) = {
 
     store.begin
@@ -81,6 +111,7 @@ object PDStoreModel {
       }
     }
     store.commit
+    */
     /*
     val rows = store.query(("table-a", store.getGUIDwithName("has-row"), v"x"))
     val columns = store.query(("table-a", store.getGUIDwithName("has-col"), v"x"))
@@ -92,7 +123,7 @@ object PDStoreModel {
       print(columns.next().get(v"x").toString + " : ")
     }
     */
-  }
+  //}
 
   /*
   def getAllTables(pdCHangeList: List[PdChangeJson]): List[PdChangeJson] = {
@@ -206,4 +237,3 @@ object PDStoreModel {
     println("removed the triple { " + tObject + "," + tPredicate + "," + tSubject + "}" )
   }
   */
-}

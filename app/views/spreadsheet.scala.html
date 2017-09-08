@@ -1,7 +1,7 @@
 @(user: String)(implicit request: play.api.mvc.RequestHeader)
 @main("spreadsheet!"){
     <div class="container">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" id="current-tabs">
             <li ><a href="#add" class="add-table" data-toggle="modal" data-target="#add-table-modal"> + </a></li>
         </ul>
         <div class="tab-content" style="margin-top: 10px">
@@ -26,8 +26,8 @@
         </div>
         <div class="row" style="margin-top: 10px">
             <class class="col-sm-12">
-                <button id="query-table" type="button" class="btn btn-primary">Query Table</button>
-                <button id="create-change" type="button" class="btn btn-primary">Create Chage</button>
+                <button id="add-preds" type="button" class="btn btn-primary">Add Preds</button>
+                <button id="add-subs" type="button" class="btn btn-primary">Add Subs</button>
                 <button id="query-change" type="button" class="btn btn-primary">Query Change</button>
             </class>
         </div>

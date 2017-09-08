@@ -98,11 +98,11 @@ object UserManager {
   }
 
   def applyPdChange(p: PdObj): Unit = {
-    PDStoreModel.applyChanges(p)
+    PDStoreModel.applyPdc(p)
   }
 
   def queryTable(p: PdObj): Unit = {
-    Logger.debug("query table")
+    p.actor ! Json.toJson(PDStoreModel.queryTable(p))
   }
 
 

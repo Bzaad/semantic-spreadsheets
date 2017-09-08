@@ -1,4 +1,3 @@
-
 var websocket;
 
 
@@ -169,24 +168,72 @@ var addCurrentTables = function(allTables){
     currentTables().html("");
 
     _.each(allTables, function(t){
-       var tableId = strhash(t);
-       var tableEl = '<li><a data-toggle="tab" href="#header_' + tableId + '">' + t + '</a></li>';
+       var tableEl = '<li><a data-toggle="tab"' + 'id=table_"' + t +'" href="#table_' + t + '">' + t + '</a></li>';
        currentTables().append(tableEl);
     });
     currentTables().append(addEl);
     $('#add-table-modal').modal('hide');
 };
 
-var strhash = function(str) {
-    var chr, hash, i, _i, _ref;
-    if (str.length === 0) {
-        return 0;
-    }
-    hash = 0;
-    for (i = _i = 0, _ref = str.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        chr = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0;
-    }
-    return hash;
+var loadTableTriples = function(tableName){
+    var qTable = {
+        "reqType" : "qTable",
+        "listenTo": false,
+        "reqValue": [
+            {
+                "ta"  : "t",
+                "ch"  : "e",
+                "sub" : tableName,
+                "pred": "has_type",
+                "obj" : "table"
+            }
+        ]
+    };
+    websocket.send(JSON.stringify(qTable));
 };
+
+var addSubs = function(afsdf){
+
+    var subjects = ["Per1", "Per2", "Per3", "Per4", "Per5"];
+    var predicates = ["id", "first_name", "last_name", "email", "upi"];
+
+    var req = {
+        reqType : "cChange",
+        listenTo : true,
+        reqValue : []
+    };
+
+    if (!subjects || !predicates) return;
+
+    if(Array.isArray(subjects) || Array.isArray(predicates)){
+        _.each(subjects, function(s){
+            var pdcObj = {
+                "ta": "t",
+                "ch": "+",
+                "sub": $('.nav-tabs .active').text(),
+                "pred": "row",
+                "obj": s
+            };
+            req.reqValue.push(pdcObj);
+        });
+        _.each(predicates, function (p) {
+            var pdcObj = {
+                "ta": "t",
+                "ch": "+",
+                "sub": $('.nav-tabs .active').text(),
+                "pred": "column",
+                "obj": p
+            };
+            req.reqValue.push(pdcObj);
+        });
+    } else if (typeof subjects === 'string' || typeof predicates === 'string'){
+        console.log(predicates, subjects);
+    } else {
+        console.log("Type not supported!");
+    }
+
+    if (req.reqValue) websocket.send(JSON.stringify(req));
+
+};
+
+
