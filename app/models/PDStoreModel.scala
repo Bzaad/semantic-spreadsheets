@@ -23,7 +23,6 @@ object PDStoreModel {
         while (qResult.hasNext) {
           val t = store.begin
           val queriedSub = qResult.next().get(v"x")
-          Logger.error(queriedSub.toString)
           val result = PdChangeJson("ts", "e", store.getName(queriedSub), p.pred, p.obj)
 
           store.listen((queriedSub, store.getGUIDwithName(p.pred), null), (c: Change) => {
@@ -76,13 +75,14 @@ object PDStoreModel {
 
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
-        val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("row"), v"x"))
-        val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("column"), v"x"))
-        while(rows.hasNext){
-          rowsColumns += new PdChangeJson("ts", "e", t.sub, "row", rows.next().get(v"x").toString)
+        val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value"))
+        val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value"))
+
+        for (r <- rows){
+          rowsColumns += new PdChangeJson("ts", "e", "is_row" , store.getName(r.get(v"row")), store.getName(r.get(v"value")))
         }
-        while(columns.hasNext){
-          rowsColumns += new PdChangeJson("ts", "e", t.sub, "column", columns.next().get(v"x").toString)
+        for (c <- columns) {
+          rowsColumns += new PdChangeJson("ts", "e", "is_column", store.getName(c.get(v"column")), store.getName(c.get(v"value")))
         }
       }
     }
@@ -91,7 +91,6 @@ object PDStoreModel {
 
   def applyPdc(pdc: PdObj): PdQuery = {
     for (c <- pdc.pdChangeList) {
-      Logger.error(c.toString)
       store.add(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
     }
     store.commit

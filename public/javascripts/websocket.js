@@ -1,6 +1,6 @@
 var websocket;
 
-
+var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 var initWebsocket = function(){
     websocket = new WebSocket($("body").data("ws-url"));
@@ -47,26 +47,31 @@ var onMessage = function(evt) {
     }
 };
 
-
 var handleSuccess = function(reqValue){
     //var message = JSON.stringify(reqValue);
+    if (reqValue.length < 1) return;
     var message = 'Request has a <strong> success </strong> result!';
-    switch (reqValue[0].obj){
-        case "table":
+    if (reqValue.length === 1 && reqValue[0].obj === "table"){
             message =  'A table with the name <strong>' + reqValue[0].sub + '</strong> was created!';
             loadTable(reqValue[0].sub);
             updateTableTabs();
-            break;
-        default:
-            // Do nothing!
+    } else {
+        _.each(reqValue, function(rv){
+            if(rv.sub === "is_column" || rv.sub === "is_row"){
+                var cId = rv.pred.split("_")[rv.pred.split("_").length - 1];
+                var cVal = rv.obj;
+                $("#" + cId.toUpperCase()).val(cVal)
+            }
+        });
     }
+
     bootstrap_alert.warning(message, 'success', 4000);
 };
 
 var loadTable = function(tablesName){
 
     var loadedTables = JSON.parse(localStorage.getItem("currentTables"));
-    localStorage.setItem("currentTables", JSON.stringify({tables: []}))
+    localStorage.setItem("currentTables", JSON.stringify({tables: []}));
     if(!loadedTables) loadedTables = {tables: []};
 
     if(Array.isArray(tablesName)){
@@ -77,7 +82,7 @@ var loadTable = function(tablesName){
         loadedTables.tables.push(tablesName);
     }
 
-    loadedTables.tables = _.uniq(loadedTables.tables)
+    loadedTables.tables = _.uniq(loadedTables.tables);
 
     localStorage.setItem("currentTables", JSON.stringify(loadedTables));
     addCurrentTables(loadedTables.tables);
@@ -192,6 +197,7 @@ var loadTableTriples = function(tableName){
     websocket.send(JSON.stringify(qTable));
 };
 
+/*
 var addSubs = function(afsdf){
 
     var subjects = ["Per1", "Per2", "Per3", "Per4", "Per5"];
@@ -206,22 +212,22 @@ var addSubs = function(afsdf){
     if (!subjects || !predicates) return;
 
     if(Array.isArray(subjects) || Array.isArray(predicates)){
-        _.each(subjects, function(s){
+        _.each(subjects, function(s, i){
             var pdcObj = {
                 "ta": "t",
                 "ch": "+",
                 "sub": $('.nav-tabs .active').text(),
-                "pred": "row",
+                "pred": "row__a" + (i+2),
                 "obj": s
             };
             req.reqValue.push(pdcObj);
         });
-        _.each(predicates, function (p) {
+        _.each(predicates, function (p, i) {
             var pdcObj = {
                 "ta": "t",
                 "ch": "+",
                 "sub": $('.nav-tabs .active').text(),
-                "pred": "column",
+                "pred": "column__" + alphabet[i+1] + 1,
                 "obj": p
             };
             req.reqValue.push(pdcObj);
@@ -231,9 +237,14 @@ var addSubs = function(afsdf){
     } else {
         console.log("Type not supported!");
     }
-
     if (req.reqValue) websocket.send(JSON.stringify(req));
-
 };
+*/
+
+var addRowsCols = function(){
+
+    websocket.send(JSON.stringify(cChange2));
+
+}
 
 

@@ -13,7 +13,7 @@ var initDocument = function () {
         loadTable($("#table-picker").val())
     });
 
-    $("#add-subs").click(addSubs);
+    $("#add-subs").click(addRowsCols);
 
     $("#table-picker").change(function () {
         console.log($("#table-picker").val());
