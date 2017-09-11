@@ -46,4 +46,8 @@ var initDocument = function () {
     $(document).on( 'shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
         loadTableTriples(e.target.text); // activated tab
     })
+
+    document.activeElement.onblur = function(e){
+        console.log(e);
+    };
 };

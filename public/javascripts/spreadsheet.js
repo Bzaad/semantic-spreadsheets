@@ -3,6 +3,7 @@
  */
 var init = function () {
     initTable();        // from "table.js"
+    initCellListeners() // from "table.js"
     initWebsocket();    // from "websocket.js"
     initDocument();     // from "document.js"
 };
