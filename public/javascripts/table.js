@@ -61,7 +61,14 @@ var initCellListeners = function(){
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
                 }else if (targetType === "obj"){
-                    //TODO: Handle the addition of the object!
+                    var subPred = getSubPred(targetId);
+                    if (!subPred.sub || !subPred.pred){
+                        $("#" + targetId).val("")
+                        return;
+                    }
+                    var cellVal = {"ta"  : "t", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
+                    change.reqValue.push(cellVal);
+                    applyChanges(change);
                 }
             }
             /**
@@ -109,3 +116,12 @@ var initEvent = function(){
     initTable();
     initCellListeners()
 };
+
+var getSubPred = function(cellId){
+    var colChar = "1", rowNum = "A";
+    _.each(cellId, function(c){
+        if(isNaN(parseInt(c))) colChar = c + colChar;
+        else rowNum = rowNum + c;
+    });
+    return {sub: $("#" + rowNum).val() , pred: $("#" + colChar).val()};
+}
