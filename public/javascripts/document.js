@@ -13,8 +13,6 @@ var initDocument = function () {
         loadTable($("#table-picker").val())
     });
 
-    $("#add-subs").click(addRowsCols);
-
     $("#table-picker").change(function () {
         console.log($("#table-picker").val());
         if($("#table-picker").val() != "" || $("#table-picker").val() != []) $("#table-name").prop("disabled", true);
@@ -44,10 +42,8 @@ var initDocument = function () {
      * reloads the sheet content on tab change
      */
     $(document).on( 'shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
+        initEvent();
         loadTableTriples(e.target.text); // activated tab
     })
 
-    document.activeElement.onblur = function(e){
-        console.log(e);
-    };
 };

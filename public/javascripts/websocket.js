@@ -21,7 +21,6 @@ var onClose = function(evt) {
 
 var onMessage = function(evt) {
     var qData = JSON.parse(evt.data);
-    console.log(qData)
 
     switch (qData.reqType){
         case "aTable":
@@ -241,10 +240,8 @@ var addSubs = function(afsdf){
 };
 */
 
-var addRowsCols = function(){
-
-    websocket.send(JSON.stringify(cChange2));
-
-}
+var applyChanges = function(change){
+    websocket.send(JSON.stringify(change));
+};
 
 

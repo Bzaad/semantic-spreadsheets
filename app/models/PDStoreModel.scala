@@ -69,6 +69,12 @@ object PDStoreModel {
     PdQuery("success", false, p.pdChangeList)
   }
 
+  /*
+  TODO: this can be combined with create table method
+  simply called manageTable or something!
+   */
+  def removeTable(p: PdObj): PdQuery = ???
+
   def queryTable(p: PdObj): PdQuery = {
 
     var rowsColumns = ListBuffer.empty[PdChangeJson]
@@ -91,7 +97,12 @@ object PDStoreModel {
 
   def applyPdc(pdc: PdObj): PdQuery = {
     for (c <- pdc.pdChangeList) {
-      store.add(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+      /*
+      TODO: we need to listen to the pattern as well.
+      this need to be properly handled!
+       */
+      if(c.ch == "+") store.add(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+      else if (c.ch == "-") store.remove(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
     }
     store.commit
     PdQuery("success", false, pdc.pdChangeList)
