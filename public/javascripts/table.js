@@ -124,4 +124,19 @@ var getSubPred = function(cellId){
         else rowNum = rowNum + c;
     });
     return {sub: $("#" + rowNum).val() , pred: $("#" + colChar).val()};
-}
+};
+
+var findObjPosition = function(triple){
+    var objCellId = "";
+    _.each($("[data-cell-type=pred]"), function(pc){
+        if (pc.value === triple.pred){
+            _.each(pc.id, function(i){ if(isNaN(parseInt(i))) objCellId += i.toString()});
+        }
+    });
+    _.each($("[data-cell-type=sub]"), function(sc){
+        if (sc.value === triple.sub){
+            _.each(sc.id, function(i){ if(!isNaN(parseInt(i))) objCellId += i.toString()});
+        }
+    });
+    return objCellId;
+};

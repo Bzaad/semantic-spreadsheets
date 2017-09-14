@@ -77,22 +77,32 @@ object PDStoreModel {
 
   def queryTable(p: PdObj): PdQuery = {
 
-    var rowsColumns = ListBuffer.empty[PdChangeJson]
+    var queryResult = ListBuffer.empty[PdChangeJson]
 
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
-        val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value"))
-        val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value"))
+        val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value")).toList
+        val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value")).toList
 
         for (r <- rows){
-          rowsColumns += new PdChangeJson("ts", "e", "is_row" , store.getName(r.get(v"row")), store.getName(r.get(v"value")))
+          queryResult += new PdChangeJson("ts", "e", "is_row" , store.getName(r.get(v"row")), store.getName(r.get(v"value")))
         }
         for (c <- columns) {
-          rowsColumns += new PdChangeJson("ts", "e", "is_column", store.getName(c.get(v"column")), store.getName(c.get(v"value")))
+          queryResult += new PdChangeJson("ts", "e", "is_column", store.getName(c.get(v"column")), store.getName(c.get(v"value")))
+        }
+        for(r <- rows){
+          for(c <- columns){
+            val rowName = store.getGUIDwithName(store.getName(r.get(v"value")))
+            val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
+            val cellVal = store.query((rowName, colName, v"x"))
+            for(cv <- cellVal){
+              queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
+            }
+          }
         }
       }
     }
-    PdQuery("success", false, rowsColumns.toList)
+    PdQuery("success", false, queryResult.toList)
   }
 
   def applyPdc(pdc: PdObj): PdQuery = {
@@ -101,8 +111,14 @@ object PDStoreModel {
       TODO: we need to listen to the pattern as well.
       this need to be properly handled!
        */
-      if(c.ch == "+") store.add(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
-      else if (c.ch == "-") store.remove(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+      if(c.ch == "+" && (c.pred == "has_row" || c.pred == "has_value" || c.pred == "has_column"))
+        store.add(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+      else if (c.ch == "-" && (c.pred == "has_row" || c.pred == "has_value" || c.pred == "has_column"))
+        store.remove(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+      else if (c.ch == "+")
+        store.add(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
+      else if (c.ch == "-")
+        store.remove(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
     }
     store.commit
     PdQuery("success", false, pdc.pdChangeList)

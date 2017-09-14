@@ -62,6 +62,11 @@ var handleSuccess = function(reqValue){
                 $("#" + cId.toUpperCase()).val(cVal)
             }
         });
+        _.each(reqValue, function(rv){
+            if(rv.sub !== "is_column" && rv.sub !== "is_row"){
+                $("#" + findObjPosition(rv)).val(rv.obj);
+            }
+        })
     }
 
     bootstrap_alert.warning(message, 'success', 4000);
