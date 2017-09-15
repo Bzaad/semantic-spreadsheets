@@ -105,7 +105,6 @@ object UserManager {
     p.actor ! Json.toJson(PDStoreModel.queryTable(p))
   }
 
-
   /**
     * create the table and send the result back to the actor.
     * @param p

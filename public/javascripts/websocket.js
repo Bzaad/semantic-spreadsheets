@@ -200,6 +200,9 @@ var loadTableTriples = function(tableName){
     };
     websocket.send(JSON.stringify(qTable));
 };
+var loadObjectValues = function(message){
+    websocket.send(JSON.stringify(message));
+};
 
 var applyChanges = function(change){
     websocket.send(JSON.stringify(change));

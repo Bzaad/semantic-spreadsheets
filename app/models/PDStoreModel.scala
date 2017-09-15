@@ -16,7 +16,6 @@ object PDStoreModel {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
     for (p <- pdObj.pdChangeList) {
-
       if (p.sub == "?" && p.obj != "?") {
         val qResult = store.query((v"x", store.getGUIDwithName(p.pred), store.getGUIDwithName(p.obj)))
 
@@ -32,7 +31,11 @@ object PDStoreModel {
           store.commit
         }
       } else if (p.sub != "?" && p.obj == "?") {
-        val qResult = store.query((p.sub, store.getGUIDwithName(p.pred), v"x"))
+        Logger.error("queriying the obj!")
+        Logger.error(p.sub)
+        Logger.error(p.pred)
+        Logger.error(p.obj)
+        val qResult = store.query((store.getGUIDwithName(p.sub), store.getGUIDwithName(p.pred), v"x"))
         while (qResult.hasNext) {
           val t = store.begin
           val queriedObj = qResult.next().get(v"x").toString
@@ -52,9 +55,9 @@ object PDStoreModel {
     }
 
     if (queryResult.nonEmpty) {
-      PdQuery("cQuery", false, queryResult.toList)
+      PdQuery("success", false, queryResult.toList)
     } else {
-      PdQuery("cQuery", false, List[PdChangeJson]())
+      PdQuery("success", false, List[PdChangeJson]())
     }
   }
 

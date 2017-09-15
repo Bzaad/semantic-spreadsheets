@@ -60,6 +60,7 @@ var initCellListeners = function(){
                     var cellVal = {"ta"  : "t", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
+                    queryObjects(targetType, cellAfter);
                 }else if (targetType === "obj"){
                     var subPred = getSubPred(targetId);
                     if (!subPred.sub || !subPred.pred){
@@ -153,4 +154,27 @@ var findObjPosition = function(triple){
         }
     });
     return objCellId;
+};
+
+var queryObjects = function(tType, val){
+
+    var change = {
+        "reqType": "qChange",
+        "listenTo": true,
+        "reqValue": []
+    };
+
+    if (tType === "pred") {
+        _.each($("[data-cell-type=sub]"), function(s){
+            if (!s.value) return;
+            change.reqValue.push({"ta"  : "t", "ch"  : "e", "sub" : s.value, "pred": val, "obj" : "?"});
+        });
+    }
+    if (tType === "sub") {
+        _.each($("[data-cell-type=pred]"), function (p) {
+            if (!p.value) return;
+            change.reqValue.push({"ta"  : "t", "ch"  : "e", "sub" : val, "pred": p.value, "obj" : "?"});
+        });
+    }
+    loadObjectValues(change);
 };
