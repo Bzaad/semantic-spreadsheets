@@ -31,10 +31,6 @@ object PDStoreModel {
           store.commit
         }
       } else if (p.sub != "?" && p.obj == "?") {
-        Logger.error("queriying the obj!")
-        Logger.error(p.sub)
-        Logger.error(p.pred)
-        Logger.error(p.obj)
         val qResult = store.query((store.getGUIDwithName(p.sub), store.getGUIDwithName(p.pred), v"x"))
         while (qResult.hasNext) {
           val t = store.begin

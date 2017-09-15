@@ -65,6 +65,8 @@ var handleSuccess = function(reqValue){
         _.each(reqValue, function(rv){
             if(rv.sub !== "is_column" && rv.sub !== "is_row"){
                 $("#" + findObjPosition(rv)).val(rv.obj);
+                $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
+                $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
             }
         })
     }

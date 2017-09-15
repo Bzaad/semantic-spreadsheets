@@ -82,6 +82,19 @@ var initCellListeners = function(){
                     var cellVal = {"ta"  : "t", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
+                    if(targetType === "sub"){
+                        _.each($("[data-sub=" + cellBefore + "]"), function(s){
+                            s.removeAttribute("data-sub");
+                            s.removeAttribute("data-pred");
+                            s.value = "";
+                        });
+                    }else if(targetType === "pred"){
+                        _.each($("[data-pred=" + cellBefore + "]"), function(s){
+                            s.removeAttribute("data-sub");
+                            s.removeAttribute("data-pred");
+                            s.value = "";
+                        });
+                    }
                 }else if (targetType === "obj"){
                     var subPred = getSubPred(targetId);
                     if (!subPred.sub || !subPred.pred){
