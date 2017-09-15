@@ -82,9 +82,15 @@ var initCellListeners = function(){
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
                 }else if (targetType === "obj"){
-                    //TODO: Handle removal of the object!
+                    var subPred = getSubPred(targetId);
+                    if (!subPred.sub || !subPred.pred){
+                        $("#" + targetId).val("")
+                        return;
+                    }
+                    var cellVal = {"ta"  : "t", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};
+                    change.reqValue.push(cellVal);
+                    applyChanges(change);
                 }
-
             }
             /**
              * if the value of the cell has changed, first the old values will be removed
@@ -95,12 +101,20 @@ var initCellListeners = function(){
              */
             else if (cellBefore !== cellAfter && cellBefore && cellAfter){
                 if(targetType === "pred" || targetType === "sub"){
-                    var cellVallBefore = {"ta"  : "t", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
+                    var cellValBefore = {"ta"  : "t", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
                     var cellValAfter = {"ta"  : "t", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
-                    change.reqValue.push(cellVallBefore, cellValAfter);
+                    change.reqValue.push(cellValBefore, cellValAfter);
                     applyChanges(change);
                 }else if (targetType === "obj"){
-                    //TODO: Handle edition of the object!
+                    var subPred = getSubPred(targetId);
+                    if (!subPred.sub || !subPred.pred){
+                        $("#" + targetId).val("");
+                        return;
+                    }
+                    var cellValBefore = {"ta"  : "t", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};
+                    var cellValAfter = {"ta"  : "t", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
+                    change.reqValue.push(cellValBefore, cellValAfter);
+                    applyChanges(change);
                 }
             }
         };

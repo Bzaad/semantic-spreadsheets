@@ -201,50 +201,6 @@ var loadTableTriples = function(tableName){
     websocket.send(JSON.stringify(qTable));
 };
 
-/*
-var addSubs = function(afsdf){
-
-    var subjects = ["Per1", "Per2", "Per3", "Per4", "Per5"];
-    var predicates = ["id", "first_name", "last_name", "email", "upi"];
-
-    var req = {
-        reqType : "cChange",
-        listenTo : true,
-        reqValue : []
-    };
-
-    if (!subjects || !predicates) return;
-
-    if(Array.isArray(subjects) || Array.isArray(predicates)){
-        _.each(subjects, function(s, i){
-            var pdcObj = {
-                "ta": "t",
-                "ch": "+",
-                "sub": $('.nav-tabs .active').text(),
-                "pred": "row__a" + (i+2),
-                "obj": s
-            };
-            req.reqValue.push(pdcObj);
-        });
-        _.each(predicates, function (p, i) {
-            var pdcObj = {
-                "ta": "t",
-                "ch": "+",
-                "sub": $('.nav-tabs .active').text(),
-                "pred": "column__" + alphabet[i+1] + 1,
-                "obj": p
-            };
-            req.reqValue.push(pdcObj);
-        });
-    } else if (typeof subjects === 'string' || typeof predicates === 'string'){
-        console.log(predicates, subjects);
-    } else {
-        console.log("Type not supported!");
-    }
-    if (req.reqValue) websocket.send(JSON.stringify(req));
-};
-*/
-
 var applyChanges = function(change){
     websocket.send(JSON.stringify(change));
 };
