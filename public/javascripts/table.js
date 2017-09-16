@@ -82,19 +82,7 @@ var initCellListeners = function(){
                     var cellVal = {"ta"  : "t", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
-                    if(targetType === "sub"){
-                        _.each($("[data-sub=" + cellBefore + "]"), function(s){
-                            s.removeAttribute("data-sub");
-                            s.removeAttribute("data-pred");
-                            s.value = "";
-                        });
-                    }else if(targetType === "pred"){
-                        _.each($("[data-pred=" + cellBefore + "]"), function(s){
-                            s.removeAttribute("data-sub");
-                            s.removeAttribute("data-pred");
-                            s.value = "";
-                        });
-                    }
+                    cleanRowColumn(targetType, cellBefore);
                 }else if (targetType === "obj"){
                     var subPred = getSubPred(targetId);
                     if (!subPred.sub || !subPred.pred){
@@ -118,7 +106,9 @@ var initCellListeners = function(){
                     var cellValBefore = {"ta"  : "t", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
                     var cellValAfter = {"ta"  : "t", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
                     change.reqValue.push(cellValBefore, cellValAfter);
+                    cleanRowColumn(targetType, cellBefore);
                     applyChanges(change);
+                    queryObjects(targetType, cellAfter);
                 }else if (targetType === "obj"){
                     var subPred = getSubPred(targetId);
                     if (!subPred.sub || !subPred.pred){
@@ -191,3 +181,19 @@ var queryObjects = function(tType, val){
     }
     loadObjectValues(change);
 };
+
+var cleanRowColumn = function(targetType, cellBefore){
+    if(targetType === "sub"){
+        _.each($("[data-sub=" + cellBefore + "]"), function(s){
+            s.removeAttribute("data-sub");
+            s.removeAttribute("data-pred");
+            s.value = "";
+        });
+    }else if(targetType === "pred"){
+        _.each($("[data-pred=" + cellBefore + "]"), function(s){
+            s.removeAttribute("data-sub");
+            s.removeAttribute("data-pred");
+            s.value = "";
+        });
+    }
+}
