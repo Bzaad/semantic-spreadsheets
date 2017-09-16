@@ -98,7 +98,7 @@ var initCellListeners = function(){
                 }else if (targetType === "obj"){
                     var subPred = getSubPred(targetId);
                     if (!subPred.sub || !subPred.pred){
-                        $("#" + targetId).val("")
+                        $("#" + targetId).val("");
                         return;
                     }
                     var cellVal = {"ta"  : "t", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};

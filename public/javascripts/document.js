@@ -14,7 +14,6 @@ var initDocument = function () {
     });
 
     $("#table-picker").change(function () {
-        console.log($("#table-picker").val());
         if($("#table-picker").val() != "" || $("#table-picker").val() != []) $("#table-name").prop("disabled", true);
         if($("#table-picker").val() == "" || $("#table-picker").val() == []) $("#table-name").prop("disabled", false);
     });
