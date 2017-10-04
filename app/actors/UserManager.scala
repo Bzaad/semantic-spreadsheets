@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import models.{PDStoreModel, PdChangeJson, PdQuery, PdObj, LTriple}
 import play.api.Logger
 import play.api.libs.json.Json
-import scala.collection.mutable.Set
+import scala.collection.mutable.{Set, ListBuffer}
 
 /**
   * Created by behzadfarokhi on 8/08/17.
@@ -14,9 +14,11 @@ case class UserManager()
 
 object UserManager {
 
+  // Listeners
   var userMap: Map[String, ActorRef] = Map()
   var tripleSet: Map[String, Set[ActorRef]] = Map()
   var userSet: Map[ActorRef, Set[String]] = Map()
+  var registeredListeners = new ListBuffer[PdChangeJson]()
 
   /**
     * adds actor reference to the list of currently active users
@@ -56,6 +58,57 @@ object UserManager {
     }
   }
 
+  /**
+    * checks if the actor has been registered to a table listener before.
+    * if yes remove the actor from that particular table
+    * and adds it to the new table
+    * the registration to all the triples on that particular table must alos be done here.
+    * @param table: the table containing triples
+    * @param tableTriples: the triples inside the table
+    */
+  def changeTableListener(table: PdObj, tableTriples: PdQuery): Unit = {
+    //check if we are listening to the table!
+    for (t <- table.pdChangeList){
+      if(listenerExists(t)) {}
+      else {
+        PDStoreModel.registerListener(t)
+        registeredListeners += t
+        /**
+          * all tables have two "has_row" and "has_column" predicates by default
+          * thus we need to register a listener for these too.
+          */
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"))
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"))
+      }
+    }
+    for (tt <- tableTriples.reqValue){
+      if(listenerExists(tt)) {}
+      else {
+        PDStoreModel.registerListener(tt)
+        registeredListeners += tt
+      }
+    }
+  }
+
+  /**
+    * registering and removing listeners for single triples while user is working on a particular table
+    * @param triples
+    */
+  def changeListener(triples: PdObj): Unit ={
+    for (t <- triples.pdChangeList){
+      if(listenerExists(t)){}
+      else {
+        PDStoreModel.registerListener(t)
+        registeredListeners += t
+      }
+    }
+  }
+
+  def listenerExists(pdChangeJson: PdChangeJson): Boolean = {
+    if (registeredListeners.contains(pdChangeJson)) true
+    else false
+  }
+
   def addToListeners(lTriple: String, theActor: ActorRef, result: PdChangeJson): Unit ={
     if (tripleSet.contains(lTriple)){
       tripleSet(lTriple) += theActor
@@ -64,7 +117,6 @@ object UserManager {
       tripleSet += lTriple -> Set(theActor)
     }
     updateListeningActors(theActor, lTriple, result)
-
   }
 
   /**
@@ -92,6 +144,7 @@ object UserManager {
     }
   }
 
+  // Queries
   def queryPdChange(p: PdObj): Unit = {
     val returnMessage = PDStoreModel.query(p)
     p.actor ! Json.toJson(returnMessage)
@@ -99,10 +152,13 @@ object UserManager {
 
   def applyPdChange(p: PdObj): Unit = {
     p.actor ! Json.toJson(PDStoreModel.applyPdc(p))
+    changeListener(p)
   }
 
   def queryTable(p: PdObj): Unit = {
-    p.actor ! Json.toJson(PDStoreModel.queryTable(p))
+    val queryResult = PDStoreModel.queryTable(p)
+    p.actor ! Json.toJson(queryResult)
+    changeTableListener(p, queryResult)
   }
 
   /**
