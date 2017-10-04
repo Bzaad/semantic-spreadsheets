@@ -147,4 +147,47 @@ def applyChanges(pdObj: PdObj) = {
    }
    */
 
+  /*
+    store.listen((store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), null), (c: Change) => {
+      Logger.error("146")
+      Logger.error(c.toString)
+    })
+    */
+  /*
+          for(r <- rows){
+        for(c <- columns){
+          val rowName = store.getGUIDwithName(store.getName(r.get(v"value")))
+          val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
+          val cellVal = store.query((rowName, colName, v"x"))
+          for(cv <- cellVal){
+            /**
+              * this need to be changed!
+              */
+            store.listen((rowName, colName, null), (c: Change)=>{
+              Logger.error("121")
+              Logger.error("a value has changed!")
+              Logger.error(c.toString)
+            })
+            queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
+          }
+        }
+      }
+  */
+  /*
+          if(!tableListeners.contains(t.sub)) {
+        tableListeners += t.sub
+        store.listen((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), null), (c: Change) => {
+          Logger.error("85")
+          Logger.error("A Row Has Changed!")
+          Logger.error(c.toString)
+        })
+        store.listen((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), null), (c: Change)=> {
+          Logger.error("90")
+          Logger.error("A Column Has Changed!")
+          Logger.error(c.toString)
+        })
+      }
+   */
+
+
 }
