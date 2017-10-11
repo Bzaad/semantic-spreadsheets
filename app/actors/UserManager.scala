@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import models.{PDStoreModel, PdChangeJson, PdQuery, PdObj, LTriple}
 import play.api.Logger
 import play.api.libs.json.Json
-import scala.collection.mutable.{Set, ListBuffer}
+import scala.collection.mutable.Set
 
 /**
   * Created by behzadfarokhi on 8/08/17.
@@ -17,8 +17,8 @@ object UserManager {
   // Listeners
   var userMap: Map[String, ActorRef] = Map()
   var tripleSet: Map[String, Set[ActorRef]] = Map()
+  var tripleSet2: Map[LTriple, Set[ActorRef]] = Map()
   var userSet: Map[ActorRef, Set[String]] = Map()
-  var registeredListeners = new ListBuffer[PdChangeJson]()
 
   /**
     * adds actor reference to the list of currently active users
@@ -67,26 +67,17 @@ object UserManager {
     * @param tableTriples: the triples inside the table
     */
   def changeTableListener(table: PdObj, tableTriples: PdQuery): Unit = {
-    //check if we are listening to the table!
     for (t <- table.pdChangeList){
-      if(listenerExists(t)) {}
-      else {
-        PDStoreModel.registerListener(t)
-        registeredListeners += t
-        /**
-          * all tables have two "has_row" and "has_column" predicates by default
-          * thus we need to register a listener for these too.
-          */
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"))
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"))
-      }
+      /**
+        * all tables have two "has_row" and "has_column" predicates by default
+        * thus we need to register a listener for these too.
+        */
+      PDStoreModel.registerListener(t)
+      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"))
+      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"))
     }
     for (tt <- tableTriples.reqValue){
-      if(listenerExists(tt)) {}
-      else {
-        PDStoreModel.registerListener(tt)
-        registeredListeners += tt
-      }
+      PDStoreModel.registerListener(tt)
     }
   }
 
@@ -96,18 +87,10 @@ object UserManager {
     */
   def changeListener(triples: PdObj): Unit ={
     for (t <- triples.pdChangeList){
-      if(listenerExists(t)){}
-      else {
-        PDStoreModel.registerListener(t)
-        registeredListeners += t
-      }
+      PDStoreModel.registerListener(t)
     }
   }
 
-  def listenerExists(pdChangeJson: PdChangeJson): Boolean = {
-    if (registeredListeners.contains(pdChangeJson)) true
-    else false
-  }
 
   def addToListeners(lTriple: String, theActor: ActorRef, result: PdChangeJson): Unit ={
     if (tripleSet.contains(lTriple)){
@@ -116,7 +99,6 @@ object UserManager {
     else{
       tripleSet += lTriple -> Set(theActor)
     }
-    updateListeningActors(theActor, lTriple, result)
   }
 
   /**
@@ -124,10 +106,14 @@ object UserManager {
     * this method is usually called by a registered listener that is listening
     * to changes
     * @param lTriple
-    * @param msg
     */
-  def updateListeningActors(sender: ActorRef, lTriple: String, msg: PdChangeJson): Unit = {
-    if (tripleSet.contains(lTriple)) sendToAll(sender, tripleSet(lTriple), msg)
+  def updateListeningActors(sender: ActorRef, lTriple: LTriple): Unit = {
+    if(tripleSet2.exists( t => t._1.lSub.toString == lTriple.lSub.toString && t._1.lPred == lTriple.lPred.toString)){
+      val tListeners = tripleSet2.get(lTriple).toList
+      for(tl <- tripleSet2(lTriple)){
+        if (tl != sender) tl ! Json.toJson(PdQuery("listener", true, List[PdChangeJson]()))
+      }
+    }
   }
 
   /**

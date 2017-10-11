@@ -4,13 +4,14 @@ import pdstore._
 import PDStore._
 import play.api.Logger
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
-import actors.UserManager.{updateListeningActors, addToListeners}
+import actors.UserManager.addToListeners
 
 case class PDStoreModel()
 
 object PDStoreModel {
 
   val store = PDStore("pdstore_dd")
+  var registeredListeners = new ListBuffer[LTriple]()
 
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
@@ -104,7 +105,6 @@ object PDStoreModel {
       else if (c.ch == "-" && (c.pred == "has_row" || c.pred == "has_value" || c.pred == "has_column")){
         store.removeLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
       }
-
       else if (c.ch == "+" && (c.pred != "has_row" || c.pred != "has_value" || c.pred != "has_column")){
         store.addLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
         store.commit
@@ -112,16 +112,21 @@ object PDStoreModel {
       else if (c.ch == "-" && (c.pred != "has_row" || c.pred != "has_value" || c.pred != "has_column")){
         store.removeLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
       }
+      registerListener(c)
     }
     store.commit
     PdQuery("success", false, pdc.pdChangeList)
   }
 
   def registerListener(pdc: PdChangeJson): Unit = {
-    Logger.debug(pdc.toString)
-    store.listen((store.getGUIDwithName(pdc.sub), store.getGUIDwithName(pdc.pred), null), (c: Change) => {
-      Logger.debug(c.toRawString)
-      // regiesters them to listener list, should i pass the actor?
-    })
+
+    var lTriple = new LTriple(pdc.sub.toString, pdc.pred.toString, "_")
+    if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
+      registeredListeners += lTriple
+      store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(lTriple.lSub.toString), store.getGUIDwithName(lTriple.lPred.toString), null), (c: Change) => {
+        //UpdateListeners!
+        Logger.error(c.toRawString)
+      })
+    }
   }
 }
