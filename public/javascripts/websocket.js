@@ -63,7 +63,7 @@ var handleSuccess = function(reqValue){
             }
         });
         _.each(reqValue, function(rv){
-            if(rv.sub !== "is_column" && rv.sub !== "is_row"){
+            if(rv.sub !== "is_column" && rv.sub !== "is_row" && rv.ch !== "-"){
                 if(!findObjPosition(rv)) return;
                 $("#" + findObjPosition(rv)).val(rv.obj);
                 $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
