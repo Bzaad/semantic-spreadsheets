@@ -41,6 +41,9 @@ var onMessage = function(evt) {
         case "failure":
             handleFailure(qData.reqValue);
             break;
+        case "listener":
+            updateTable(qData.reqValue);
+            break;
         default:
             console.log("response type doesn't match!");
     }
@@ -98,6 +101,10 @@ var loadTable = function(tablesName){
 var updateTableTabs = function(){
     console.log("updating all the tabs!");
 };
+
+var updateTable = function(changeObj){
+    console.log(changeObj);
+}
 
 var handleFailure = function(reqValue){
     var message = JSON.stringify(reqValue);

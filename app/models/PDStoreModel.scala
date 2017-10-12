@@ -2,15 +2,27 @@ package models
 
 import pdstore._
 import PDStore._
+import akka.actor.ActorRef
 import play.api.Logger
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+
+import scala.collection.mutable
+import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set}
 
 case class PDStoreModel()
 
 object PDStoreModel {
 
   val store = PDStore("pdstore_dd")
+
   var registeredListeners = new ListBuffer[LTriple]()
+
+  var listeningActors: Map[ActorRef, Set[LTriple]] = Map()
+
+  /*
+  var userMap: Map[String, ActorRef] = Map()
+
+  var userSet: Map[ActorRef, Set[String]] = Map()
+  */
 
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
@@ -87,7 +99,7 @@ object PDStoreModel {
             val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
 
             //registering listeners for all the possible row-column combinations
-            registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"))
+            registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
 
             val cellVal = store.query((rowName, colName, v"x"))
             for(cv <- cellVal){
@@ -115,14 +127,26 @@ object PDStoreModel {
       else if (c.ch == "-" && (c.pred != "has_row" || c.pred != "has_value" || c.pred != "has_column")){
         store.removeLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
       }
-      registerListener(c)
+      registerListener(c, pdc.actor)
     }
     store.commit
     PdQuery("success", false, pdc.pdChangeList)
   }
 
-  def registerListener(pdc: PdChangeJson): Unit = {
+  def unregisterListener(actor: ActorRef): Unit ={
+    listeningActors += actor -> Set[LTriple]()
+  }
+
+  def registerListener(pdc: PdChangeJson, actor: ActorRef): Unit = {
+
     var lTriple = new LTriple(pdc.sub.toString, pdc.pred.toString, "_")
+
+    if(listeningActors.contains(actor)){
+      listeningActors(actor) += lTriple
+    }
+
+    var recievingActors : Set[ActorRef] = Set()
+
     if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
       registeredListeners += lTriple
       store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(lTriple.lSub.toString), store.getGUIDwithName(lTriple.lPred.toString), null), (c: Change) => {
@@ -133,7 +157,15 @@ object PDStoreModel {
           store.getName(c.instance1),                                                      //subject
           store.getName(c.role2),                                                          //predicate
           if (isString(c.instance2)) c.instance2.toString else store.getName(c.instance2)) //object
-        actors.UserManager.updateListeningActors(theChange)
+
+        for (actor <- listeningActors){
+          for (lt <- actor._2){
+            if (lt.lSub == theChange.sub && lt.lPred == theChange.pred){
+              recievingActors += actor._1
+            }
+          }
+        }
+        actors.UserManager.updateListeningActors(theChange, recievingActors)
       })
     }
   }

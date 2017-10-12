@@ -15,10 +15,9 @@ case class UserManager()
 object UserManager {
 
   // Listeners
-  var userMap: Map[String, ActorRef] = Map()
+
   var tripleSet: Map[String, Set[ActorRef]] = Map()
   var tripleSet2: Map[LTriple, Set[ActorRef]] = Map()
-  var userSet: Map[ActorRef, Set[String]] = Map()
 
   /**
     * adds actor reference to the list of currently active users
@@ -28,8 +27,14 @@ object UserManager {
     * @param theActor
     */
   def addUser(userName: String, theActor: ActorRef): Unit = {
-    userMap += userName -> theActor
-    userSet += theActor -> Set()
+    if (!PDStoreModel.listeningActors.contains(theActor)){
+      PDStoreModel.listeningActors += theActor -> Set()
+    }
+    Logger.error(PDStoreModel.listeningActors.keySet.mkString)
+    /*
+    PDStoreModel.userMap += userName -> theActor
+    PDStoreModel.userSet += theActor -> Set()
+    */
   }
 
   /**
@@ -40,8 +45,13 @@ object UserManager {
     * @param theActor
     */
   def removeUser(userName: String, theActor: ActorRef): Unit = {
-    userMap -= userName
+    if (PDStoreModel.listeningActors.contains(theActor)){
+      PDStoreModel.listeningActors -= theActor
+    }
+    /*
+    PDStoreModel.userMap -= userName
     removeFromListeners(theActor)
+    */
   }
 
   /**
@@ -50,12 +60,14 @@ object UserManager {
     * @param theActor
     */
   def removeFromListeners(theActor: ActorRef): Unit ={
-    if(userSet.contains(theActor)){
-      for (a <- userSet(theActor)){
+    /*
+    if(PDStoreModel.userSet.contains(theActor)){
+      for (a <- PDStoreModel.userSet(theActor)){
         tripleSet(a) -= theActor
       }
-      userSet -= theActor
+      PDStoreModel.userSet -= theActor
     }
+    */
   }
 
   /**
@@ -63,35 +75,33 @@ object UserManager {
     * if yes remove the actor from that particular table
     * and adds it to the new table
     * the registration to all the triples on that particular table must alos be done here.
-    * @param table: the table containing triples
-    * @param tableTriples: the triples inside the table
+    * @param pdObj: the table containing triples
     */
-  def changeTableListener(table: PdObj, tableTriples: PdQuery): Unit = {
-    for (t <- table.pdChangeList){
+  def changeTableListener(pdObj : PdObj): Unit = {
+
+    //TODO: Fix unregister.
+    //PDStoreModel.unregisterListener(pdObj.actor)
+
+    for (t <- pdObj.pdChangeList){
       /**
         * all tables have two "has_row" and "has_column" predicates by default
         * thus we need to register a listener for these too.
         * registration of triples is done inside PDStoreModel were a new listener is registered for
         * all the combinations even if the cell values are currently empty
         */
-      PDStoreModel.registerListener(t)
-      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"))
-      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"))
+      PDStoreModel.registerListener(t, pdObj.actor)
+      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"), pdObj.actor)
+      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"), pdObj.actor)
     }
-    /*
-    for (tt <- tableTriples.reqValue){
-      PDStoreModel.registerListener(tt)
-    }
-    */
   }
 
   /**
     * registering and removing listeners for single triples while user is working on a particular table
-    * @param triples
+    * @param pdObj
     */
-  def changeListener(triples: PdObj): Unit ={
-    for (t <- triples.pdChangeList){
-      PDStoreModel.registerListener(t)
+  def changeListener(pdObj: PdObj): Unit ={
+    for (t <- pdObj.pdChangeList){
+      PDStoreModel.registerListener(t, pdObj.actor)
     }
   }
 
@@ -111,14 +121,11 @@ object UserManager {
     * to changes
     * @param pdChangeJson
     */
-  def updateListeningActors(pdChangeJson: PdChangeJson): Unit = {
-    Logger.error(pdChangeJson.toString)
-    if(tripleSet2.exists( t => t._1.lSub.toString == pdChangeJson.sub && t._1.lPred == pdChangeJson.pred)){
-      val targetTriple = new LTriple(pdChangeJson.sub, pdChangeJson.pred, pdChangeJson.obj)
-      val tListeners = tripleSet2.get(targetTriple).toList
-      for(tl <- tripleSet2(targetTriple)){
-        tl ! Json.toJson(PdQuery("listener", true, List[PdChangeJson](pdChangeJson)))
-      }
+  def updateListeningActors(pdChangeJson: PdChangeJson, actors: Set[ActorRef]): Unit = {
+    val targetTriple = new LTriple(pdChangeJson.sub, pdChangeJson.pred, pdChangeJson.obj)
+    val tListeners = tripleSet2.get(targetTriple).toList
+    for(a <- actors){
+      a ! Json.toJson(PdQuery("listener", true, List[PdChangeJson](pdChangeJson)))
     }
   }
 
@@ -150,7 +157,7 @@ object UserManager {
   def queryTable(p: PdObj): Unit = {
     val queryResult = PDStoreModel.queryTable(p)
     p.actor ! Json.toJson(queryResult)
-    changeTableListener(p, queryResult)
+    changeTableListener(p)
   }
 
   /**
