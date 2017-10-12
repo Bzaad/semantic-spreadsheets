@@ -4,7 +4,6 @@ import pdstore._
 import PDStore._
 import play.api.Logger
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
-import actors.UserManager.addToListeners
 
 case class PDStoreModel()
 
@@ -34,7 +33,7 @@ object PDStoreModel {
           val queriedObj = qResult.next().get(v"x").toString
           val result = new PdChangeJson("ts", "e", p.sub, p.pred, queriedObj)
           val lTriple = "?_" + p.pred + "_" + queriedObj
-          addToListeners(lTriple, pdObj.actor, result)
+          actors.UserManager.addToListeners(lTriple, pdObj.actor, result)
 
           queryResult += result
         }
@@ -86,6 +85,10 @@ object PDStoreModel {
           for(c <- columns){
             val rowName = store.getGUIDwithName(store.getName(r.get(v"value")))
             val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
+
+            //registering listeners for all the possible row-column combinations
+            registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"))
+
             val cellVal = store.query((rowName, colName, v"x"))
             for(cv <- cellVal){
               queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
@@ -119,14 +122,26 @@ object PDStoreModel {
   }
 
   def registerListener(pdc: PdChangeJson): Unit = {
-
     var lTriple = new LTriple(pdc.sub.toString, pdc.pred.toString, "_")
     if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
       registeredListeners += lTriple
       store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(lTriple.lSub.toString), store.getGUIDwithName(lTriple.lPred.toString), null), (c: Change) => {
-        //UpdateListeners!
-        Logger.error(c.toRawString)
+
+        val theChange = new PdChangeJson(
+          "ta",                                                                            //timestamp
+          if (c.getChangeType.toString == "LINK_ADDED") "+" else  "-",                     //change type
+          store.getName(c.instance1),                                                      //subject
+          store.getName(c.role2),                                                          //predicate
+          if (isString(c.instance2)) c.instance2.toString else store.getName(c.instance2)) //object
+        actors.UserManager.updateListeningActors(theChange)
       })
+    }
+  }
+
+  def isString(cls: AnyRef): Boolean ={
+    cls match {
+      case s: String => true
+      case _  => false
     }
   }
 }

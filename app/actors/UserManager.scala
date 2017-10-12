@@ -71,14 +71,18 @@ object UserManager {
       /**
         * all tables have two "has_row" and "has_column" predicates by default
         * thus we need to register a listener for these too.
+        * registration of triples is done inside PDStoreModel were a new listener is registered for
+        * all the combinations even if the cell values are currently empty
         */
       PDStoreModel.registerListener(t)
       PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"))
       PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"))
     }
+    /*
     for (tt <- tableTriples.reqValue){
       PDStoreModel.registerListener(tt)
     }
+    */
   }
 
   /**
@@ -105,13 +109,15 @@ object UserManager {
     * updates all the users that have accessed the triple pattern of change
     * this method is usually called by a registered listener that is listening
     * to changes
-    * @param lTriple
+    * @param pdChangeJson
     */
-  def updateListeningActors(sender: ActorRef, lTriple: LTriple): Unit = {
-    if(tripleSet2.exists( t => t._1.lSub.toString == lTriple.lSub.toString && t._1.lPred == lTriple.lPred.toString)){
-      val tListeners = tripleSet2.get(lTriple).toList
-      for(tl <- tripleSet2(lTriple)){
-        if (tl != sender) tl ! Json.toJson(PdQuery("listener", true, List[PdChangeJson]()))
+  def updateListeningActors(pdChangeJson: PdChangeJson): Unit = {
+    Logger.error(pdChangeJson.toString)
+    if(tripleSet2.exists( t => t._1.lSub.toString == pdChangeJson.sub && t._1.lPred == pdChangeJson.pred)){
+      val targetTriple = new LTriple(pdChangeJson.sub, pdChangeJson.pred, pdChangeJson.obj)
+      val tListeners = tripleSet2.get(targetTriple).toList
+      for(tl <- tripleSet2(targetTriple)){
+        tl ! Json.toJson(PdQuery("listener", true, List[PdChangeJson](pdChangeJson)))
       }
     }
   }
