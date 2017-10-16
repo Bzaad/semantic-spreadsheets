@@ -18,12 +18,6 @@ object PDStoreModel {
 
   var listeningActors: Map[ActorRef, Set[LTriple]] = Map()
 
-  /*
-  var userMap: Map[String, ActorRef] = Map()
-
-  var userSet: Map[ActorRef, Set[String]] = Map()
-  */
-
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
@@ -133,22 +127,23 @@ object PDStoreModel {
     PdQuery("success", false, pdc.pdChangeList)
   }
 
-  def unregisterListener(actor: ActorRef): Unit ={
-    listeningActors += actor -> Set[LTriple]()
-  }
-
   def registerListener(pdc: PdChangeJson, actor: ActorRef): Unit = {
 
     var lTriple = new LTriple(pdc.sub.toString, pdc.pred.toString, "_")
 
     if(listeningActors.contains(actor)){
       listeningActors(actor) += lTriple
+    }else{
+      listeningActors += actor -> Set[LTriple](lTriple)
     }
 
-    var recievingActors : Set[ActorRef] = Set()
+
+
 
     if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
+
       registeredListeners += lTriple
+
       store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(lTriple.lSub.toString), store.getGUIDwithName(lTriple.lPred.toString), null), (c: Change) => {
 
         val theChange = new PdChangeJson(
@@ -158,13 +153,14 @@ object PDStoreModel {
           store.getName(c.role2),                                                          //predicate
           if (isString(c.instance2)) c.instance2.toString else store.getName(c.instance2)) //object
 
-        for (actor <- listeningActors){
-          for (lt <- actor._2){
-            if (lt.lSub == theChange.sub && lt.lPred == theChange.pred){
-              recievingActors += actor._1
-            }
+        var recievingActors : Set[ActorRef] = Set()
+
+        for(la <- listeningActors){
+          if (la._2.exists(x => x.lSub.toString.equals(theChange.sub) && x.lPred.toString.equals(theChange.pred) && !la._1.equals(actor))){
+            recievingActors += la._1
           }
         }
+
         actors.UserManager.updateListeningActors(theChange, recievingActors)
       })
     }

@@ -30,11 +30,6 @@ object UserManager {
     if (!PDStoreModel.listeningActors.contains(theActor)){
       PDStoreModel.listeningActors += theActor -> Set()
     }
-    Logger.error(PDStoreModel.listeningActors.keySet.mkString)
-    /*
-    PDStoreModel.userMap += userName -> theActor
-    PDStoreModel.userSet += theActor -> Set()
-    */
   }
 
   /**
@@ -45,13 +40,8 @@ object UserManager {
     * @param theActor
     */
   def removeUser(userName: String, theActor: ActorRef): Unit = {
-    if (PDStoreModel.listeningActors.contains(theActor)){
-      PDStoreModel.listeningActors -= theActor
-    }
-    /*
-    PDStoreModel.userMap -= userName
-    removeFromListeners(theActor)
-    */
+    Logger.error("removing the actor!")
+    PDStoreModel.listeningActors -= theActor
   }
 
   /**
@@ -77,21 +67,30 @@ object UserManager {
     * the registration to all the triples on that particular table must alos be done here.
     * @param pdObj: the table containing triples
     */
-  def changeTableListener(pdObj : PdObj): Unit = {
+  def changeTableListener(pdObj : PdObj, pdQuery: PdQuery): Unit = {
 
-    //TODO: Fix unregister.
-    //PDStoreModel.unregisterListener(pdObj.actor)
+    PDStoreModel.listeningActors -= pdObj.actor
 
-    for (t <- pdObj.pdChangeList){
+    for (t <- pdQuery.reqValue){
       /**
         * all tables have two "has_row" and "has_column" predicates by default
         * thus we need to register a listener for these too.
         * registration of triples is done inside PDStoreModel were a new listener is registered for
         * all the combinations even if the cell values are currently empty
         */
-      PDStoreModel.registerListener(t, pdObj.actor)
-      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"), pdObj.actor)
-      PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"), pdObj.actor)
+      // TODO: the data structure must change to conform with normal pdchange object rather than
+      // creating special cases
+      if("is_row".equals(t.sub) || "is_column".equals(t.sub)){
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.pred, t.obj, "?"), pdObj.actor)
+      } else if ("has_type".equals(t.pred) && "table".equals(t.obj)){
+        // TODO: listen to the table name and the table so if somebody changes table or delets the table
+        // so you can be notified
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"), pdObj.actor)
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"), pdObj.actor)
+        //PDStoreModel.registerListener(t, pdObj.actor)
+      } else {
+        PDStoreModel.registerListener(t, pdObj.actor)
+      }
     }
   }
 
@@ -99,6 +98,7 @@ object UserManager {
     * registering and removing listeners for single triples while user is working on a particular table
     * @param pdObj
     */
+
   def changeListener(pdObj: PdObj): Unit ={
     for (t <- pdObj.pdChangeList){
       PDStoreModel.registerListener(t, pdObj.actor)
@@ -122,8 +122,7 @@ object UserManager {
     * @param pdChangeJson
     */
   def updateListeningActors(pdChangeJson: PdChangeJson, actors: Set[ActorRef]): Unit = {
-    val targetTriple = new LTriple(pdChangeJson.sub, pdChangeJson.pred, pdChangeJson.obj)
-    val tListeners = tripleSet2.get(targetTriple).toList
+
     for(a <- actors){
       a ! Json.toJson(PdQuery("listener", true, List[PdChangeJson](pdChangeJson)))
     }
@@ -157,7 +156,7 @@ object UserManager {
   def queryTable(p: PdObj): Unit = {
     val queryResult = PDStoreModel.queryTable(p)
     p.actor ! Json.toJson(queryResult)
-    changeTableListener(p)
+    changeTableListener(p, queryResult)
   }
 
   /**

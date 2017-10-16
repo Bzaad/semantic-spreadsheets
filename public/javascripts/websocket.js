@@ -102,8 +102,15 @@ var updateTableTabs = function(){
     console.log("updating all the tabs!");
 };
 
-var updateTable = function(changeObj){
-    console.log(changeObj);
+var updateTable = function(reqValue){
+    _.each(reqValue, function(rv){
+        if(rv.sub !== "is_column" && rv.sub !== "is_row" && rv.ch !== "-"){
+            if(!findObjPosition(rv)) return;
+            $("#" + findObjPosition(rv)).val(rv.obj);
+            $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
+            $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
+        }
+    })
 }
 
 var handleFailure = function(reqValue){
