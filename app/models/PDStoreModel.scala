@@ -132,13 +132,11 @@ object PDStoreModel {
     var lTriple = new LTriple(pdc.sub.toString, pdc.pred.toString, "_")
 
     if(listeningActors.contains(actor)){
-      listeningActors(actor) += lTriple
+      if (!listeningActors(actor).exists(x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString)))
+        listeningActors(actor) += lTriple
     }else{
       listeningActors += actor -> Set[LTriple](lTriple)
     }
-
-
-
 
     if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
 

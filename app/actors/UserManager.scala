@@ -65,13 +65,14 @@ object UserManager {
     * if yes remove the actor from that particular table
     * and adds it to the new table
     * the registration to all the triples on that particular table must alos be done here.
-    * @param pdObj: the table containing triples
+    * @param pdObjList: set of all triples containing the table and all its triples=
+    * @param actor: the registering actor
     */
-  def changeTableListener(pdObj : PdObj, pdQuery: PdQuery): Unit = {
+  def changeTableListener(pdObjList: List[PdChangeJson], actor: ActorRef): Unit = {
 
-    PDStoreModel.listeningActors -= pdObj.actor
+    PDStoreModel.listeningActors -= actor
 
-    for (t <- pdQuery.reqValue){
+    for (t <- pdObjList){
       /**
         * all tables have two "has_row" and "has_column" predicates by default
         * thus we need to register a listener for these too.
@@ -81,15 +82,15 @@ object UserManager {
       // TODO: the data structure must change to conform with normal pdchange object rather than
       // creating special cases
       if("is_row".equals(t.sub) || "is_column".equals(t.sub)){
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.pred, t.obj, "?"), pdObj.actor)
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.pred, "has_value" , "?"), actor)
       } else if ("has_type".equals(t.pred) && "table".equals(t.obj)){
         // TODO: listen to the table name and the table so if somebody changes table or delets the table
         // so you can be notified
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"), pdObj.actor)
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"), pdObj.actor)
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"), actor)
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"), actor)
         //PDStoreModel.registerListener(t, pdObj.actor)
       } else {
-        PDStoreModel.registerListener(t, pdObj.actor)
+        PDStoreModel.registerListener(t, actor)
       }
     }
   }
@@ -122,7 +123,10 @@ object UserManager {
     * @param pdChangeJson
     */
   def updateListeningActors(pdChangeJson: PdChangeJson, actors: Set[ActorRef]): Unit = {
-
+    /*
+    Logger.error(pdChangeJson.toString)
+    Logger.error(actors.toString)
+    */
     for(a <- actors){
       a ! Json.toJson(PdQuery("listener", true, List[PdChangeJson](pdChangeJson)))
     }
@@ -156,7 +160,8 @@ object UserManager {
   def queryTable(p: PdObj): Unit = {
     val queryResult = PDStoreModel.queryTable(p)
     p.actor ! Json.toJson(queryResult)
-    changeTableListener(p, queryResult)
+    val pdChangeListen = queryResult.reqValue ++ p.pdChangeList
+    changeTableListener(pdChangeListen, p.actor)
   }
 
   /**
