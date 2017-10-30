@@ -1,34 +1,30 @@
 name := """semantic-spreadsheets"""
+organization := "com.aucklanduni"
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+/**
+  * rjs is the require js optimizer for sbt. although we do not use requirejs internally it comes included with WebJars
+  * not including it known to cause dependency injectrion issues. however, further investigation is necessary to determine
+  * if it would be possible ro remove it without causing dependency injection related issues.
+*/
 
-val akkaVersion = "2.4.2"
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
-scalaVersion := "2.11.7"
+routesGenerator := InjectedRoutesGenerator
 
-libraryDependencies ++= Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-  "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion,
-  "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
-  "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
-  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
-  "org.webjars" %% "webjars-play" % "2.4.0",
-  "org.webjars" % "bootstrap" % "3.3.4",
-  "org.webjars" % "jquery" % "2.1.4",
-  "org.webjars" % "lodash" % "4.15.0",
-  "org.webjars" % "momentjs" % "2.17.1",
-  specs2 % Test
-)
+scalaVersion := "2.11.11"
 
-resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+libraryDependencies += filters
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % Test
+libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % "2.5.2" % Test
+libraryDependencies += specs2 % Test
+libraryDependencies += guice
 
-LessKeys.compress in Assets := true
 
-pipelineStages := Seq(digest)
-
-includeFilter in (Assets, LessKeys.less) := "*.less"
-
-javaOptions in Test ++= Seq("-Dlogger.resource=logback-test.xml")
+//WebJars Dependencies
+libraryDependencies += "org.webjars" %% "webjars-play" % "2.6.0"
+libraryDependencies += "org.webjars" % "jquery" % "3.2.1"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.3.7-1"
+libraryDependencies += "org.webjars.bower" % "lodash" % "4.17.4"
+libraryDependencies += "org.webjars" % "momentjs" % "2.18.1"

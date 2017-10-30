@@ -1,0 +1,70 @@
+@(user: String)(implicit request: play.api.mvc.RequestHeader)
+@main("spreadsheet!"){
+    <div class="container">
+        <ul class="nav nav-tabs" id="current-tabs">
+            <li ><a href="#add" class="add-table" data-toggle="modal" data-target="#add-table-modal"> + </a></li>
+        </ul>
+        <div class="tab-content" style="margin-top: 10px">
+            <div class="tab-pane fade in active">
+                <div id="table-area">
+                    <table></table>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <div class="col-sm-11">
+                <button id="connect-ws" type="button" class="btn btn-primary">Connect</button>
+                <button id="disconnect-ws" type="button" class="btn btn-danger">Disconnect</button>
+            </div>
+            <div class="col-sm-1">
+                <a class="button-form-link" href="#">
+                    <span class="glyphicon glyphicon-log-out"></span> Logout
+                </a>
+                @helper.form(routes.SpreadsheetController.leave, 'class -> "btn-warning"){
+                }
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px">
+            <class class="col-sm-12">
+                <button id="add-preds" type="button" class="btn btn-primary">Add Preds</button>
+                <button id="add-subs" type="button" class="btn btn-primary">Add Subs</button>
+                <button id="query-change" type="button" class="btn btn-primary">Query Change</button>
+            </class>
+        </div>
+            <!-- add modal (this has to move to a separate file so it can be used elsewhere without a neet to duplicate code! -->
+        <div class="modal fade" id="add-table-modal" tabindex="-1" role="dialog" aria-labelledby="worksheet-lable">
+            <div class="modal-dialog modal-md" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="worksheet-lable">New Table</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="worksheet-lable" class="control-label">Enter New Table Name:</label>
+                                <textarea class="form-control" rows="1" id="table-name"></textarea>
+                                <h3>Or</h3>
+                                <label for="new-table-lable" class="control-lable">Select an Existing Table:</label><br>
+                                <select id="table-picker" class="selectpicker" multiple data-live-search="true">
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="create-table">Create Table</button>
+                        <button type="button" class="btn btn-default" id="load-table">Load Table</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="@routes.Assets.versioned("javascripts/spreadsheet.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.versioned("javascripts/table.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.versioned("javascripts/document.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.versioned("javascripts/sampleJson.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.versioned("javascripts/alert.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.versioned("javascripts/websocket.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.versioned("javascripts/adaptor.js")" type="text/javascript"></script>
+    </div>
+}
