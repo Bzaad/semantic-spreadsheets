@@ -2,9 +2,9 @@ package models
 
 import pdstore._
 import PDStore._
-import akka.actor.ActorRef
+import akka.actor.{ActorRef, ActorSystem }
+import scala.concurrent.duration._
 import play.api.Logger
-
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set}
 
@@ -13,6 +13,8 @@ case class PDStoreModel()
 object PDStoreModel {
 
   val store = PDStore("pdstore_dd")
+  val system = ActorSystem("aSystem")
+  import system.dispatcher
 
   var registeredListeners = new ListBuffer[LTriple]()
 
@@ -137,29 +139,58 @@ object PDStoreModel {
     }else{
       listeningActors += actor -> Set[LTriple](lTriple)
     }
-
     if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
 
       registeredListeners += lTriple
 
       store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(lTriple.lSub.toString), store.getGUIDwithName(lTriple.lPred.toString), null), (c: Change) => {
+        system.scheduler.scheduleOnce(1 millisecond){
+          // TODO: Address all the following conditions:
+          /**
+            * 1 - a row or column does not exist and we add a value to it
+            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb1ff817d91L), LINK_ADDED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P1")
+            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb1ff817d91L), LINK_ADDED, instance1=Role "table_3", role2=Role "has_row", instance2=Role "table_3_A2")
+            *
+            * 2 - a row or column does exist we remove value from it
+            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb25f602f41L), LINK_REMOVED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P2")
+            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb25f602f41L), LINK_REMOVED, instance1=Role "table_3", role2=Role "has_row", instance2=Role "table_3_A2")
+            *
+            * 3 - a row or column exists and we change its value
+            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb23a7bc1d1L), LINK_REMOVED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P1")
+            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb23a7bc1d1L), LINK_ADDED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P2")
+            */
 
-        val theChange = new PdChangeJson(
-          "ta",                                                                            //timestamp
-          if (c.getChangeType.toString == "LINK_ADDED") "+" else  "-",                     //change type
-          store.getName(c.instance1),                                                      //subject
-          store.getName(c.role2),                                                          //predicate
-          if (isString(c.instance2)) c.instance2.toString else store.getName(c.instance2)) //object
+          if(store.getName(c.role2) == "has_row" || store.getName(c.role2) == "has_column"){
+            Logger.debug(c.toRawString)
+            for(la <- listeningActors){
+              if (la._2.exists(x => x.lSub.toString.equals(store.getName(c.instance1)) && x.lPred.toString.equals(store.getName(c.role2)))){
+                //TODO: We need to add all the clients who are listeneing to this to listen to the new Triple changes as well.
+                Logger.error(la._1.toString)
+                if(c.changeType == ChangeType.LINK_ADDED){
+                  //TODO: Add it to the listening actors list
+                }else if (c.changeType == ChangeType.LINK_NOW_REMOVED){
+                  //TODO: Remove it from the listening actors list
+                }
+              }
+            }
+          }else{
+            val theChange = new PdChangeJson(
+              "ta",                                                                            //timestamp
+              if (c.getChangeType.toString == "LINK_ADDED") "+" else  "-",                     //change type
+              store.getName(c.instance1),                                                      //subject
+              store.getName(c.role2),                                                          //predicate
+              if (isString(c.instance2)) c.instance2.toString else store.getName(c.instance2)) //object
 
-        var recievingActors : Set[ActorRef] = Set()
+            var recievingActors : Set[ActorRef] = Set()
 
-        for(la <- listeningActors){
-          if (la._2.exists(x => x.lSub.toString.equals(theChange.sub) && x.lPred.toString.equals(theChange.pred) && !la._1.equals(actor))){
-            recievingActors += la._1
+            for(la <- listeningActors){
+              if (la._2.exists(x => x.lSub.toString.equals(theChange.sub) && x.lPred.toString.equals(theChange.pred) /*&& !la._1.equals(actor)*/)){
+                recievingActors += la._1
+              }
+            }
+            actors.UserManager.updateListeningActors(theChange, recievingActors)
           }
         }
-
-        actors.UserManager.updateListeningActors(theChange, recievingActors)
       })
     }
   }

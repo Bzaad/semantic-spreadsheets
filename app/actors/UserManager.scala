@@ -82,7 +82,7 @@ object UserManager {
       // TODO: the data structure must change to conform with normal pdchange object rather than
       // creating special cases
       if("is_row".equals(t.sub) || "is_column".equals(t.sub)){
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.pred, "has_value" , "?"), actor)
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.pred, "has_value" , t.obj), actor)
       } else if ("has_type".equals(t.pred) && "table".equals(t.obj)){
         // TODO: listen to the table name and the table so if somebody changes table or delets the table
         // so you can be notified
@@ -99,12 +99,13 @@ object UserManager {
     * registering and removing listeners for single triples while user is working on a particular table
     * @param pdObj
     */
-
+  /*
   def changeListener(pdObj: PdObj): Unit ={
     for (t <- pdObj.pdChangeList){
       PDStoreModel.registerListener(t, pdObj.actor)
     }
   }
+  */
 
 
   def addToListeners(lTriple: String, theActor: ActorRef, result: PdChangeJson): Unit ={
@@ -154,7 +155,6 @@ object UserManager {
 
   def applyPdChange(p: PdObj): Unit = {
     p.actor ! Json.toJson(PDStoreModel.applyPdc(p))
-    changeListener(p)
   }
 
   def queryTable(p: PdObj): Unit = {
