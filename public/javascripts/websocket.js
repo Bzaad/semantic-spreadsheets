@@ -1,7 +1,7 @@
 var websocket;
 
 var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-
+var currentTableName = "";
 var initWebsocket = function(){
     websocket = new WebSocket($("body").data("ws-url"));
     websocket.onopen = function(evt) { onOpen(evt) };
@@ -43,6 +43,9 @@ var onMessage = function(evt) {
             break;
         case "listener":
             updateTable(qData.reqValue);
+            break;
+        case "tableTriples":
+            allTableTriples();
             break;
         default:
             console.log("response type doesn't match!");
@@ -159,6 +162,52 @@ var createTable = function(){
 
 var clearQuery = function(){};
 
+var testTriple = function(){
+    allTableTriples();
+};
+
+
+/**
+ * this is the easiest - but not the cleanest way to get all the triples from the client with their current timestamp
+ * there are cases, sepcially when using listeners that we want to check to see if both the client and the server have
+ * the same view of the table-graph.
+ * TODO: Need to clean this up later. I'm sure this is not the best way of doing it
+ */
+var allTableTriples = function(){
+
+    var currentPreds = [];
+    var thisSub = "";
+    var allTriples = [];
+    var counter = 0;
+
+    allTriples.push({ta: moment().format(), ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
+    $("input[type=cell]").each(function(){
+        if ($(this).data().cellType === "pred" && $(this).val()){
+            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
+            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+            currentPreds.push($(this).val());
+        } else if ($(this).data().cellType === "sub" && $(this).val()){
+            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
+            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+            counter = 0;
+        } else if ($(this).data().cellType === "obj"){
+            if (counter === 0) thisSub = allTriples[allTriples.length - 1].obj;
+            var thisObj = $(this).val();
+            var thisPred = currentPreds[counter];
+            counter++;
+            if (thisObj) allTriples.push({ ta: moment().format() , ch: "e" , sub: thisSub, pred: thisPred, obj: thisObj });
+        }
+    });
+
+    websocket.send(JSON.stringify(
+        {
+            "reqType" : "tableTriples",
+            "listenTo": false,
+            "reqValue": allTriples
+        }
+    ));
+};
+
 var getAllTables = function(){
 
     var aTable = {
@@ -194,7 +243,7 @@ var addCurrentTables = function(allTables){
     currentTables().html("");
 
     _.each(allTables, function(t){
-       var tableEl = '<li><a data-toggle="tab"' + 'id=table_"' + t +'" href="#table_' + t + '">' + t + '</a></li>';
+       var tableEl = '<li><a data-toggle="tab"' + 'id=table_' + t +' href="#table_' + t + '">' + t + '</a></li>';
        currentTables().append(tableEl);
     });
     currentTables().append(addEl);
@@ -202,6 +251,7 @@ var addCurrentTables = function(allTables){
 };
 
 var loadTableTriples = function(tableName){
+    currentTableName = tableName;
     var qTable = {
         "reqType" : "qTable",
         "listenTo": false,

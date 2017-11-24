@@ -8,6 +8,7 @@ var initDocument = function () {
     $("#submit-query").click(submitQuery);
     $("#create-table").click(createTable);
     $("#clear-query").click(clearQuery);
+    $("#test-triple").click(testTriple);
    // $("#load-table").click(loadTable($("#table-picker").val()))
     $("#load-table").click(function () {
         loadTable($("#table-picker").val())
