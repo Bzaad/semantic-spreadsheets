@@ -182,9 +182,12 @@ var allTableTriples = function(){
 
     allTriples.push({ta: moment().format(), ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
     $("input[type=cell]").each(function(){
-        if ($(this).data().cellType === "pred" && $(this).val()){
-            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
-            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+        if ($(this).data().cellType === "pred"){
+
+            if ($(this).val()) {
+                allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
+                allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+            }
             currentPreds.push($(this).val());
         } else if ($(this).data().cellType === "sub" && $(this).val()){
             allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
@@ -192,13 +195,13 @@ var allTableTriples = function(){
             counter = 0;
         } else if ($(this).data().cellType === "obj"){
             if (counter === 0) thisSub = allTriples[allTriples.length - 1].obj;
-            var thisObj = $(this).val();
             var thisPred = currentPreds[counter];
             counter++;
-            if (thisObj) allTriples.push({ ta: moment().format() , ch: "e" , sub: thisSub, pred: thisPred, obj: thisObj });
+            if ($(this).val()) allTriples.push({ ta: moment().format() , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
         }
     });
-
+    console.log(allTriples);
+    /*
     websocket.send(JSON.stringify(
         {
             "reqType" : "tableTriples",
@@ -206,6 +209,7 @@ var allTableTriples = function(){
             "reqValue": allTriples
         }
     ));
+    */
 };
 
 var getAllTables = function(){
