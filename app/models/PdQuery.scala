@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import pdstore.GUID
 
 /**
   * Created by behzadfarokhi on 23/08/17.
@@ -17,6 +18,7 @@ import play.api.libs.functional.syntax._
   *               "query" : would start a read operation
   * @param reqValue: a sequence of one or more pdChange objects
   */
+
 case class PdQuery(reqType: String, listenTo: Boolean, reqValue: List[PdChangeJson])
 
 object PdQuery {
@@ -32,7 +34,6 @@ object PdQuery {
       (JsPath \ "listenTo").write[Boolean] and
       (JsPath \ "reqValue").write[List[PdChangeJson]]
     )(unlift(PdQuery.unapply))
-
 }
 
 trait QBundle {
@@ -50,3 +51,5 @@ trait SimpleTriple {
 }
 
 class LTriple (val lSub: Any, val lPred: Any, val lObj: Any) extends SimpleTriple
+
+class TableListener(tableName: String, rows : Seq[GUID], columns: Seq[GUID])

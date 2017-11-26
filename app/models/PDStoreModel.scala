@@ -5,8 +5,8 @@ import PDStore._
 import akka.actor.{ActorRef, ActorSystem }
 import scala.concurrent.duration._
 import play.api.Logger
-import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set}
+// import scala.collection.mutable
+import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set, HashMap}
 
 case class PDStoreModel()
 
@@ -18,7 +18,9 @@ object PDStoreModel {
 
   var registeredListeners = new ListBuffer[LTriple]()
 
-  var listeningActors: Map[ActorRef, Set[LTriple]] = Map()
+  var listeningActors = HashMap.empty[ActorRef, Set[LTriple]]
+
+  var sameTableHash = HashMap.empty[String, Set[ActorRef]]
 
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
@@ -79,25 +81,39 @@ object PDStoreModel {
     var queryResult = ListBuffer.empty[PdChangeJson]
 
     for (t <- p.pdChangeList) {
+
       if (t.pred == "has_type" && t.obj == "table") {
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "_"), p.actor)
+        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "_"), p.actor)
+
         val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value")).toList
         val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value")).toList
 
         for (r <- rows){
-          queryResult += new PdChangeJson("ts", "e", "is_row" , store.getName(r.get(v"row")), store.getName(r.get(v"value")))
+
+          val rowName = store.getName(r.get(v"row"))
+          val rowValue = store.getName(r.get(v"value"))
+
+          queryResult += new PdChangeJson("ts", "e", "is_row" , rowName, rowValue)
+          PDStoreModel.registerListener(new PdChangeJson("t", "e", rowName, "has_value", rowValue), p.actor)
         }
         for (c <- columns) {
-          queryResult += new PdChangeJson("ts", "e", "is_column", store.getName(c.get(v"column")), store.getName(c.get(v"value")))
+          val columnName = store.getName(c.get(v"column"))
+          val columnValue = store.getName(c.get(v"value"))
+
+          queryResult += new PdChangeJson("ts", "e", "is_column", columnName , columnValue)
+          PDStoreModel.registerListener(new PdChangeJson("t", "e", columnName, "has_value", columnValue), p.actor)
         }
+
         for(r <- rows){
           for(c <- columns){
             val rowName = store.getGUIDwithName(store.getName(r.get(v"value")))
             val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
 
             //registering listeners for all the possible row-column combinations
-            registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
 
             val cellVal = store.query((rowName, colName, v"x"))
+            registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
             for(cv <- cellVal){
               queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
             }
@@ -118,18 +134,54 @@ object PDStoreModel {
       }
       else if (c.ch == "+" && (c.pred != "has_row" || c.pred != "has_value" || c.pred != "has_column")){
         store.addLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
-        store.commit
       }
       else if (c.ch == "-" && (c.pred != "has_row" || c.pred != "has_value" || c.pred != "has_column")){
         store.removeLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
       }
-      registerListener(c, pdc.actor)
+      handleNewRowColumns(c, pdc.actor)
     }
     store.commit
     PdQuery("success", false, pdc.pdChangeList)
   }
 
+  def handleNewRowColumns(c: PdChangeJson, a: ActorRef): Unit ={
+    registerListener(c, a)
+  }
+
+
   def registerListener(pdc: PdChangeJson, actor: ActorRef): Unit = {
+    Logger.error(pdc.toString)
+
+    if ((pdc.pred.equals("has_row") || pdc.pred.equals("has_column"))){
+      // becaues each actor can only be registered to only one table at a time,
+      // remove them from the rest of it!
+
+      for (s <- sameTableHash){
+        if (s._2.contains(actor)){
+          s._2 -= actor
+        }
+      }
+
+      // add it back again to the new table
+      if (sameTableHash.exists(p => p._1.equals(pdc.sub))) {
+        sameTableHash(pdc.sub) += actor
+      } else {
+        sameTableHash += (pdc.sub -> Set(actor))
+      }
+
+    }
+
+    /**
+      * (t,e,table1,has_row,?)
+      * (t,e,table1,has_column,?)
+      * (t,+,table1,has_row,table1_A2)
+      * (t,+,table1_A2,has_value,p1)
+      * (t,+,table1,has_column,table1_B1)
+      * (t,+,table1_B1,has_value,firstName)
+      * (t,+,p1,firstName,behzad)
+      */
+
+
 
     var lTriple = new LTriple(pdc.sub.toString, pdc.pred.toString, "_")
 
@@ -139,10 +191,10 @@ object PDStoreModel {
     }else{
       listeningActors += actor -> Set[LTriple](lTriple)
     }
+
+
     if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
-
       registeredListeners += lTriple
-
       store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(lTriple.lSub.toString), store.getGUIDwithName(lTriple.lPred.toString), null), (c: Change) => {
         system.scheduler.scheduleOnce(1 millisecond){
           // TODO: Address all the following conditions:
@@ -159,7 +211,20 @@ object PDStoreModel {
             * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb23a7bc1d1L), LINK_REMOVED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P1")
             * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb23a7bc1d1L), LINK_ADDED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P2")
             */
+        }
+      })
+    }
+  }
 
+  def isString(cls: AnyRef): Boolean ={
+    cls match {
+      case s: String => true
+      case _  => false
+    }
+  }
+}
+
+/*
           if(store.getName(c.role2) == "has_row" || store.getName(c.role2) == "has_column"){
             Logger.debug(c.toRawString)
             for(la <- listeningActors){
@@ -190,15 +255,4 @@ object PDStoreModel {
             }
             actors.UserManager.updateListeningActors(theChange, recievingActors)
           }
-        }
-      })
-    }
-  }
-
-  def isString(cls: AnyRef): Boolean ={
-    cls match {
-      case s: String => true
-      case _  => false
-    }
-  }
-}
+ */

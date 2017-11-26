@@ -4,7 +4,7 @@ import akka.actor._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.json.Reads._
-import models.{PdChangeJson, PdQuery, PdObj}
+import models.{PDStoreModel, PdChangeJson, PdObj, PdQuery}
 
 /**
   * Created by behzadfarokhi on 20/07/17.
@@ -25,6 +25,10 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
   override def postStop(): Unit = {
     UserManager.removeUser(userName, theActor)
     Logger.debug(s"User actor $userName with actor reference $theActor has stopped!" )
+  }
+
+  def listenToPattern(c: PdObj): Unit = {
+    //PDStoreModel.registeredListeners
   }
 
   override def receive: Receive = {
@@ -53,6 +57,10 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
               UserManager.applyPdChange(cBundle)
             case "qChange" =>
               UserManager.queryPdChange(cBundle)
+            case "listen" =>
+              listenToPattern(cBundle)
+            case "tableTriples" =>
+              UserManager.getAllClientTriples(cBundle)
           }
         }
         /**
