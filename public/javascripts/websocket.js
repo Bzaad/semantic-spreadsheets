@@ -106,6 +106,15 @@ var updateTableTabs = function(){
 };
 
 var updateTable = function(reqValue){
+
+    _.each(reqValue, function(r){
+        if (r.pred === "has_value")
+            $("#" + _.last(r.sub.split("_"))).val(r.obj);
+        else if (r.pred !== "has_row" && r.pred !== "has_column")
+            $("#" + findObjPosition(r)).val(r.obj);
+    });
+
+    /*
     _.each(reqValue, function(rv){
         if(rv.sub !== "is_column" && rv.sub !== "is_row" && rv.ch !== "-"){
             if(!findObjPosition(rv)) return;
@@ -114,7 +123,8 @@ var updateTable = function(reqValue){
             $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
         }
     })
-}
+    */
+};
 
 var handleFailure = function(reqValue){
     var message = JSON.stringify(reqValue);

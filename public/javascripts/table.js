@@ -196,4 +196,4 @@ var cleanRowColumn = function(targetType, cellBefore){
             s.value = "";
         });
     }
-}
+};
