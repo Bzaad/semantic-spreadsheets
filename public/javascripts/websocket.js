@@ -180,36 +180,33 @@ var allTableTriples = function(){
     var allTriples = [];
     var counter = 0;
 
-    allTriples.push({ta: moment().format(), ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
+    allTriples.push({ta: "_", ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
     $("input[type=cell]").each(function(){
         if ($(this).data().cellType === "pred"){
 
             if ($(this).val()) {
-                allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
-                allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+                allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
+                allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
             }
             currentPreds.push($(this).val());
         } else if ($(this).data().cellType === "sub" && $(this).val()){
-            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
-            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+            allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
+            allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
             counter = 0;
         } else if ($(this).data().cellType === "obj"){
             if (counter === 0) thisSub = allTriples[allTriples.length - 1].obj;
             var thisPred = currentPreds[counter];
             counter++;
-            if ($(this).val()) allTriples.push({ ta: moment().format() , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
+            if ($(this).val()) allTriples.push({ ta:"_" , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
         }
     });
-    console.log(allTriples);
-    /*
-    websocket.send(JSON.stringify(
-        {
-            "reqType" : "tableTriples",
-            "listenTo": false,
-            "reqValue": allTriples
-        }
-    ));
-    */
+
+    var tableTriples = {
+        "reqType" : "tableTriples",
+        "listenTo": false,
+        "reqValue": allTriples
+    };
+    websocket.send(JSON.stringify(tableTriples));
 };
 
 var getAllTables = function(){

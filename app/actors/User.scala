@@ -24,11 +24,33 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
 
   override def postStop(): Unit = {
     UserManager.removeUser(userName, theActor)
+    PDStoreModel.actorsAndTheirTriples.remove(theActor)
     Logger.debug(s"User actor $userName with actor reference $theActor has stopped!" )
   }
 
   def listenToPattern(c: PdObj): Unit = {
     //PDStoreModel.registeredListeners
+  }
+
+  def userTriples(pdObj: PdObj): Unit = {
+    /*
+    remove the actor from the list and re add it again
+     */
+    if(PDStoreModel.actorsAndTheirTriples.keySet.exists(_ == pdObj.actor))
+      PDStoreModel.actorsAndTheirTriples.remove(pdObj.actor)
+    PDStoreModel.actorsAndTheirTriples += (pdObj.actor -> pdObj.pdChangeList)
+    /*
+    for (p <- pdObj.pdChangeList){
+      if
+    }
+    */
+    val requestedTableName = pdObj.pdChangeList.filter(s => "has_type".equals(s.pred) && "table".equals(s.obj))
+    for (u <- PDStoreModel.actorsAndTheirTriples){
+      if (!u._1.equals(pdObj.actor) && u._2.exists( p => requestedTableName(0).sub.equals(p.sub))){
+        Logger.debug("these are accessing same tables!")
+      }
+    }
+
   }
 
   override def receive: Receive = {
@@ -60,7 +82,7 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
             case "listen" =>
               listenToPattern(cBundle)
             case "tableTriples" =>
-              UserManager.getAllClientTriples(cBundle)
+              userTriples(cBundle)
           }
         }
         /**

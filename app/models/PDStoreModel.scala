@@ -2,9 +2,12 @@ package models
 
 import pdstore._
 import PDStore._
-import akka.actor.{ActorRef, ActorSystem }
+import akka.actor.{ActorRef, ActorSystem}
+
 import scala.concurrent.duration._
 import play.api.Logger
+
+import scala.collection.mutable
 // import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set, HashMap}
 
@@ -21,6 +24,9 @@ object PDStoreModel {
   var listeningActors = HashMap.empty[ActorRef, Set[LTriple]]
 
   var sameTableHash = HashMap.empty[String, Set[ActorRef]]
+
+  var actorsAndTheirTriples = HashMap.empty[ActorRef, List[PdChangeJson]]
+
 
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]

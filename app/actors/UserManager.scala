@@ -44,21 +44,6 @@ object UserManager {
     PDStoreModel.listeningActors -= theActor
   }
 
-  /**
-    * remove the actor reference from active user list as well as
-    * the list of all listeners the actor was registered to
-    * @param theActor
-    */
-  def removeFromListeners(theActor: ActorRef): Unit ={
-    /*
-    if(PDStoreModel.userSet.contains(theActor)){
-      for (a <- PDStoreModel.userSet(theActor)){
-        tripleSet(a) -= theActor
-      }
-      PDStoreModel.userSet -= theActor
-    }
-    */
-  }
 
   def addToListeners(lTriple: String, theActor: ActorRef, result: PdChangeJson): Unit ={
     if (tripleSet.contains(lTriple)){
@@ -69,23 +54,14 @@ object UserManager {
     }
   }
 
-  def getAllClientTriples(pdObj: PdObj): Unit ={
-    for (p <- pdObj.pdChangeList) {
-      Logger.debug(p.toString)
-    }
-  }
-
   /**
     * updates all the users that have accessed the triple pattern of change
     * this method is usually called by a registered listener that is listening
     * to changes
     * @param pdChangeJson
     */
+
   def updateListeningActors(pdChangeJson: PdChangeJson, actors: Set[ActorRef]): Unit = {
-    /*
-    Logger.error(pdChangeJson.toString)
-    Logger.error(actors.toString)
-    */
     for(a <- actors){
       a ! Json.toJson(PdQuery("listener", true, List[PdChangeJson](pdChangeJson)))
     }
