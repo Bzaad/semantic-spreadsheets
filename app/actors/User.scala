@@ -36,16 +36,6 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
     /*
     remove the actor from the list and re add it again
      */
-    if(PDStoreModel.actorsAndTheirTriples.keySet.exists(_ == pdObj.actor))
-      PDStoreModel.actorsAndTheirTriples.remove(pdObj.actor)
-    PDStoreModel.actorsAndTheirTriples += (pdObj.actor -> pdObj.pdChangeList)
-    for (u <- PDStoreModel.actorsAndTheirTriples){
-      if (!u._1.equals(pdObj.actor) && u._2.exists( p => pdObj.pdChangeList.filter(s => "has_type".equals(s.pred) && "table".equals(s.obj))(0).sub.equals(p.sub))){
-        val theDifference = u._2.filterNot(pdObj.pdChangeList.toSet)
-        theActor ! Json.toJson(PdQuery("listener", true, theDifference))
-        //Logger.debug(theDifference.mkString)
-      }
-    }
   }
 
   override def receive: Receive = {
@@ -77,7 +67,7 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
             case "listen" =>
               listenToPattern(cBundle)
             case "tableTriples" =>
-              userTriples(cBundle)
+              PDStoreModel.tableListenerUpdate(cBundle, theActor)
           }
         }
         /**

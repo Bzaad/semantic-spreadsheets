@@ -113,17 +113,6 @@ var updateTable = function(reqValue){
         else if (r.pred !== "has_row" && r.pred !== "has_column")
             $("#" + findObjPosition(r)).val(r.obj);
     });
-
-    /*
-    _.each(reqValue, function(rv){
-        if(rv.sub !== "is_column" && rv.sub !== "is_row" && rv.ch !== "-"){
-            if(!findObjPosition(rv)) return;
-            $("#" + findObjPosition(rv)).val(rv.obj);
-            $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
-            $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
-        }
-    })
-    */
 };
 
 var handleFailure = function(reqValue){

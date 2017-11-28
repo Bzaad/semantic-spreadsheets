@@ -6,6 +6,7 @@ import akka.actor.{ActorRef, ActorSystem}
 
 import scala.concurrent.duration._
 import play.api.Logger
+import play.api.libs.json.Json
 
 import scala.collection.mutable
 // import scala.collection.mutable
@@ -26,6 +27,7 @@ object PDStoreModel {
   var sameTableHash = HashMap.empty[String, Set[ActorRef]]
 
   var actorsAndTheirTriples = HashMap.empty[ActorRef, List[PdChangeJson]]
+  var currentListenerList = Set.empty[PdChangeJson]
 
 
   def query(pdObj: PdObj): PdQuery = {
@@ -153,6 +155,44 @@ object PDStoreModel {
   def handleNewRowColumns(c: PdChangeJson, a: ActorRef): Unit ={
     registerListener(c, a)
   }
+
+  def tableListenerUpdate(pdObj: PdObj, actor: ActorRef): Unit ={
+    if(actorsAndTheirTriples.keySet.exists(_ == pdObj.actor))
+      actorsAndTheirTriples.remove(pdObj.actor)
+    actorsAndTheirTriples += (pdObj.actor -> pdObj.pdChangeList)
+    for (u <- actorsAndTheirTriples){
+      if (!u._1.equals(pdObj.actor) && u._2.exists( p => pdObj.pdChangeList.filter(s => "has_type".equals(s.pred) && "table".equals(s.obj))(0).sub.equals(p.sub))){
+        val theDifference = u._2.filterNot(pdObj.pdChangeList.toSet)
+        //actor ! Json.toJson(PdQuery("listener", true, theDifference))
+        actorsAndTheirTriples(actor) ::: theDifference
+      }
+    }
+    for(p <- pdObj.pdChangeList){
+      if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))){
+        registerListener2(p)
+      }
+    }
+  }
+
+
+  def registerListener2(pdChange: PdChangeJson): Unit ={
+    store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(pdChange.sub), store.getGUIDwithName(pdChange.pred), null), (c: Change) => {
+      system.scheduler.scheduleOnce(1 millisecond){
+        for (a <- actorsAndTheirTriples){
+          if (a._2.exists(p => store.getName(c.instance1).equals(p.sub) && store.getName(c.role2).equals(p.pred))){
+
+            Logger.debug(store.getName(c.instance1) + " :: " + store.getName(c.role2) + " :: " + store.getName(c.instance2))
+
+            //a._1 ! PdChangeJson("_" , "e", store.getName(c.instance1), store.getName(c.role2), store.getName(c.instance2))
+          }
+        }
+      }
+    })
+  }
+
+
+
+
 
 
   def registerListener(pdc: PdChangeJson, actor: ActorRef): Unit = {
