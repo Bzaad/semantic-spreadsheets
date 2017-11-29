@@ -8,9 +8,9 @@ import scala.concurrent.duration._
 import play.api.Logger
 import play.api.libs.json.Json
 
-import scala.collection.mutable
+import scala.util.control.Breaks._
 // import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set, HashMap}
+import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set, HashMap, MultiMap}
 
 case class PDStoreModel()
 
@@ -26,7 +26,8 @@ object PDStoreModel {
 
   var sameTableHash = HashMap.empty[String, Set[ActorRef]]
 
-  var actorsAndTheirTriples = HashMap.empty[ActorRef, List[PdChangeJson]]
+  var actorsAndTheirTriples = new HashMap[ActorRef, List[PdChangeJson]]
+
   var currentListenerList = Set.empty[PdChangeJson]
 
 
@@ -71,6 +72,8 @@ object PDStoreModel {
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
         store.addLink(store.getGUIDwithName(t.sub), store.getGUIDwithName(t.pred), store.getGUIDwithName(t.obj))
+        store.addLink(store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), store.getGUIDwithName(""))
+        store.addLink(store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), store.getGUIDwithName(""))
       }
     }
     store.commit
@@ -87,12 +90,12 @@ object PDStoreModel {
 
   def queryTable(p: PdObj): PdQuery = {
     var queryResult = ListBuffer.empty[PdChangeJson]
-
+    queryResult += p.pdChangeList(0)
     for (t <- p.pdChangeList) {
 
       if (t.pred == "has_type" && t.obj == "table") {
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "_"), p.actor)
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "_"), p.actor)
+        //PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "_"), p.actor)
+        //PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "_"), p.actor)
 
         val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value")).toList
         val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value")).toList
@@ -103,14 +106,14 @@ object PDStoreModel {
           val rowValue = store.getName(r.get(v"value"))
 
           queryResult += new PdChangeJson("ts", "e", "is_row" , rowName, rowValue)
-          PDStoreModel.registerListener(new PdChangeJson("t", "e", rowName, "has_value", rowValue), p.actor)
+          //PDStoreModel.registerListener(new PdChangeJson("t", "e", rowName, "has_value", rowValue), p.actor)
         }
         for (c <- columns) {
           val columnName = store.getName(c.get(v"column"))
           val columnValue = store.getName(c.get(v"value"))
 
           queryResult += new PdChangeJson("ts", "e", "is_column", columnName , columnValue)
-          PDStoreModel.registerListener(new PdChangeJson("t", "e", columnName, "has_value", columnValue), p.actor)
+          //PDStoreModel.registerListener(new PdChangeJson("t", "e", columnName, "has_value", columnValue), p.actor)
         }
 
         for(r <- rows){
@@ -121,7 +124,7 @@ object PDStoreModel {
             //registering listeners for all the possible row-column combinations
 
             val cellVal = store.query((rowName, colName, v"x"))
-            registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
+            //registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
             for(cv <- cellVal){
               queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
             }
@@ -129,16 +132,51 @@ object PDStoreModel {
         }
       }
     }
+
+    //Add the actor to listener list on table query
+
+    if(actorsAndTheirTriples.keySet.exists(_ == p.actor))
+      actorsAndTheirTriples.remove(p.actor)
+    actorsAndTheirTriples += (p.actor -> queryResult.toList)
+
+    //Add triples to listener list
+    for (qr <- queryResult.toList){
+      if (!currentListenerList.exists(x => qr.sub.equals(x.sub) && qr.pred.equals(x.pred))){
+        currentListenerList += qr
+        registerListener2(qr)
+      }
+    }
     PdQuery("success", false, queryResult.toList)
   }
 
+  def registerListener2(pdChange: PdChangeJson): Unit ={
+    store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(pdChange.sub), store.getGUIDwithName(pdChange.pred), null), (c: Change) => {
+      system.scheduler.scheduleOnce(1 millisecond){
+        /*
+        for (a <- actorsAndTheirTriples){
+          if (a._2.exists(p => store.getName(c.instance1).equals(p.sub) && store.getName(c.role2).equals(p.pred))){
+            //Logger.debug(c.toRawString)
+            //Logger.debug(store.getName(c.instance1) + " :: " + store.getName(c.role2) + " :: " + store.getName(c.instance2))
+
+            //a._1 ! PdChangeJson("_" , "e", store.getName(c.instance1), store.getName(c.role2), store.getName(c.instance2))
+          }
+        }
+        */
+      }
+    })
+  }
+
   def applyPdc(pdc: PdObj): PdQuery = {
+    var recievingActors = Set.empty[ActorRef]
+    var tableName = ""
     for (c <- pdc.pdChangeList) {
       if(c.ch == "+" && (c.pred == "has_row" || c.pred == "has_value" || c.pred == "has_column")){
         store.addLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+
       }
       else if (c.ch == "-" && (c.pred == "has_row" || c.pred == "has_value" || c.pred == "has_column")){
         store.removeLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), store.getGUIDwithName(c.obj))
+        if(!c.pred.equals("has_value")) tableName = c.sub
       }
       else if (c.ch == "+" && (c.pred != "has_row" || c.pred != "has_value" || c.pred != "has_column")){
         store.addLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
@@ -146,14 +184,37 @@ object PDStoreModel {
       else if (c.ch == "-" && (c.pred != "has_row" || c.pred != "has_value" || c.pred != "has_column")){
         store.removeLink(store.getGUIDwithName(c.sub), store.getGUIDwithName(c.pred), c.obj)
       }
-      handleNewRowColumns(c, pdc.actor)
     }
     store.commit
-    PdQuery("success", false, pdc.pdChangeList)
-  }
 
-  def handleNewRowColumns(c: PdChangeJson, a: ActorRef): Unit ={
-    registerListener(c, a)
+    /*
+    if(pdc.pdChangeList.exists(x => "has_row".equals(x.pred) || "has_column".equals(x.pred))){
+      for (a <- actorsAndTheirTriples){
+
+        if (actorsAndTheirTriples.entryExists(a._1, _.sub.equals(tableName))){
+          a._2 ::: pdc.pdChangeList
+        }
+
+      }
+    }
+    */
+
+
+    for (p <- pdc.pdChangeList){
+      if ("has_row".equals(p.pred) || "has_column".equals(p.pred)){
+
+        for (a <- actorsAndTheirTriples){
+          if (a._2.exists(x => p.sub.equals(x.sub))){
+            recievingActors += a._1
+            actorsAndTheirTriples(a._1) = actorsAndTheirTriples(a._1) ::: pdc.pdChangeList
+          }
+        }
+        // first: update listenerList for all the actors who are on the same table (if it's remove remove otherwise add)
+        // second: send a message too all of them.
+        // third: look for any other actor who has the pattern in their listener list and send them a copy
+      }
+    }
+    PdQuery("success", false, pdc.pdChangeList)
   }
 
   def tableListenerUpdate(pdObj: PdObj, actor: ActorRef): Unit ={
@@ -169,25 +230,10 @@ object PDStoreModel {
     }
     for(p <- pdObj.pdChangeList){
       if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))){
-        registerListener2(p)
+        //registerListener2(p)
+        currentListenerList += p
       }
     }
-  }
-
-
-  def registerListener2(pdChange: PdChangeJson): Unit ={
-    store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(pdChange.sub), store.getGUIDwithName(pdChange.pred), null), (c: Change) => {
-      system.scheduler.scheduleOnce(1 millisecond){
-        for (a <- actorsAndTheirTriples){
-          if (a._2.exists(p => store.getName(c.instance1).equals(p.sub) && store.getName(c.role2).equals(p.pred))){
-
-            Logger.debug(store.getName(c.instance1) + " :: " + store.getName(c.role2) + " :: " + store.getName(c.instance2))
-
-            //a._1 ! PdChangeJson("_" , "e", store.getName(c.instance1), store.getName(c.role2), store.getName(c.instance2))
-          }
-        }
-      }
-    })
   }
 
 
