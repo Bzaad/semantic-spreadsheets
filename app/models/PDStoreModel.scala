@@ -105,14 +105,14 @@ object PDStoreModel {
           val rowName = store.getName(r.get(v"row"))
           val rowValue = store.getName(r.get(v"value"))
 
-          queryResult += new PdChangeJson("ts", "e", "is_row" , rowName, rowValue)
+          queryResult += new PdChangeJson("ts", "e", rowName , "has_value", rowValue)
           //PDStoreModel.registerListener(new PdChangeJson("t", "e", rowName, "has_value", rowValue), p.actor)
         }
         for (c <- columns) {
           val columnName = store.getName(c.get(v"column"))
           val columnValue = store.getName(c.get(v"value"))
 
-          queryResult += new PdChangeJson("ts", "e", "is_column", columnName , columnValue)
+          queryResult += new PdChangeJson("ts", "e", columnName, "has_value" , columnValue)
           //PDStoreModel.registerListener(new PdChangeJson("t", "e", columnName, "has_value", columnValue), p.actor)
         }
 

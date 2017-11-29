@@ -62,14 +62,12 @@ var handleSuccess = function(reqValue){
             updateTableTabs();
     } else {
         _.each(reqValue, function(rv){
-            if(rv.sub === "is_column" || rv.sub === "is_row"){
-                var cId = rv.pred.split("_")[rv.pred.split("_").length - 1];
-                var cVal = rv.obj;
-                $("#" + cId.toUpperCase()).val(cVal)
+            if(rv.pred === "has_value"){
+                $("#" + _.last(rv.sub.split("_"))).val(rv.obj);
             }
         });
         _.each(reqValue, function(rv){
-            if(rv.sub !== "is_column" && rv.sub !== "is_row" && rv.ch !== "-"){
+            if(rv.pred !== "has_value" && rv.ch !== "-"){
                 if(!findObjPosition(rv)) return;
                 $("#" + findObjPosition(rv)).val(rv.obj);
                 $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
