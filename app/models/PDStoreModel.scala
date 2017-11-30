@@ -90,7 +90,6 @@ object PDStoreModel {
 
   def queryTable(p: PdObj): PdQuery = {
     var queryResult = ListBuffer.empty[PdChangeJson]
-    queryResult += p.pdChangeList(0)
 
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
@@ -98,9 +97,11 @@ object PDStoreModel {
         val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value")).toList
 
         for (r <- rows){
-          queryResult += new PdChangeJson("ts", "e" , store.getName(r.get(v"row")), "has_value" , store.getName(r.get(v"value")))
+          queryResult += new PdChangeJson("ts", "e", p.pdChangeList(0).sub, "has_row", store.getName(r.get(v"row")))
+          queryResult += new PdChangeJson("ts", "e", store.getName(r.get(v"row")), "has_value", store.getName(r.get(v"value")))
         }
         for (c <- columns) {
+          queryResult += new PdChangeJson("ts", "e", p.pdChangeList(0).sub, "has_column", store.getName(c.get(v"column")))
           queryResult += new PdChangeJson("ts", "e", store.getName(c.get(v"column")), "has_value", store.getName(c.get(v"value")))
         }
         for(r <- rows){
@@ -117,20 +118,6 @@ object PDStoreModel {
             }
           }
         }
-      }
-    }
-
-    //Add the actor to listener list on table query
-
-    if(actorsAndTheirTriples.keySet.exists(_ == p.actor))
-      actorsAndTheirTriples.remove(p.actor)
-    actorsAndTheirTriples += (p.actor -> queryResult.toList)
-
-    //Add triples to listener list
-    for (qr <- queryResult.toList){
-      if (!currentListenerList.exists(x => qr.sub.equals(x.sub) && qr.pred.equals(x.pred))){
-        currentListenerList += qr
-        registerListener2(qr)
       }
     }
     PdQuery("success", false, queryResult.toList)
