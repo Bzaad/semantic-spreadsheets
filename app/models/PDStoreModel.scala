@@ -91,6 +91,12 @@ object PDStoreModel {
   def queryTable(p: PdObj): PdQuery = {
     var queryResult = ListBuffer.empty[PdChangeJson]
 
+    //FIXME: this is causing problems!
+    //TODO: we still need to have the table name in the returned data, perhaps a mechanism in the front-end that doesn't think we are creating a new table!
+    //TODO: perhaps instead of success and handle success we can break the message header categories down to more specific titles
+    //queryResult += p.pdChangeList(0)
+    
+
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
         val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value")).toList
