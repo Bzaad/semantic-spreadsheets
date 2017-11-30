@@ -91,40 +91,27 @@ object PDStoreModel {
   def queryTable(p: PdObj): PdQuery = {
     var queryResult = ListBuffer.empty[PdChangeJson]
     queryResult += p.pdChangeList(0)
+
     for (t <- p.pdChangeList) {
-
       if (t.pred == "has_type" && t.obj == "table") {
-        //PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "_"), p.actor)
-        //PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "_"), p.actor)
-
         val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value")).toList
         val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value")).toList
 
         for (r <- rows){
-
-          val rowName = store.getName(r.get(v"row"))
-          val rowValue = store.getName(r.get(v"value"))
-
-          queryResult += new PdChangeJson("ts", "e", rowName , "has_value", rowValue)
-          //PDStoreModel.registerListener(new PdChangeJson("t", "e", rowName, "has_value", rowValue), p.actor)
+          queryResult += new PdChangeJson("ts", "e" , store.getName(r.get(v"row")), "has_value" , store.getName(r.get(v"value")))
         }
         for (c <- columns) {
-          val columnName = store.getName(c.get(v"column"))
-          val columnValue = store.getName(c.get(v"value"))
-
-          queryResult += new PdChangeJson("ts", "e", columnName, "has_value" , columnValue)
-          //PDStoreModel.registerListener(new PdChangeJson("t", "e", columnName, "has_value", columnValue), p.actor)
+          queryResult += new PdChangeJson("ts", "e", store.getName(c.get(v"column")), "has_value", store.getName(c.get(v"value")))
         }
-
         for(r <- rows){
           for(c <- columns){
             val rowName = store.getGUIDwithName(store.getName(r.get(v"value")))
             val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
 
             //registering listeners for all the possible row-column combinations
+            registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
 
             val cellVal = store.query((rowName, colName, v"x"))
-            //registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
             for(cv <- cellVal){
               queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
             }
