@@ -90,12 +90,13 @@ object PDStoreModel {
 
   def queryTable(p: PdObj): PdQuery = {
     var queryResult = ListBuffer.empty[PdChangeJson]
-
-    //FIXME: this is causing problems!
-    //TODO: we still need to have the table name in the returned data, perhaps a mechanism in the front-end that doesn't think we are creating a new table!
-    //TODO: perhaps instead of success and handle success we can break the message header categories down to more specific titles
-    //queryResult += p.pdChangeList(0)
     
+    // pass the table name as a part of the messsage
+    // this way we can create a complete table on the front end as change object
+    // this layer is totaly independent form the presentation layer
+
+    queryResult += p.pdChangeList(0)
+
 
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
@@ -126,8 +127,48 @@ object PDStoreModel {
         }
       }
     }
-    PdQuery("success", false, queryResult.toList)
+    tableListenerUpdate("load", p.actor, queryResult.toList)
+    PdQuery("displayTable", false, queryResult.toList)
   }
+
+
+  def tableListenerUpdate(action: String, actor: ActorRef, pdChangeList: List[PdChangeJson]): Unit ={
+    action match {
+      case "update" => {
+        Logger.debug("updating...")
+      }
+      case "load" => {
+        if (actorsAndTheirTriples.exists(x => x._1.equals(actor))){
+          actorsAndTheirTriples -= actor
+        }
+        actorsAndTheirTriples += (actor -> pdChangeList)
+      }
+      case _ => {
+        Logger.error("Illegal operation!")
+      }
+    }
+
+
+    /*
+    if(actorsAndTheirTriples.keySet.exists(_ == pdObj.actor))
+      actorsAndTheirTriples.remove(pdObj.actor)
+    actorsAndTheirTriples += (pdObj.actor -> pdObj.pdChangeList)
+    for (u <- actorsAndTheirTriples){
+      if (!u._1.equals(pdObj.actor) && u._2.exists( p => pdObj.pdChangeList.filter(s => "has_type".equals(s.pred) && "table".equals(s.obj))(0).sub.equals(p.sub))){
+        val theDifference = u._2.filterNot(pdObj.pdChangeList.toSet)
+        //actor ! Json.toJson(PdQuery("listener", true, theDifference))
+        actorsAndTheirTriples(actor) ::: theDifference
+      }
+    }
+    for(p <- pdObj.pdChangeList){
+      if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))){
+        //registerListener2(p)
+        currentListenerList += p
+      }
+    }
+    */
+  }
+
 
   def registerListener2(pdChange: PdChangeJson): Unit ={
     store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(pdChange.sub), store.getGUIDwithName(pdChange.pred), null), (c: Change) => {
@@ -196,30 +237,6 @@ object PDStoreModel {
     }
     PdQuery("success", false, pdc.pdChangeList)
   }
-
-  def tableListenerUpdate(pdObj: PdObj, actor: ActorRef): Unit ={
-    if(actorsAndTheirTriples.keySet.exists(_ == pdObj.actor))
-      actorsAndTheirTriples.remove(pdObj.actor)
-    actorsAndTheirTriples += (pdObj.actor -> pdObj.pdChangeList)
-    for (u <- actorsAndTheirTriples){
-      if (!u._1.equals(pdObj.actor) && u._2.exists( p => pdObj.pdChangeList.filter(s => "has_type".equals(s.pred) && "table".equals(s.obj))(0).sub.equals(p.sub))){
-        val theDifference = u._2.filterNot(pdObj.pdChangeList.toSet)
-        //actor ! Json.toJson(PdQuery("listener", true, theDifference))
-        actorsAndTheirTriples(actor) ::: theDifference
-      }
-    }
-    for(p <- pdObj.pdChangeList){
-      if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))){
-        //registerListener2(p)
-        currentListenerList += p
-      }
-    }
-  }
-
-
-
-
-
 
   def registerListener(pdc: PdChangeJson, actor: ActorRef): Unit = {
     Logger.error(pdc.toString)

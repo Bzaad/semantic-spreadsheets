@@ -67,7 +67,7 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
             case "listen" =>
               listenToPattern(cBundle)
             case "tableTriples" =>
-              PDStoreModel.tableListenerUpdate(cBundle, theActor)
+              PDStoreModel.tableListenerUpdate("update", cBundle.actor, cBundle.pdChangeList)
           }
         }
         /**

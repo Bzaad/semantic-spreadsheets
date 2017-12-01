@@ -38,6 +38,9 @@ var onMessage = function(evt) {
         case "success":
            handleSuccess(qData.reqValue);
            break;
+        case "displayTable":
+            displayTable(qData.reqValue);
+            break;
         case "failure":
             handleFailure(qData.reqValue);
             break;
@@ -52,6 +55,22 @@ var onMessage = function(evt) {
     }
 };
 
+var displayTable = function(reqValue){
+    if (reqValue.length < 1) return;
+    _.each(reqValue, function(rv){
+        if(rv.pred === "has_type" && rv.obj === "table") {
+            return;
+        } else if(rv.pred === "has_value") {
+            $("#" + _.last(rv.sub.split("_"))).val(rv.obj);
+        } else if(rv.ch !== "-"){
+            if(!findObjPosition(rv)) return;
+            $("#" + findObjPosition(rv)).val(rv.obj);
+            $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
+            $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
+        }
+    });
+};
+
 var handleSuccess = function(reqValue){
     //var message = JSON.stringify(reqValue);
     if (reqValue.length < 1) return;
@@ -60,20 +79,6 @@ var handleSuccess = function(reqValue){
             message =  'A table with the name <strong>' + reqValue[0].sub + '</strong> was created!';
             loadTable(reqValue[0].sub);
             updateTableTabs();
-    } else {
-        _.each(reqValue, function(rv){
-            if(rv.pred === "has_value"){
-                $("#" + _.last(rv.sub.split("_"))).val(rv.obj);
-            }
-        });
-        _.each(reqValue, function(rv){
-            if(rv.pred !== "has_value" && rv.ch !== "-"){
-                if(!findObjPosition(rv)) return;
-                $("#" + findObjPosition(rv)).val(rv.obj);
-                $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
-                $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
-            }
-        })
     }
 
     bootstrap_alert.warning(message, 'success', 4000);
