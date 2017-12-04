@@ -36,7 +36,7 @@ var initCellListeners = function(){
             var targetType = e.target.getAttribute("data-cell-type");
             var rowOrCol = (targetType === "sub") ? "has_row" : "has_column";
             var targetId = e.target.id;
-            var tableName = $('.nav-tabs .active')[1].text;
+            var tableName = $('ul.nav-tabs li.active').text();
             var change = {
                 "reqType": "cChange",
                 "listenTo": true,
@@ -56,7 +56,7 @@ var initCellListeners = function(){
              */
             else if (cellBefore !== cellAfter && !cellBefore && cellAfter){
                 if(targetType === "pred" || targetType === "sub"){
-                    var cellPos = {"ta"  : "t", "ch"  : "+", "sub" :tableName, "pred": rowOrCol, "obj" : (tableName + "_" + targetId)};
+                    var cellPos = {"ta"  : "t", "ch"  : "+", "sub" : tableName, "pred": rowOrCol, "obj" : (tableName + "_" + targetId)};
                     var cellVal = {"ta"  : "t", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
