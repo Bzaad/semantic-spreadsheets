@@ -13,7 +13,9 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 routesGenerator := InjectedRoutesGenerator
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
+val scalazVersion = "7.1.0"
+
 
 libraryDependencies += filters
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % Test
@@ -28,3 +30,11 @@ libraryDependencies += "org.webjars" % "jquery" % "3.2.1"
 libraryDependencies += "org.webjars" % "bootstrap" % "3.3.7-1"
 libraryDependencies += "org.webjars.bower" % "lodash" % "4.17.4"
 libraryDependencies += "org.webjars" % "momentjs" % "2.18.1"
+
+
+libraryDependencies ++= Seq(
+  "org.scalaz" %% "scalaz-core" % scalazVersion,
+  "org.scalaz" %% "scalaz-effect" % scalazVersion,
+  "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
+  "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test"
+)
