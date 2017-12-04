@@ -3,21 +3,14 @@ package models
 import pdstore._
 import PDStore._
 import akka.actor.{ActorRef, ActorSystem}
-
 import scala.concurrent.duration._
 import play.api.Logger
-import play.api.libs.json.Json
-
 import scala.collection.mutable
-import scalaz.PLens._
-
-// import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set, HashMap}
 
 case class PDStoreModel()
 
 object PDStoreModel {
-
 
   val store = PDStore("pdstore_dd")
   val system = ActorSystem("aSystem")
@@ -36,6 +29,9 @@ object PDStoreModel {
 
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
+
+    // query all tables
+    // ? has_type table
 
     for (p <- pdObj.pdChangeList) {
       if (p.sub == "?" && p.obj != "?") {
@@ -121,10 +117,6 @@ object PDStoreModel {
           for(c <- columns){
             val rowName = store.getGUIDwithName(store.getName(r.get(v"value")))
             val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
-
-            //registering listeners for all the possible row-column combinations
-            //registerListener(new PdChangeJson("ts", "e", store.getName(rowName), store.getName(colName), "_"), p.actor)
-
             val cellVal = store.query((rowName, colName, v"x"))
             for(cv <- cellVal){
               queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
@@ -141,7 +133,6 @@ object PDStoreModel {
   def tableListenerUpdate(action: String, actor: ActorRef, pdChangeList: List[PdChangeJson]): Unit = {
     action match {
       case "update" => {
-
         //update the actor listener list
         for(p <- actorsAndTheirTriples(actor)){
           for (pd <- pdChangeList){
@@ -153,52 +144,12 @@ object PDStoreModel {
               if(pdChangeList.exists(x => "has_column".equals(x.pred))){
                 Logger.error("its a column")
               }
-              //TODO: find a mechanism for removing all the
             } else {
               actorsAndTheirTriples(actor) -= p
               actorsAndTheirTriples(actor) += new PdChangeJson(p.ta, "e", p.sub, p.pred, p.obj)
-
             }
           }
         }
-        /*
-        var currentList = (actorsAndTheirTriples(actor) ++= pdChangeList.toSet)
-        var freshList = mutable.Set[PdChangeJson]()
-        for(cl <- currentList){
-          //Logger.error("-".equals(cl.ch).toString)
-          if("-".equals(cl.ch)) {
-            currentList.remove(cl)
-            currentList = currentList.filter { x => x.sub.equals(cl.sub) && x.pred.equals(cl.pred) }
-          } else if ("+".equals(cl.ch)){
-            currentList.add(new PdChangeJson(cl.ta, "e", cl.sub, cl.pred, cl.obj))
-            currentList.remove(cl)
-          }
-        }
-
-        Logger.error(currentList.mkString)
-
-        for (cl <- actorsAndTheirTriples(actor)){
-          for (pd <- pdChangeList){
-            if (pd.sub.equals(cl.sub) && pd.pred.equals(cl.pred) && "-".equals(pd.ch)){
-              //currentList -= cl
-              //ignore it
-            } else if("+".equals(pd.ch)){
-              freshList += new PdChangeJson(pd.ta, "e", pd.sub, pd.pred, pd.obj)
-            }
-          }
-        }
-
-        actorsAndTheirTriples(actor) -> freshList
-
-        for(p <- pdChangeList){
-
-          if("-".equals(p.ch)){
-            //mapVPLens(actor) mod ((_: List[PdChangeJson]) + p, actorsAndTheirTriples)
-            currentListenerList -= p
-          }
-          Logger.error(p.toString)
-        }
-        */
         //TODO: check if anybody else is to the same tabale and update their listner list as well!
       }
       case "load" => {
@@ -210,7 +161,7 @@ object PDStoreModel {
           // TODO: we don't remove triples form listener list, because of the obvious reasons
           if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))) {
             currentListenerList += p
-            registerListener2(p)
+            registerListener(p)
           }
         }
       }
@@ -218,6 +169,10 @@ object PDStoreModel {
         Logger.error("Illegal operation!")
       }
     }
+  }
+
+  def maintainCurrentListenerList(pdChangeJson: PdChangeJson): Unit ={
+
   }
 
   def applyPdc(pdc: PdObj): PdQuery = {
@@ -243,7 +198,9 @@ object PDStoreModel {
     PdQuery("success", false, pdc.pdChangeList)
   }
 
-  def registerListener2(pdChange: PdChangeJson): Unit ={
+
+
+  def registerListener(pdChange: PdChangeJson): Unit ={
     store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(pdChange.sub), store.getGUIDwithName(pdChange.pred), null), (c: Change) => {
       system.scheduler.scheduleOnce(1 millisecond){
         Logger.debug("Sending: " + c.toRawString)
@@ -253,73 +210,6 @@ object PDStoreModel {
   }
 
 
-
-  def registerListener(pdc: PdChangeJson, actor: ActorRef): Unit = {
-    Logger.error(pdc.toString)
-
-    if ((pdc.pred.equals("has_row") || pdc.pred.equals("has_column"))){
-      // becaues each actor can only be registered to only one table at a time,
-      // remove them from the rest of it!
-
-      for (s <- sameTableHash){
-        if (s._2.contains(actor)){
-          s._2 -= actor
-        }
-      }
-
-      // add it back again to the new table
-      if (sameTableHash.exists(p => p._1.equals(pdc.sub))) {
-        sameTableHash(pdc.sub) += actor
-      } else {
-        sameTableHash += (pdc.sub -> Set(actor))
-      }
-
-    }
-
-    /**
-      * (t,e,table1,has_row,?)
-      * (t,e,table1,has_column,?)
-      * (t,+,table1,has_row,table1_A2)
-      * (t,+,table1_A2,has_value,p1)
-      * (t,+,table1,has_column,table1_B1)
-      * (t,+,table1_B1,has_value,firstName)
-      * (t,+,p1,firstName,behzad)
-      */
-
-
-
-    var lTriple = new LTriple(pdc.sub.toString, pdc.pred.toString, "_")
-
-    if(listeningActors.contains(actor)){
-      if (!listeningActors(actor).exists(x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString)))
-        listeningActors(actor) += lTriple
-    }else{
-      listeningActors += actor -> Set[LTriple](lTriple)
-    }
-
-
-    if(!registeredListeners.exists( x => x.lSub.toString.equals(lTriple.lSub.toString) && x.lPred.toString.equals(lTriple.lPred.toString))){
-      registeredListeners += lTriple
-      store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(lTriple.lSub.toString), store.getGUIDwithName(lTriple.lPred.toString), null), (c: Change) => {
-        system.scheduler.scheduleOnce(1 millisecond){
-          // TODO: Address all the following conditions:
-          /**
-            * 1 - a row or column does not exist and we add a value to it
-            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb1ff817d91L), LINK_ADDED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P1")
-            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb1ff817d91L), LINK_ADDED, instance1=Role "table_3", role2=Role "has_row", instance2=Role "table_3_A2")
-            *
-            * 2 - a row or column does exist we remove value from it
-            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb25f602f41L), LINK_REMOVED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P2")
-            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb25f602f41L), LINK_REMOVED, instance1=Role "table_3", role2=Role "has_row", instance2=Role "table_3_A2")
-            *
-            * 3 - a row or column exists and we change its value
-            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb23a7bc1d1L), LINK_REMOVED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P1")
-            * (transaction=Role GUID(0xd97181cb54753d87L, 0x35acb23a7bc1d1L), LINK_ADDED, instance1=Role "table_3_A2", role2=Role "has_value", instance2=Role "P2")
-            */
-        }
-      })
-    }
-  }
 
   def isString(cls: AnyRef): Boolean ={
     cls match {
