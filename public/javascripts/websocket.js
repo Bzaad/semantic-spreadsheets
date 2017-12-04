@@ -78,7 +78,13 @@ var handleSuccess = function(reqValue){
     if (reqValue.length === 1 && reqValue[0].obj === "table"){
             message =  'A table with the name <strong>' + reqValue[0].sub + '</strong> was created!';
             loadTable(reqValue[0].sub);
-            updateTableTabs();
+    } else {
+        _.each(reqValue, function (rv) {
+            if(rv.pred === "has_row" || rv.pred === "has_column" || rv.pred === "has_value") return;
+            $("#" + findObjPosition(rv)).val(rv.obj);
+            $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
+            $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
+        });
     }
 
     bootstrap_alert.warning(message, 'success', 4000);
@@ -102,10 +108,6 @@ var loadTable = function(tablesName){
 
     localStorage.setItem("currentTables", JSON.stringify(loadedTables));
     addCurrentTables(loadedTables.tables);
-};
-
-var updateTableTabs = function(){
-    console.log("updating all the tabs!");
 };
 
 var updateTable = function(reqValue){
