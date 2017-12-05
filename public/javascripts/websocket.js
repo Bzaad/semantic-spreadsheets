@@ -153,7 +153,7 @@ var createTable = function(){
             "reqType" : "cTable",
             "listenTo": true,
             "reqValue" : [
-                {"ta": "t", "ch" : "+", "sub" : $("#table-name").val(), "pred": "has_type", "obj" : "table"}
+                {"ta": "ts", "ch" : "+", "sub" : $("#table-name").val(), "pred": "has_type", "obj" : "table"}
             ]
         };
         $('#add-table-modal').modal('hide');
@@ -219,7 +219,7 @@ var getAllTables = function(){
         "reqType" : "aTable",
         "listenTo": false,
         "reqValue" : [
-            {"ta": "t", "ch" : "e", "sub" : "?", "pred": "has_type", "obj" : "table"}
+            {"ta": "ts", "ch" : "e", "sub" : "?", "pred": "has_type", "obj" : "table"}
         ]
     };
     $("#table-name").val("");
@@ -262,7 +262,7 @@ var loadTableTriples = function(tableName){
         "listenTo": false,
         "reqValue": [
             {
-                "ta"  : "t",
+                "ta"  : "ts",
                 "ch"  : "e",
                 "sub" : tableName,
                 "pred": "has_type",

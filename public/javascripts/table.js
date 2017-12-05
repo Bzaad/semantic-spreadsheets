@@ -56,8 +56,8 @@ var initCellListeners = function(){
              */
             else if (cellBefore !== cellAfter && !cellBefore && cellAfter){
                 if(targetType === "pred" || targetType === "sub"){
-                    var cellPos = {"ta"  : "t", "ch"  : "+", "sub" : tableName, "pred": rowOrCol, "obj" : (tableName + "_" + targetId)};
-                    var cellVal = {"ta"  : "t", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
+                    var cellPos = {"ta"  : "ts", "ch"  : "+", "sub" : tableName, "pred": rowOrCol, "obj" : (tableName + "_" + targetId)};
+                    var cellVal = {"ta"  : "ts", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
                     queryObjects(targetType, cellAfter);
@@ -67,7 +67,7 @@ var initCellListeners = function(){
                         $("#" + targetId).val("")
                         return;
                     }
-                    var cellVal = {"ta"  : "t", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
+                    var cellVal = {"ta"  : "ts", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
                     change.reqValue.push(cellVal);
                     applyChanges(change);
                 }
@@ -78,8 +78,8 @@ var initCellListeners = function(){
              */
             else if (cellBefore !== cellAfter && cellBefore && !cellAfter){
                 if(targetType === "pred" || targetType === "sub"){
-                    var cellPos = {"ta"  : "t", "ch"  : "-", "sub" :tableName, "pred": rowOrCol, "obj" : (tableName + "_" + targetId)};
-                    var cellVal = {"ta"  : "t", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
+                    var cellPos = {"ta"  : "ts", "ch"  : "-", "sub" :tableName, "pred": rowOrCol, "obj" : (tableName + "_" + targetId)};
+                    var cellVal = {"ta"  : "ts", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
                     change.reqValue.push(cellPos, cellVal);
                     applyChanges(change);
                     cleanRowColumn(targetType, cellBefore);
@@ -89,7 +89,7 @@ var initCellListeners = function(){
                         $("#" + targetId).val("");
                         return;
                     }
-                    var cellVal = {"ta"  : "t", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};
+                    var cellVal = {"ta"  : "ts", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};
                     change.reqValue.push(cellVal);
                     applyChanges(change);
                 }
@@ -103,8 +103,8 @@ var initCellListeners = function(){
              */
             else if (cellBefore !== cellAfter && cellBefore && cellAfter){
                 if(targetType === "pred" || targetType === "sub"){
-                    var cellValBefore = {"ta"  : "t", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
-                    var cellValAfter = {"ta"  : "t", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
+                    var cellValBefore = {"ta"  : "ts", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
+                    var cellValAfter = {"ta"  : "ts", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
                     change.reqValue.push(cellValBefore, cellValAfter);
                     cleanRowColumn(targetType, cellBefore);
                     applyChanges(change);
@@ -115,8 +115,8 @@ var initCellListeners = function(){
                         $("#" + targetId).val("");
                         return;
                     }
-                    var cellValBefore = {"ta"  : "t", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};
-                    var cellValAfter = {"ta"  : "t", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
+                    var cellValBefore = {"ta"  : "ts", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};
+                    var cellValAfter = {"ta"  : "ts", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
                     change.reqValue.push(cellValBefore, cellValAfter);
                     applyChanges(change);
                 }
@@ -170,13 +170,13 @@ var queryObjects = function(tType, val){
     if (tType === "pred") {
         _.each($("[data-cell-type=sub]"), function(s){
             if (!s.value) return;
-            change.reqValue.push({"ta"  : "t", "ch"  : "e", "sub" : s.value, "pred": val, "obj" : "?"});
+            change.reqValue.push({"ta"  : "ts", "ch"  : "e", "sub" : s.value, "pred": val, "obj" : "?"});
         });
     }
     if (tType === "sub") {
         _.each($("[data-cell-type=pred]"), function (p) {
             if (!p.value) return;
-            change.reqValue.push({"ta"  : "t", "ch"  : "e", "sub" : val, "pred": p.value, "obj" : "?"});
+            change.reqValue.push({"ta"  : "ts", "ch"  : "e", "sub" : val, "pred": p.value, "obj" : "?"});
         });
     }
     loadObjectValues(change);
