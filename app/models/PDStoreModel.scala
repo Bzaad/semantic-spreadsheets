@@ -11,22 +11,20 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set, HashMap}
 case class PDStoreModel()
 
 object PDStoreModel {
-
+  import system.dispatcher
   val store = PDStore("pdstore_dd")
   val system = ActorSystem("aSystem")
-  import system.dispatcher
-
-  var registeredListeners = new ListBuffer[LTriple]()
-
-  var listeningActors = HashMap.empty[ActorRef, Set[LTriple]]
-
-  var sameTableHash = Map.empty[String, Set[ActorRef]]
-
   var actorsAndTheirTriples = new HashMap[ActorRef, Set[PdChangeJson]]
-
   var currentListenerList = Set.empty[PdChangeJson]
 
-
+  /**
+    * Queries the object values for all the possible subject-predicates combinations
+    * this is where a user adds a new row or column
+    * if a new column (predicate) is added all the possible values for available rows (subjects) will be queried
+    * if a new row (subject) is added all the possible values of available columns (predicates) will be queried
+    * @param pdObj
+    * @return
+    */
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
@@ -60,6 +58,9 @@ object PDStoreModel {
       }
     }
 
+    if (pdObj.pdChangeList.length > 1 && !"has_type".equals(pdObj.pdChangeList(0).pred) && !"table".equals(pdObj.pdChangeList(0).obj))
+      tableListenerUpdate("update", pdObj.actor, queryResult.toList)
+
     if (queryResult.nonEmpty) {
       PdQuery("success", false, queryResult.toList)
     } else {
@@ -78,14 +79,6 @@ object PDStoreModel {
     store.commit
     PdQuery("success", false, p.pdChangeList)
   }
-
-  /*
-  TODO: this can be combined with create table method
-  simply called manageTable or something!
-   */
-  def removeTable(p: PdObj): PdQuery = ???
-
-  var tableListeners = ArrayBuffer[String]()
 
   def queryTable(p: PdObj): PdQuery = {
 
@@ -128,49 +121,6 @@ object PDStoreModel {
     tableListenerUpdate("load", p.actor, queryResult.toList)
     PdQuery("displayTable", false, queryResult.toList)
   }
-
-
-  def tableListenerUpdate(action: String, actor: ActorRef, pdChangeList: List[PdChangeJson]): Unit = {
-    action match {
-      case "update" => {
-        //update the actor listener list
-        for(p <- actorsAndTheirTriples(actor)){
-          for (pd <- pdChangeList){
-            if (pd.sub.equals(p.sub) && pd.pred.equals(pd.pred) && "-".equals(pd.ch)){
-              actorsAndTheirTriples(actor) -= p
-              if(pdChangeList.exists(x => "has_row".equals(x.pred))){
-                Logger.error("its a row")
-              }
-              if(pdChangeList.exists(x => "has_column".equals(x.pred))){
-                Logger.error("its a column")
-              }
-            } else {
-              actorsAndTheirTriples(actor) -= p
-              actorsAndTheirTriples(actor) += new PdChangeJson(p.ta, "e", p.sub, p.pred, p.obj)
-            }
-          }
-        }
-        //TODO: check if anybody else is to the same tabale and update their listner list as well!
-      }
-      case "load" => {
-        if (actorsAndTheirTriples.exists(x => x._1.equals(actor))) {
-          actorsAndTheirTriples -= actor
-        }
-        actorsAndTheirTriples += (actor -> (mutable.Set()++pdChangeList))
-        for (p <- pdChangeList) {
-          // TODO: we don't remove triples form listener list, because of the obvious reasons
-          if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))) {
-            currentListenerList += p
-            registerListener(p)
-          }
-        }
-      }
-      case _ => {
-        Logger.error("Illegal operation!")
-      }
-    }
-  }
-
   def maintainCurrentListenerList(pdChangeJson: PdChangeJson): Unit ={
 
   }
@@ -198,7 +148,47 @@ object PDStoreModel {
     PdQuery("success", false, pdc.pdChangeList)
   }
 
-
+  def tableListenerUpdate(action: String, actor: ActorRef, pdChangeList: List[PdChangeJson]): Unit = {
+    action match {
+      case "update" => {
+        //update the actor listener list
+        for(att <- actorsAndTheirTriples(actor)){
+          for (pd <- pdChangeList){
+            if (pd.sub.equals(att.sub) && pd.pred.equals(att.pred) && pd.obj.equals(att.obj) && "-".equals(pd.ch)){
+              actorsAndTheirTriples(actor) -= att
+              if ("has_value".equals(pd.pred)) {
+                actorsAndTheirTriples(actor) = actorsAndTheirTriples(actor).filterNot {
+                  p => pd.obj.equals(p.sub) || pd.obj.equals(p.pred)
+                }
+              }
+            } else if ("+".equals(pd.ch)) {
+              actorsAndTheirTriples(actor) += new PdChangeJson(pd.ta, "e", pd.sub, pd.pred, pd.obj)
+            } else if (!"-".equals(pd.ch)){
+              actorsAndTheirTriples(actor) += pd
+            }
+          }
+        }
+        Logger.debug(actorsAndTheirTriples(actor).size.toString)
+        //TODO: check if anybody else is to the same tabale and update their listner list as well!
+      }
+      case "load" => {
+        if (actorsAndTheirTriples.exists(x => x._1.equals(actor))) {
+          actorsAndTheirTriples -= actor
+        }
+        actorsAndTheirTriples += (actor -> (mutable.Set()++pdChangeList))
+        for (p <- pdChangeList) {
+          // TODO: we don't remove triples form listener list, because of the obvious reasons
+          if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))) {
+            currentListenerList += p
+            registerListener(p)
+          }
+        }
+      }
+      case _ => {
+        Logger.error("Illegal operation!")
+      }
+    }
+  }
 
   def registerListener(pdChange: PdChangeJson): Unit ={
     store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(pdChange.sub), store.getGUIDwithName(pdChange.pred), null), (c: Change) => {
@@ -207,14 +197,5 @@ object PDStoreModel {
         Logger.debug("To: Who?")
       }
     })
-  }
-
-
-
-  def isString(cls: AnyRef): Boolean ={
-    cls match {
-      case s: String => true
-      case _  => false
-    }
   }
 }
