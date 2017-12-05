@@ -27,9 +27,11 @@ object UserManager {
     * @param theActor
     */
   def addUser(userName: String, theActor: ActorRef): Unit = {
+    /*
     if (!PDStoreModel.listeningActors.contains(theActor)){
       PDStoreModel.listeningActors += theActor -> Set()
     }
+    */
   }
 
   /**
@@ -40,8 +42,10 @@ object UserManager {
     * @param theActor
     */
   def removeUser(userName: String, theActor: ActorRef): Unit = {
+    /*
     Logger.error("removing the actor!")
     PDStoreModel.listeningActors -= theActor
+    */
   }
 
 
