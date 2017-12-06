@@ -28,13 +28,15 @@ object PDStoreModel {
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
+
+    //actorsAndTheirTriples(pdObj.actor) =  actorsAndTheirTriples(pdObj.actor) ++= pdObj.pdChangeList.toSet
+
     // query all tables
     // ? has_type table
 
     for (p <- pdObj.pdChangeList) {
       if (p.sub == "?" && p.obj != "?") {
         val qResult = store.query((v"x", store.getGUIDwithName(p.pred), store.getGUIDwithName(p.obj)))
-
         while (qResult.hasNext) {
           val t = store.begin
           val queriedSub = qResult.next().get(v"x")
@@ -43,14 +45,12 @@ object PDStoreModel {
           store.commit
         }
       } else if (p.sub != "?" && p.obj == "?") {
+        actorsAndTheirTriples(pdObj.actor) = actorsAndTheirTriples(pdObj.actor) += p
         val qResult = store.query((store.getGUIDwithName(p.sub), store.getGUIDwithName(p.pred), v"x"))
         while (qResult.hasNext) {
           val t = store.begin
           val queriedObj = qResult.next().get(v"x").toString
           val result = new PdChangeJson("ts", "e", p.sub, p.pred, queriedObj)
-          val lTriple = "?_" + p.pred + "_" + queriedObj
-          actors.UserManager.addToListeners(lTriple, pdObj.actor, result)
-
           queryResult += result
         }
       } else {
@@ -87,32 +87,39 @@ object PDStoreModel {
 
 
     var queryResult = ListBuffer.empty[PdChangeJson]
+    var loadListenerList = ListBuffer.empty[PdChangeJson]
+    val rowsColumnsPdChangeJson = ListBuffer.empty[PdChangeJson]
 
     // pass the table name as a part of the messsage
     // this way we can create a complete table on the front end as change object
     // this layer is totaly independent form the presentation layer
 
     queryResult += p.pdChangeList(0)
+    loadListenerList += p.pdChangeList(0)
+
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
         val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value")).toList
         val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value")).toList
 
         for (r <- rows){
-          queryResult += new PdChangeJson("ts", "e", p.pdChangeList(0).sub, "has_row", store.getName(r.get(v"row")))
-          queryResult += new PdChangeJson("ts", "e", store.getName(r.get(v"row")), "has_value", store.getName(r.get(v"value")))
+          rowsColumnsPdChangeJson += new PdChangeJson("ts", "e", p.pdChangeList(0).sub, "has_row", store.getName(r.get(v"row")))
+          rowsColumnsPdChangeJson += new PdChangeJson("ts", "e", store.getName(r.get(v"row")), "has_value", store.getName(r.get(v"value")))
         }
         for (c <- columns) {
-          queryResult += new PdChangeJson("ts", "e", p.pdChangeList(0).sub, "has_column", store.getName(c.get(v"column")))
-          queryResult += new PdChangeJson("ts", "e", store.getName(c.get(v"column")), "has_value", store.getName(c.get(v"value")))
+          rowsColumnsPdChangeJson += new PdChangeJson("ts", "e", p.pdChangeList(0).sub, "has_column", store.getName(c.get(v"column")))
+          rowsColumnsPdChangeJson += new PdChangeJson("ts", "e", store.getName(c.get(v"column")), "has_value", store.getName(c.get(v"value")))
         }
+        queryResult ++= rowsColumnsPdChangeJson
+        loadListenerList ++= rowsColumnsPdChangeJson
         for(r <- rows){
           for(c <- columns){
-            val rowName = store.getGUIDwithName(store.getName(r.get(v"value")))
-            val colName = store.getGUIDwithName(store.getName(c.get(v"value")))
-            val cellVal = store.query((rowName, colName, v"x"))
+            var rn = store.getName(r.get(v"value"))
+            var cn = store.getName(c.get(v"value"))
+            loadListenerList += new PdChangeJson("ts", "e", rn, cn, "?")
+            val cellVal = store.query((store.getGUIDwithName(rn), store.getGUIDwithName(cn), v"x"))
             for(cv <- cellVal){
-              queryResult += new PdChangeJson("ts", "e", store.getName(rowName) , store.getName(colName), cv.get(v"x").toString)
+              queryResult += new PdChangeJson("ts", "e", rn , cn, cv.get(v"x").toString)
             }
           }
         }
