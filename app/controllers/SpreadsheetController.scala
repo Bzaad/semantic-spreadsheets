@@ -18,21 +18,26 @@ import actors.User
 
 @Singleton
 class SpreadsheetController @Inject() (components: ControllerComponents) (implicit system: ActorSystem, mat: Materializer)extends AbstractController (components) {
-
-
+  
   val UserName = "userName"
   val tempForm = Form(single("userid" -> nonEmptyText))
 
   def index = Action { implicit request =>
     request.session.get(UserName).map { user =>
       Redirect(routes.SpreadsheetController.loadSpreadsheet()).flashing("info" -> s"Redirected to spreadsheet as $user user!")
-    }getOrElse(Ok(views.html.index(tempForm)))
+    } getOrElse(Ok(views.html.index(tempForm)))
   }
 
 
   def loadSpreadsheet = Action { implicit request =>
     request.session.get(UserName).map { user =>
       Ok(views.html.spreadsheet(user))
+    }.getOrElse(Redirect(routes.SpreadsheetController.index()))
+  }
+
+  def getTableWithId(tName: String) = Action { implicit  request =>
+    request.session.get(UserName).map { user =>
+      Ok(views.html.spid(user, tName))
     }.getOrElse(Redirect(routes.SpreadsheetController.index()))
   }
 
@@ -60,4 +65,5 @@ class SpreadsheetController @Inject() (components: ControllerComponents) (implic
         Right(ActorFlow.actorRef(User.props(uid)))
     })
   }
+
 }

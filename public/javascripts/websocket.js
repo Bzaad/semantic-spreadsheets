@@ -270,8 +270,26 @@ var loadTableTriples = function(tableName){
             }
         ]
     };
-    websocket.send(JSON.stringify(qTable));
+
+    waitForSocketReady(websocket, function () {
+        websocket.send(JSON.stringify(qTable));
+        console.log("Table loaded!")
+    });
 };
+
+var waitForSocketReady = function(socket, callBack){
+    setTimeout(
+        function () {
+            if(socket.readyState === 1){
+                if(callBack != null) callBack();
+                return;
+            } else {
+                waitForSocketReady(socket, callBack)
+            }
+        },
+    5);
+};
+
 var loadObjectValues = function(message){
     websocket.send(JSON.stringify(message));
 };
@@ -280,4 +298,9 @@ var applyChanges = function(change){
     websocket.send(JSON.stringify(change));
 };
 
+var shareTable = function(){
+    var link = "localhost:9000/table/" + currentTableName;
+    console.log();
+
+};
 

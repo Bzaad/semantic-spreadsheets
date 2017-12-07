@@ -10,6 +10,7 @@ var initDocument = function () {
     $("#clear-query").click(clearQuery);
     $("#test-triple").click(testTriple);
     $("#table-triples").click(allTableTriples);
+    $("#table-share").click(shareTable);
    // $("#load-table").click(loadTable($("#table-picker").val()))
     $("#load-table").click(function () {
         loadTable($("#table-picker").val())
