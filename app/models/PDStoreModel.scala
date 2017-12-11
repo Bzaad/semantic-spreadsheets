@@ -176,20 +176,22 @@ object PDStoreModel {
           }
         }
         Logger.debug(actorsAndTheirTriples(actor).size.toString)
-        //TODO: check if anybody else is to the same tabale and update their listner list as well!
-        var tableTuple = actorsAndTheirTriples(actor)
 
+
+        /**
+          * check if anybody else is to the same tabale and update their listener list as well!
+          */
+        var tableTuple = actorsAndTheirTriples(actor)
         tableTuple  = tableTuple.filter {
           p => "has_type".equals(p.pred) && "table".equals(p.obj)
         }
-
         for(a <- actorsAndTheirTriples){
           if (a._2.exists(p => "has_type".equals(p.pred) && "table".equals(p.obj) && tableTuple.toSeq(0).sub.equals(p.sub)) && !a._1.toString.equals(actor.toString)){
-            actorsAndTheirTriples
+            actorsAndTheirTriples -= a._1
+            actorsAndTheirTriples += (a._1 -> actorsAndTheirTriples(actor))
           }
         }
 
-        //if(actorsAndTheirTriples.exists(a => a._2.contains(actorsAndTheirTriples(actor).)))
       }
       case "load" => {
         if (actorsAndTheirTriples.exists(x => x._1.equals(actor))) {
