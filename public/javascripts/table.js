@@ -36,7 +36,10 @@ var initCellListeners = function(){
             var targetType = e.target.getAttribute("data-cell-type");
             var rowOrCol = (targetType === "sub") ? "has_row" : "has_column";
             var targetId = e.target.id;
-            var tableName = $('ul.nav-tabs li.active').text();
+            var tableName = (function() {
+                if (name = $('ul.nav-tabs li.active').text()) return name;
+                else return document.URL.split("/table/")[1];
+            })();
             var change = {
                 "reqType": "cChange",
                 "listenTo": true,
