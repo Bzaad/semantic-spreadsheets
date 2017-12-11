@@ -59,7 +59,7 @@ object PDStoreModel {
     }
 
     if (pdObj.pdChangeList.length > 1 && !"has_type".equals(pdObj.pdChangeList(0).pred) && !"table".equals(pdObj.pdChangeList(0).obj))
-      tableListenerUpdate("update", pdObj.actor, queryResult.toList)
+      tableListenerUpdate("update", pdObj.actor, pdObj.pdChangeList)
 
     if (queryResult.nonEmpty) {
       PdQuery("success", false, queryResult.toList)
@@ -87,7 +87,7 @@ object PDStoreModel {
 
 
     var queryResult = ListBuffer.empty[PdChangeJson]
-    var loadListenerList = ListBuffer.empty[PdChangeJson]
+    var loadListenerLB = ListBuffer.empty[PdChangeJson]
     val rowsColumnsPdChangeJson = ListBuffer.empty[PdChangeJson]
 
     // pass the table name as a part of the messsage
@@ -95,7 +95,7 @@ object PDStoreModel {
     // this layer is totaly independent form the presentation layer
 
     queryResult += p.pdChangeList(0)
-    loadListenerList += p.pdChangeList(0)
+    loadListenerLB += p.pdChangeList(0)
 
     for (t <- p.pdChangeList) {
       if (t.pred == "has_type" && t.obj == "table") {
@@ -111,12 +111,12 @@ object PDStoreModel {
           rowsColumnsPdChangeJson += new PdChangeJson("ts", "e", store.getName(c.get(v"column")), "has_value", store.getName(c.get(v"value")))
         }
         queryResult ++= rowsColumnsPdChangeJson
-        loadListenerList ++= rowsColumnsPdChangeJson
+        loadListenerLB ++= rowsColumnsPdChangeJson
         for(r <- rows){
           for(c <- columns){
             var rn = store.getName(r.get(v"value"))
             var cn = store.getName(c.get(v"value"))
-            loadListenerList += new PdChangeJson("ts", "e", rn, cn, "?")
+            loadListenerLB += new PdChangeJson("ts", "e", rn, cn, "?")
             val cellVal = store.query((store.getGUIDwithName(rn), store.getGUIDwithName(cn), v"x"))
             for(cv <- cellVal){
               queryResult += new PdChangeJson("ts", "e", rn , cn, cv.get(v"x").toString)
@@ -125,7 +125,7 @@ object PDStoreModel {
         }
       }
     }
-    tableListenerUpdate("load", p.actor, queryResult.toList)
+    tableListenerUpdate("load", p.actor, loadListenerLB.toList)
     PdQuery("displayTable", false, queryResult.toList)
   }
   def maintainCurrentListenerList(pdChangeJson: PdChangeJson): Unit ={
@@ -177,6 +177,19 @@ object PDStoreModel {
         }
         Logger.debug(actorsAndTheirTriples(actor).size.toString)
         //TODO: check if anybody else is to the same tabale and update their listner list as well!
+        var tableTuple = actorsAndTheirTriples(actor)
+
+        tableTuple  = tableTuple.filter {
+          p => "has_type".equals(p.pred) && "table".equals(p.obj)
+        }
+
+        for(a <- actorsAndTheirTriples){
+          if (a._2.exists(p => "has_type".equals(p.pred) && "table".equals(p.obj) && tableTuple.toSeq(0).sub.equals(p.sub)) && !a._1.toString.equals(actor.toString)){
+            actorsAndTheirTriples
+          }
+        }
+
+        //if(actorsAndTheirTriples.exists(a => a._2.contains(actorsAndTheirTriples(actor).)))
       }
       case "load" => {
         if (actorsAndTheirTriples.exists(x => x._1.equals(actor))) {
