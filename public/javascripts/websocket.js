@@ -46,6 +46,8 @@ var onMessage = function(evt) {
             break;
         case "listener":
             updateTable(qData.reqValue);
+            //TODO: we need to handle delets
+            //Edits work fine just deletes!
             break;
         case "tableTriples":
             allTableTriples();
@@ -80,10 +82,12 @@ var handleSuccess = function(reqValue){
             loadTable(reqValue[0].sub);
     } else {
         _.each(reqValue, function (rv) {
-            if(rv.pred === "has_row" || rv.pred === "has_column" || rv.pred === "has_value") return;
-            $("#" + findObjPosition(rv)).val(rv.obj);
-            $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
-            $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
+            var trpl = rv;
+            if (trpl.pred === "has_row" || trpl.pred === "has_column" || trpl.pred === "has_value") return;
+            if (trpl.ch === "-") trpl = {ta: "", ch: "-", sub: "", pred:"", obj:""};
+            $("#" + findObjPosition(trpl)).val(trpl.obj);
+            $("#" + findObjPosition(trpl)).attr("data-pred", trpl.pred);
+            $("#" + findObjPosition(trpl)).attr("data-sub", trpl.sub);
         });
     }
 
