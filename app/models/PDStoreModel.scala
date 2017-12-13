@@ -3,10 +3,13 @@ package models
 import pdstore._
 import PDStore._
 import akka.actor.{ActorRef, ActorSystem}
+
 import scala.concurrent.duration._
 import play.api.Logger
+import play.api.libs.json.Json
+
 import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, ListBuffer, Set, HashMap}
+import scala.collection.mutable.{ArrayBuffer, HashMap, ListBuffer, Set}
 
 case class PDStoreModel()
 
@@ -58,7 +61,7 @@ object PDStoreModel {
       }
     }
 
-    if (pdObj.pdChangeList.length > 1 && !"has_type".equals(pdObj.pdChangeList(0).pred) && !"table".equals(pdObj.pdChangeList(0).obj))
+    if (pdObj.pdChangeList.length > 0 && !"has_type".equals(pdObj.pdChangeList(0).pred) && !"table".equals(pdObj.pdChangeList(0).obj))
       tableListenerUpdate("update", pdObj.actor, pdObj.pdChangeList)
 
     if (queryResult.nonEmpty) {
@@ -125,11 +128,9 @@ object PDStoreModel {
         }
       }
     }
+
     tableListenerUpdate("load", p.actor, loadListenerLB.toList)
     PdQuery("displayTable", false, queryResult.toList)
-  }
-  def maintainCurrentListenerList(pdChangeJson: PdChangeJson): Unit ={
-
   }
 
   def applyPdc(pdc: PdObj): PdQuery = {
@@ -175,9 +176,6 @@ object PDStoreModel {
             }
           }
         }
-        Logger.debug(actorsAndTheirTriples(actor).size.toString)
-
-
         /**
           * check if anybody else is to the same tabale and update their listener list as well!
           */
@@ -191,20 +189,24 @@ object PDStoreModel {
             actorsAndTheirTriples += (a._1 -> actorsAndTheirTriples(actor))
           }
         }
-
+        maintainCurrentListenerList(actorsAndTheirTriples(actor))
       }
       case "load" => {
         if (actorsAndTheirTriples.exists(x => x._1.equals(actor))) {
           actorsAndTheirTriples -= actor
         }
         actorsAndTheirTriples += (actor -> (mutable.Set()++pdChangeList))
-        for (p <- pdChangeList) {
-          // TODO: we don't remove triples form listener list, because of the obvious reasons
-          if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))) {
-            currentListenerList += p
-            registerListener(p)
-          }
+
+        /**
+          * the reason for this check is a pre-registration of has_row and has_column predicate so that the
+          * listener gets fired even the very first after the creation of the table
+          */
+        if(actorsAndTheirTriples(actor).size == 1){
+          actorsAndTheirTriples(actor) += new PdChangeJson("ts", "e", actorsAndTheirTriples(actor).toSeq(0).sub, "has_column", "default_column")
+          actorsAndTheirTriples(actor) += new PdChangeJson("ts", "e", actorsAndTheirTriples(actor).toSeq(0).sub, "has_row", "default_row")
         }
+
+        maintainCurrentListenerList(actorsAndTheirTriples(actor))
       }
       case _ => {
         Logger.error("Illegal operation!")
@@ -212,12 +214,62 @@ object PDStoreModel {
     }
   }
 
+  def maintainCurrentListenerList(pdcSet: Set[PdChangeJson]): Unit ={
+    // TODO: we don't remove triples form listener list, because of the obvious reasons
+    for (p <- pdcSet) {
+
+      if (!currentListenerList.exists(x => p.sub.equals(x.sub) && p.pred.equals(x.pred))) {
+        val pdcl = new PdChangeJson("e", "ts", p.sub, p.pred, "_")
+        currentListenerList += pdcl
+        registerListener(pdcl)
+      }
+
+    }
+  }
+
   def registerListener(pdChange: PdChangeJson): Unit ={
     store.listen((null, ChangeType.WILDCARD, store.getGUIDwithName(pdChange.sub), store.getGUIDwithName(pdChange.pred), null), (c: Change) => {
       system.scheduler.scheduleOnce(1 millisecond){
-        Logger.debug("Sending: " + c.toRawString)
-        Logger.debug("To: Who?")
+
+        def f[T](v: T) = v match {
+          case _: String => "String"
+          case _: GUID   => "GUID"
+          case _         => "Unknown"
+        }
+
+        notifyListeningActors(
+          new PdChangeJson(
+            "ts",
+            if(c.changeType == ChangeType.LINK_ADDED) "+" else "-",
+            store.getName(c.instance1),
+            store.getName(c.role2),
+            if("GUID".equals(f(c.instance2))) store.getName(c.instance2) else c.instance2.toString
+          )
+        )
       }
     })
+  }
+
+  def notifyListeningActors(pdcj: PdChangeJson): Unit ={
+    var queryResult = ListBuffer.empty[PdChangeJson]
+    //TODO: if the lenght is two and one is add and another remove, it's an edit and has to be handled properly by first sending the remove and then add
+    queryResult += pdcj
+    if("has_column".equals(pdcj.pred) || "has_row".equals(pdcj.pred)){
+      val cellVal = store.query((store.getGUIDwithName(pdcj.obj), "has_value", v"x"))
+      for(cv <- cellVal){
+        queryResult += new PdChangeJson("ts", "+", pdcj.obj , "has_value", store.getName(cv.get(v"x")))
+      }
+    }
+    var receivingActors = Set.empty[ActorRef]
+    for (qr <- queryResult){
+      for(ac <- actorsAndTheirTriples){
+        if (ac._2.exists(x => x.sub.equals(qr.sub) && x.pred.equals(qr.pred)))
+          receivingActors += ac._1
+      }
+    }
+    val pdQuery = new PdQuery("listener", false, queryResult.toList)
+    for (rv <- receivingActors){
+      rv ! Json.toJson(pdQuery)
+    }
   }
 }
