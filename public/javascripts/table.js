@@ -186,13 +186,13 @@ var queryObjects = function(tType, val){
 };
 
 var cleanRowColumn = function(targetType, cellBefore){
-    if(targetType === "sub"){
+    if(targetType === "sub" || targetType === "has_row"){
         _.each($("[data-sub=" + cellBefore + "]"), function(s){
             s.removeAttribute("data-sub");
             s.removeAttribute("data-pred");
             s.value = "";
         });
-    }else if(targetType === "pred"){
+    }else if(targetType === "pred" || targetType === "has_column"){
         _.each($("[data-pred=" + cellBefore + "]"), function(s){
             s.removeAttribute("data-sub");
             s.removeAttribute("data-pred");

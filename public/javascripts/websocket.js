@@ -117,7 +117,12 @@ var loadTable = function(tablesName){
 var updateTable = function(reqValue){
 
     _.each(reqValue, function(r){
-        if (r.pred === "has_value")
+
+        if (r.ch === "-" && (r.pred === "has_row"|| r.pred === "has_column")){
+            cleanRowColumn(r.pred, $("#" + _.last(r.obj.split("_"))).val());
+            $("#" + _.last(r.obj.split("_"))).val("");
+        }
+        else if (r.pred === "has_value")
             $("#" + _.last(r.sub.split("_"))).val(r.obj);
         else if (r.pred !== "has_row" && r.pred !== "has_column")
             $("#" + findObjPosition(r)).val(r.obj);
