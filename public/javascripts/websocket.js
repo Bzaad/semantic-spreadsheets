@@ -38,11 +38,16 @@ var onMessage = function(evt) {
         case "success":
            handleSuccess(qData.reqValue);
            break;
+        case "displayTable":
+            displayTable(qData.reqValue);
+            break;
         case "failure":
             handleFailure(qData.reqValue);
             break;
         case "listener":
-            updateTable(qData.reqValue);
+            listenerUpdate(qData.reqValue);
+            //TODO: we need to handle delets
+            //Edits work fine just deletes!
             break;
         case "tableTriples":
             allTableTriples();
@@ -52,6 +57,22 @@ var onMessage = function(evt) {
     }
 };
 
+var displayTable = function(reqValue){
+    if (reqValue.length < 1) return;
+    _.each(reqValue, function(rv){
+        if(rv.pred === "has_type" && rv.obj === "table") {
+            return;
+        } else if(rv.pred === "has_value") {
+            $("#" + _.last(rv.sub.split("_"))).val(rv.obj);
+        } else if(rv.ch !== "-"){
+            if(!findObjPosition(rv)) return;
+            $("#" + findObjPosition(rv)).val(rv.obj);
+            $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
+            $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
+        }
+    });
+};
+
 var handleSuccess = function(reqValue){
     //var message = JSON.stringify(reqValue);
     if (reqValue.length < 1) return;
@@ -59,23 +80,15 @@ var handleSuccess = function(reqValue){
     if (reqValue.length === 1 && reqValue[0].obj === "table"){
             message =  'A table with the name <strong>' + reqValue[0].sub + '</strong> was created!';
             loadTable(reqValue[0].sub);
-            updateTableTabs();
     } else {
-        _.each(reqValue, function(rv){
-            if(rv.sub === "is_column" || rv.sub === "is_row"){
-                var cId = rv.pred.split("_")[rv.pred.split("_").length - 1];
-                var cVal = rv.obj;
-                $("#" + cId.toUpperCase()).val(cVal)
-            }
+        _.each(reqValue, function (rv) {
+            var trpl = rv;
+            if (trpl.pred === "has_row" || trpl.pred === "has_column" || trpl.pred === "has_value") return;
+            if (trpl.ch === "-") trpl = {ta: "", ch: "-", sub: "", pred:"", obj:""};
+            $("#" + findObjPosition(trpl)).val(trpl.obj);
+            $("#" + findObjPosition(trpl)).attr("data-pred", trpl.pred);
+            $("#" + findObjPosition(trpl)).attr("data-sub", trpl.sub);
         });
-        _.each(reqValue, function(rv){
-            if(rv.sub !== "is_column" && rv.sub !== "is_row" && rv.ch !== "-"){
-                if(!findObjPosition(rv)) return;
-                $("#" + findObjPosition(rv)).val(rv.obj);
-                $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
-                $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
-            }
-        })
     }
 
     bootstrap_alert.warning(message, 'success', 4000);
@@ -101,20 +114,27 @@ var loadTable = function(tablesName){
     addCurrentTables(loadedTables.tables);
 };
 
-var updateTableTabs = function(){
-    console.log("updating all the tabs!");
-};
+var listenerUpdate = function(reqValue){
 
-var updateTable = function(reqValue){
-    _.each(reqValue, function(rv){
-        if(rv.sub !== "is_column" && rv.sub !== "is_row" && rv.ch !== "-"){
-            if(!findObjPosition(rv)) return;
-            $("#" + findObjPosition(rv)).val(rv.obj);
-            $("#" + findObjPosition(rv)).attr("data-pred", rv.pred);
-            $("#" + findObjPosition(rv)).attr("data-sub", rv.sub);
+    _.each(reqValue, function(r){
+        console.log(r);
+        if (r.ch === "-" && (r.pred === "has_row"|| r.pred === "has_column")){
+            cleanRowColumn(r.pred, $("#" + _.last(r.obj.split("_"))).val());
+            $("#" + _.last(r.obj.split("_"))).val("");
+        } else if (r.pred === "has_value") {
+            $("#" + _.last(r.sub.split("_"))).val(r.obj);
+            queryObjects($("#" + _.last(r.sub.split("_"))).attr("data-cell-type"), r.obj);
+        } else if (r.pred !== "has_row" && r.pred !== "has_column"){
+            if (r.ch === "-"){
+                $("#" + findObjPosition(r)).val("");
+            } else{
+                $("#" + findObjPosition(r)).val(r.obj);
+                $("#" + findObjPosition(r)).attr("data-pred", r.pred);
+                $("#" + findObjPosition(r)).attr("data-sub", r.sub);
+            }
         }
-    })
-}
+    });
+};
 
 var handleFailure = function(reqValue){
     var message = JSON.stringify(reqValue);
@@ -149,7 +169,7 @@ var createTable = function(){
             "reqType" : "cTable",
             "listenTo": true,
             "reqValue" : [
-                {"ta": "t", "ch" : "+", "sub" : $("#table-name").val(), "pred": "has_type", "obj" : "table"}
+                {"ta": "ts", "ch" : "+", "sub" : $("#table-name").val(), "pred": "has_type", "obj" : "table"}
             ]
         };
         $('#add-table-modal').modal('hide');
@@ -180,36 +200,33 @@ var allTableTriples = function(){
     var allTriples = [];
     var counter = 0;
 
-    allTriples.push({ta: moment().format(), ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
+    allTriples.push({ta: "_", ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
     $("input[type=cell]").each(function(){
         if ($(this).data().cellType === "pred"){
 
             if ($(this).val()) {
-                allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
-                allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+                allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
+                allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
             }
             currentPreds.push($(this).val());
         } else if ($(this).data().cellType === "sub" && $(this).val()){
-            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
-            allTriples.push({ ta: moment().format() , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+            allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
+            allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
             counter = 0;
         } else if ($(this).data().cellType === "obj"){
             if (counter === 0) thisSub = allTriples[allTriples.length - 1].obj;
             var thisPred = currentPreds[counter];
             counter++;
-            if ($(this).val()) allTriples.push({ ta: moment().format() , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
+            if ($(this).val()) allTriples.push({ ta:"_" , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
         }
     });
-    console.log(allTriples);
-    /*
-    websocket.send(JSON.stringify(
-        {
-            "reqType" : "tableTriples",
-            "listenTo": false,
-            "reqValue": allTriples
-        }
-    ));
-    */
+
+    var tableTriples = {
+        "reqType" : "tableTriples",
+        "listenTo": false,
+        "reqValue": allTriples
+    };
+    websocket.send(JSON.stringify(tableTriples));
 };
 
 var getAllTables = function(){
@@ -218,7 +235,7 @@ var getAllTables = function(){
         "reqType" : "aTable",
         "listenTo": false,
         "reqValue" : [
-            {"ta": "t", "ch" : "e", "sub" : "?", "pred": "has_type", "obj" : "table"}
+            {"ta": "ts", "ch" : "e", "sub" : "?", "pred": "has_type", "obj" : "table"}
         ]
     };
     $("#table-name").val("");
@@ -261,7 +278,7 @@ var loadTableTriples = function(tableName){
         "listenTo": false,
         "reqValue": [
             {
-                "ta"  : "t",
+                "ta"  : "ts",
                 "ch"  : "e",
                 "sub" : tableName,
                 "pred": "has_type",
@@ -269,8 +286,26 @@ var loadTableTriples = function(tableName){
             }
         ]
     };
-    websocket.send(JSON.stringify(qTable));
+
+    waitForSocketReady(websocket, function () {
+        websocket.send(JSON.stringify(qTable));
+        console.log("Table loaded!")
+    });
 };
+
+var waitForSocketReady = function(socket, callBack){
+    setTimeout(
+        function () {
+            if(socket.readyState === 1){
+                if(callBack != null) callBack();
+                return;
+            } else {
+                waitForSocketReady(socket, callBack)
+            }
+        },
+    5);
+};
+
 var loadObjectValues = function(message){
     websocket.send(JSON.stringify(message));
 };
@@ -279,4 +314,9 @@ var applyChanges = function(change){
     websocket.send(JSON.stringify(change));
 };
 
+var shareTable = function(){
+    var link = "localhost:9000/table/" + currentTableName;
+    console.log();
+
+};
 

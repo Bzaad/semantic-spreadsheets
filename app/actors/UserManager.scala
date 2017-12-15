@@ -27,9 +27,11 @@ object UserManager {
     * @param theActor
     */
   def addUser(userName: String, theActor: ActorRef): Unit = {
+    /*
     if (!PDStoreModel.listeningActors.contains(theActor)){
       PDStoreModel.listeningActors += theActor -> Set()
     }
+    */
   }
 
   /**
@@ -40,72 +42,11 @@ object UserManager {
     * @param theActor
     */
   def removeUser(userName: String, theActor: ActorRef): Unit = {
+    /*
     Logger.error("removing the actor!")
     PDStoreModel.listeningActors -= theActor
-  }
-
-  /**
-    * remove the actor reference from active user list as well as
-    * the list of all listeners the actor was registered to
-    * @param theActor
-    */
-  def removeFromListeners(theActor: ActorRef): Unit ={
-    /*
-    if(PDStoreModel.userSet.contains(theActor)){
-      for (a <- PDStoreModel.userSet(theActor)){
-        tripleSet(a) -= theActor
-      }
-      PDStoreModel.userSet -= theActor
-    }
     */
   }
-
-  /**
-    * checks if the actor has been registered to a table listener before.
-    * if yes remove the actor from that particular table
-    * and adds it to the new table
-    * the registration to all the triples on that particular table must alos be done here.
-    * @param pdObjList: set of all triples containing the table and all its triples=
-    * @param actor: the registering actor
-    */
-  def changeTableListener(pdObjList: List[PdChangeJson], actor: ActorRef): Unit = {
-
-    PDStoreModel.listeningActors -= actor
-
-    for (t <- pdObjList){
-      /**
-        * all tables have two "has_row" and "has_column" predicates by default
-        * thus we need to register a listener for these too.
-        * registration of triples is done inside PDStoreModel were a new listener is registered for
-        * all the combinations even if the cell values are currently empty
-        */
-      // TODO: the data structure must change to conform with normal pdchange object rather than
-      // creating special cases
-      if("is_row".equals(t.sub) || "is_column".equals(t.sub)){
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.pred, "has_value" , t.obj), actor)
-      } else if ("has_type".equals(t.pred) && "table".equals(t.obj)){
-        // TODO: listen to the table name and the table so if somebody changes table or delets the table
-        // so you can be notified
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_row", "?"), actor)
-        PDStoreModel.registerListener(new PdChangeJson("t", "e", t.sub, "has_column", "?"), actor)
-        //PDStoreModel.registerListener(t, pdObj.actor)
-      } else {
-        PDStoreModel.registerListener(t, actor)
-      }
-    }
-  }
-
-  /**
-    * registering and removing listeners for single triples while user is working on a particular table
-    * @param pdObj
-    */
-  /*
-  def changeListener(pdObj: PdObj): Unit ={
-    for (t <- pdObj.pdChangeList){
-      PDStoreModel.registerListener(t, pdObj.actor)
-    }
-  }
-  */
 
 
   def addToListeners(lTriple: String, theActor: ActorRef, result: PdChangeJson): Unit ={
@@ -123,11 +64,8 @@ object UserManager {
     * to changes
     * @param pdChangeJson
     */
+
   def updateListeningActors(pdChangeJson: PdChangeJson, actors: Set[ActorRef]): Unit = {
-    /*
-    Logger.error(pdChangeJson.toString)
-    Logger.error(actors.toString)
-    */
     for(a <- actors){
       a ! Json.toJson(PdQuery("listener", true, List[PdChangeJson](pdChangeJson)))
     }
@@ -161,7 +99,6 @@ object UserManager {
     val queryResult = PDStoreModel.queryTable(p)
     p.actor ! Json.toJson(queryResult)
     val pdChangeListen = queryResult.reqValue ++ p.pdChangeList
-    changeTableListener(pdChangeListen, p.actor)
   }
 
   /**

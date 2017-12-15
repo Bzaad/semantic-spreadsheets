@@ -13,7 +13,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 routesGenerator := InjectedRoutesGenerator
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.12"
+
 
 libraryDependencies += filters
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % Test
