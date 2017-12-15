@@ -45,7 +45,7 @@ var onMessage = function(evt) {
             handleFailure(qData.reqValue);
             break;
         case "listener":
-            updateTable(qData.reqValue);
+            listenerUpdate(qData.reqValue);
             //TODO: we need to handle delets
             //Edits work fine just deletes!
             break;
@@ -114,18 +114,18 @@ var loadTable = function(tablesName){
     addCurrentTables(loadedTables.tables);
 };
 
-var updateTable = function(reqValue){
+var listenerUpdate = function(reqValue){
 
     _.each(reqValue, function(r){
-
         if (r.ch === "-" && (r.pred === "has_row"|| r.pred === "has_column")){
             cleanRowColumn(r.pred, $("#" + _.last(r.obj.split("_"))).val());
             $("#" + _.last(r.obj.split("_"))).val("");
-        }
-        else if (r.pred === "has_value")
+        } else if (r.pred === "has_value") {
             $("#" + _.last(r.sub.split("_"))).val(r.obj);
-        else if (r.pred !== "has_row" && r.pred !== "has_column")
+            queryObjects($("#" + _.last(r.sub.split("_"))).attr("data-cell-type"), r.obj);
+        } else if (r.pred !== "has_row" && r.pred !== "has_column"){
             $("#" + findObjPosition(r)).val(r.obj);
+        }
     });
 };
 

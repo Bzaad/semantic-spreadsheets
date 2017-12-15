@@ -31,12 +31,6 @@ object PDStoreModel {
   def query(pdObj: PdObj): PdQuery = {
     var queryResult = ArrayBuffer.empty[PdChangeJson]
 
-
-    //actorsAndTheirTriples(pdObj.actor) =  actorsAndTheirTriples(pdObj.actor) ++= pdObj.pdChangeList.toSet
-
-    // query all tables
-    // ? has_type table
-
     for (p <- pdObj.pdChangeList) {
       if (p.sub == "?" && p.obj != "?") {
         val qResult = store.query((v"x", store.getGUIDwithName(p.pred), store.getGUIDwithName(p.obj)))
