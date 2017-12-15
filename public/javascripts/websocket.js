@@ -125,8 +125,13 @@ var listenerUpdate = function(reqValue){
             $("#" + _.last(r.sub.split("_"))).val(r.obj);
             queryObjects($("#" + _.last(r.sub.split("_"))).attr("data-cell-type"), r.obj);
         } else if (r.pred !== "has_row" && r.pred !== "has_column"){
-            if (r.ch === "-") $("#" + findObjPosition(r)).val("");
-            else $("#" + findObjPosition(r)).val(r.obj);
+            if (r.ch === "-"){
+                $("#" + findObjPosition(r)).val("");
+            } else{
+                $("#" + findObjPosition(r)).val(r.obj);
+                $("#" + findObjPosition(r)).attr("data-pred", r.pred);
+                $("#" + findObjPosition(r)).attr("data-sub", r.sub);
+            }
         }
     });
 };
