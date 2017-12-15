@@ -117,6 +117,7 @@ var loadTable = function(tablesName){
 var listenerUpdate = function(reqValue){
 
     _.each(reqValue, function(r){
+        console.log(r);
         if (r.ch === "-" && (r.pred === "has_row"|| r.pred === "has_column")){
             cleanRowColumn(r.pred, $("#" + _.last(r.obj.split("_"))).val());
             $("#" + _.last(r.obj.split("_"))).val("");
@@ -124,7 +125,8 @@ var listenerUpdate = function(reqValue){
             $("#" + _.last(r.sub.split("_"))).val(r.obj);
             queryObjects($("#" + _.last(r.sub.split("_"))).attr("data-cell-type"), r.obj);
         } else if (r.pred !== "has_row" && r.pred !== "has_column"){
-            $("#" + findObjPosition(r)).val(r.obj);
+            if (r.ch === "-") $("#" + findObjPosition(r)).val("");
+            else $("#" + findObjPosition(r)).val(r.obj);
         }
     });
 };

@@ -108,9 +108,14 @@ var initCellListeners = function(){
                 if(targetType === "pred" || targetType === "sub"){
                     var cellValBefore = {"ta"  : "ts", "ch"  : "-", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellBefore};
                     var cellValAfter = {"ta"  : "ts", "ch"  : "+", "sub" : (tableName + "_" + targetId), "pred": "has_value", "obj" : cellAfter};
-                    change.reqValue.push(cellValBefore, cellValAfter);
                     cleanRowColumn(targetType, cellBefore);
+                    change.reqValue = [cellValBefore];
                     applyChanges(change);
+
+                    setTimeout(function () {
+                        change.reqValue = [cellValAfter];
+                        applyChanges(change);
+                    }, 10);
                     queryObjects(targetType, cellAfter);
                 }else if (targetType === "obj"){
                     var subPred = getSubPred(targetId);
@@ -120,8 +125,13 @@ var initCellListeners = function(){
                     }
                     var cellValBefore = {"ta"  : "ts", "ch"  : "-", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellBefore};
                     var cellValAfter = {"ta"  : "ts", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
-                    change.reqValue.push(cellValBefore, cellValAfter);
+                    change.reqValue = [cellValBefore];
                     applyChanges(change);
+
+                    setTimeout(function () {
+                        change.reqValue = [cellValAfter];
+                        applyChanges(change);
+                    }, 10);
                 }
             }
         };
@@ -187,12 +197,14 @@ var queryObjects = function(tType, val){
 
 var cleanRowColumn = function(targetType, cellBefore){
     if(targetType === "sub" || targetType === "has_row"){
+        if(!cellBefore) return;
         _.each($("[data-sub=" + cellBefore + "]"), function(s){
             s.removeAttribute("data-sub");
             s.removeAttribute("data-pred");
             s.value = "";
         });
     }else if(targetType === "pred" || targetType === "has_column"){
+        if(!cellBefore) return;
         _.each($("[data-pred=" + cellBefore + "]"), function(s){
             s.removeAttribute("data-sub");
             s.removeAttribute("data-pred");
