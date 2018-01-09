@@ -16,6 +16,7 @@ object User {
 }
 
 class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging {
+  var heartBeatCounter = 0
 
   override def preStart(): Unit = {
     UserManager.addUser(userName, theActor)
@@ -36,6 +37,15 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
     /*
     remove the actor from the list and re add it again
      */
+  }
+
+  /**
+    * websocket closes after 80 seconds of inactivity so to keep it open we
+    * create a heartbeat and send it over every couple of seconds
+    */
+  def heartBeat(): Unit = {
+    heartBeatCounter += 1
+    Logger.error("I am! " + heartBeatCounter)
   }
 
   override def receive: Receive = {
@@ -68,6 +78,8 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
               listenToPattern(cBundle)
             case "tableTriples" =>
               PDStoreModel.tableListenerUpdate("update", cBundle.actor, cBundle.pdChangeList)
+            case "heartBeat" =>
+              heartBeat()
           }
         }
         /**

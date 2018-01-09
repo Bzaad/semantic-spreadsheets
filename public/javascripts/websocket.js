@@ -317,6 +317,16 @@ var applyChanges = function(change){
 var shareTable = function(){
     var link = "localhost:9000/table/" + currentTableName;
     console.log();
-
 };
 
+var heartBeat = function(){
+
+    var hb = {
+        "reqType": "heartBeat",
+        "listenTo": true,
+        "reqValue": []
+    };
+
+    websocket.send(JSON.stringify(hb));
+
+};
