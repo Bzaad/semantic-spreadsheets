@@ -11,6 +11,8 @@ var initDocument = function () {
     $("#test-triple").click(testTriple);
     $("#table-triples").click(allTableTriples);
     $("#table-share").click(shareTable);
+    $("#csv-file").change(loadCsv);
+    $("#load-file-button").click(loadCsvFile);
    // $("#load-table").click(loadTable($("#table-picker").val()))
     $("#load-table").click(function () {
         loadTable($("#table-picker").val())

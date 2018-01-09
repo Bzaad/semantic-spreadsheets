@@ -1,6 +1,7 @@
 var INPUTS;
 var rows = 25+1;
 var columns = 14+1;
+const csvLimit = {width: 14, height: 25};
 
 var initTable = function(){
     for (var i=0; i<rows; i++) {
@@ -212,3 +213,87 @@ var cleanRowColumn = function(targetType, cellBefore){
         });
     }
 };
+
+const loadCsv = (e) => {
+    e.preventDefault();
+    let csvFile = e.target.files[0];
+    let fileName = csvFile.name;
+    let fileExt = fileName.split('.').pop();
+    if(fileExt !== "csv"){
+        $('#file-name').text(`files with "${fileExt}" extention are not supported!` );
+        $('#file-name').css({'color' : 'red'});
+        $('#load-file-button').prop({'disabled':true});
+        return;
+    }
+    $('#file-name').css({'color' : 'black'});
+    $('#file-name').text(fileName);
+    $('#load-file-button').prop({'disabled':false});
+    let reader = new FileReader();
+    reader.readAsText(csvFile);
+    reader.onload = loadHandler;
+    reader.onerror = errorHandler;
+};
+
+const loadHandler = (evt) => {
+  let csv = evt.target.result;
+  processData(csv);
+};
+
+const errorHandler = (evt) => {
+    if(evt.target.error.name === 'NotReadableError'){
+        alert('Cannot read the file!');
+    }
+};
+
+const processData = (csv) => {
+    let csvFile = Papa.parse(csv);
+
+    if(csvFile.data.length > csvLimit.height) {
+        $('#file-size-warning').text('The file is too large!');
+        $('#load-file-button').prop({'disabled':true});
+        return;
+    }
+    _.each(csvFile.data, (r)=>{
+        if(r.length > csvLimit.width){
+            $('#file-size-warning').text('The file is too large!');
+            $('#load-file-button').prop({'disabled':true});
+            return;
+        }
+    });
+    $('#file-size-warning').text('');
+    localStorage.setItem("csvTable", JSON.stringify(Papa.parse(csv)));
+};
+
+$('#load-file').on('shown.bs.modal', function () {
+    $('#file-size-warning').text('');
+    $('#load-file-button').prop({'disabled':true});
+    $('#file-name').css({'color' : 'red'});
+    $('#file-name').text('No file selected!');
+});
+
+const loadCsvFile = () => {
+
+    let csvData = JSON.parse(localStorage.getItem('csvTable')).data;
+    let inputs = [].slice.call(document.querySelectorAll("input"));
+    let csvCells = {subs: [], preds: [], Objs: []};
+
+    _.each(csvData, (row, i)=>{
+        if (i === 0){
+            csvCells.preds = row;
+            //remove the first element as it's not going to show up in the table!
+            csvCells.preds.shift();
+        }
+        else {
+            //csvCells.push(row.pop(row[0]))
+        }
+    });
+
+    _.each(inputs, (i)=> {
+        if($(i).attr('data-cell-type') === 'pred'){
+            $(i).val(csvCells.preds.shift());
+        }
+    });
+
+};
+
+
