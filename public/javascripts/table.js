@@ -8,13 +8,15 @@ var initTable = function(){
         var subjectCell = "data-cell-type='sub'";
         var objectCell = "data-cell-type='obj'";
         var predicateCell = "data-cell-type='pred'";
+        var stpCell = "data-cell-type='stp'";
 
         var row = document.querySelector("table").insertRow(-1);
         for (var j=0; j<columns; j++) {
 
             var letter = String.fromCharCode("A".charCodeAt(0)+j-1);
 
-            if(letter === "A") row.insertCell(-1).innerHTML = i&&j ? "<input type='cell'" + subjectCell + "id='"+ letter+i +"'/>" : i||letter;
+            if (letter === "A" && i === 1) row.insertCell(-1).innerHTML = i&&j ? "<input type='cell'" + stpCell + "id='"+ letter+i +"'/>" : i||letter;
+            else if(letter === "A") row.insertCell(-1).innerHTML = i&&j ? "<input type='cell'" + subjectCell + "id='"+ letter+i +"'/>" : i||letter;
             else if(i === 1) row.insertCell(-1).innerHTML = i&&j ? "<input type='cell'" + predicateCell + "id='"+ letter+i +"'/>" : i||letter;
             else row.insertCell(-1).innerHTML = i&&j ? "<input type='cell'" + objectCell + "id='"+ letter+i +"'/>" : i||letter;
         }
@@ -275,7 +277,7 @@ const loadCsvFile = () => {
 
     let csvData = JSON.parse(localStorage.getItem('csvTable')).data;
     let inputs = [].slice.call(document.querySelectorAll("input"));
-    let csvCells = {subs: [], preds: [], Objs: []};
+    let csvCells = {subs: [], preds: [], objs: []};
 
     _.each(csvData, (row, i)=>{
         if (i === 0){
@@ -284,13 +286,23 @@ const loadCsvFile = () => {
             csvCells.preds.shift();
         }
         else {
-            //csvCells.push(row.pop(row[0]))
+            _.each(row, (r, j)=> {
+
+                if( j === 0) csvCells.subs.push(row.shift());
+                else csvCells.objs.push(row.shift());
+
+            });
         }
     });
 
-    _.each(inputs, (i)=> {
+    console.log(csvCells);
+    _.each(inputs, (i) => {
         if($(i).attr('data-cell-type') === 'pred'){
             $(i).val(csvCells.preds.shift());
+        } else if ($(i).attr('data-cell-type') === 'sub') {
+            $(i).val(csvCells.subs.shift());
+        } else if ($(i).attr('data-cell-type') === 'obj'){
+            $(i).val(csvCells.objs.shift());
         }
     });
 
