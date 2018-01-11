@@ -27,7 +27,6 @@ var initTable = function(){
 
 var initCellListeners = function(){
     INPUTS = [].slice.call(document.querySelectorAll("input"));
-    //if (!currentHeader) return;
     INPUTS.forEach(function(elm) {
         var cellBefore = "";
         var cellAfter = "";
@@ -176,13 +175,11 @@ var findObjPosition = function(triple){
 };
 
 var queryObjects = function(tType, val){
-
     var change = {
         "reqType": "qChange",
         "listenTo": true,
         "reqValue": []
     };
-
     if (tType === "pred") {
         _.each($("[data-cell-type=sub]"), function(s){
             if (!s.value) return;
@@ -249,7 +246,6 @@ const errorHandler = (evt) => {
 
 const processData = (csv) => {
     let csvFile = Papa.parse(csv);
-
     if(csvFile.data.length > csvLimit.height) {
         $('#file-size-warning').text('The file is too large!');
         $('#load-file-button').prop({'disabled':true});
@@ -274,38 +270,32 @@ $('#load-file').on('shown.bs.modal', function () {
 });
 
 const loadCsvFile = () => {
-
     let csvData = JSON.parse(localStorage.getItem('csvTable')).data;
     let inputs = [].slice.call(document.querySelectorAll("input"));
-    let csvCells = {subs: [], preds: [], objs: []};
+    let VCells = {subs: [], preds: [], objs: []};
 
+    _.each(inputs, (i) => {
+        let ct = $(i).attr('data-cell-type');
+        if (ct === 'pred') VCells.preds.push(i);
+        else if (ct === 'sub') VCells.subs.push(i);
+        else if (ct === 'obj') VCells.objs.push(i);
+    });
     _.each(csvData, (row, i)=>{
         if (i === 0){
-            csvCells.preds = row;
             //remove the first element as it's not going to show up in the table!
-            csvCells.preds.shift();
-        }
-        else {
+            row.shift();
+            _.each(row , (r, j)=>{
+                $(VCells.preds[j]).val(r);
+            })
+        } else {
             _.each(row, (r, j)=> {
-
-                if( j === 0) csvCells.subs.push(row.shift());
-                else csvCells.objs.push(row.shift());
-
+                if( j === 0) $(VCells.subs.shift()).val(r);
+                else {
+                    $("#" + findObjPosition({sub: row[0], pred: csvData[0][j-1], obj: r})).val(r);
+                }
             });
         }
     });
-
-    console.log(csvCells);
-    _.each(inputs, (i) => {
-        if($(i).attr('data-cell-type') === 'pred'){
-            $(i).val(csvCells.preds.shift());
-        } else if ($(i).attr('data-cell-type') === 'sub') {
-            $(i).val(csvCells.subs.shift());
-        } else if ($(i).attr('data-cell-type') === 'obj'){
-            $(i).val(csvCells.objs.shift());
-        }
-    });
-
 };
 
 
