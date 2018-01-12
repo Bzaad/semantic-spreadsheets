@@ -270,32 +270,55 @@ $('#load-file').on('shown.bs.modal', function () {
 });
 
 const loadCsvFile = () => {
-    let csvData = JSON.parse(localStorage.getItem('csvTable')).data;
-    let inputs = [].slice.call(document.querySelectorAll("input"));
-    let VCells = {subs: [], preds: [], objs: []};
-
-    _.each(inputs, (i) => {
-        let ct = $(i).attr('data-cell-type');
-        if (ct === 'pred') VCells.preds.push(i);
-        else if (ct === 'sub') VCells.subs.push(i);
-        else if (ct === 'obj') VCells.objs.push(i);
-    });
+    const csvData = JSON.parse(localStorage.getItem('csvTable')).data;
+    const alpIds = genPredAdress('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 2);
     _.each(csvData, (row, i)=>{
-        if (i === 0){
-            //remove the first element as it's not going to show up in the table!
-            row.shift();
-            _.each(row , (r, j)=>{
-                $(VCells.preds[j]).val(r);
-            })
-        } else {
-            _.each(row, (r, j)=> {
-                if( j === 0) $(VCells.subs.shift()).val(r);
-                else {
-                    $("#" + findObjPosition({sub: row[0], pred: csvData[0][j-1], obj: r})).val(r);
-                }
-            });
-        }
+        if (i === 0) row[0] = '';
+        _.each(row, (r, j)=> {
+            $(`#${alpIds[j]}${i+1}`).val(r);
+        });
     });
+    _.each(INPUTS, (inp)=>{
+        let i = $(inp)
+        if(i.val() && i.attr('data-cell-type') === 'obj'){
+            let sp = getSubPred(i.attr('id'));
+
+            //TODO: move this to a proper css class
+            if (!sp.sub || !sp.pred) i.css(
+                {
+                    'background-color': 'white',
+                    'animation-name': 'example',
+                    'animation-duration': '2s',
+                    'animation-iteration-count': 'infinite'
+                }
+            );
+        }
+    })
+    //get all the obj cells with a value
+    //check if they have both predicate and object
+    //if yes ignore,
+    //if now, turn the cell color to red
 };
+
+const alphabetCombs = (input, length, curstr) => {
+    if(curstr.length == length) return [ curstr ];
+    var ret = [];
+    for(var i = 0; i < input.length; i++) {
+        ret.push.apply(ret, alphabetCombs(input, length, curstr + input[i]));
+    }
+    return ret;
+};
+
+const genPredAdress = (alphas, len) => {
+    let allCombs = [];
+    const alphArray = alphas.split('');
+    for(i=1; i<len+1; i++){
+        allCombs = _.union(allCombs, alphabetCombs(alphArray, i, ''));
+    }
+    return allCombs;
+};
+
+
+
 
 

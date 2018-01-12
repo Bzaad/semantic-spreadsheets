@@ -88,3 +88,9 @@ tr:first-child td, td:first-child {
     right: 20px;
     z-index: 5000;
 }
+
+@keyframes example {
+    0%   {background-color: white;}
+    50%  {background-color: #FE7272;}
+    100%   {background-color: white;}
+}
