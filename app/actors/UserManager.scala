@@ -91,6 +91,11 @@ object UserManager {
     p.actor ! Json.toJson(returnMessage)
   }
 
+  def queryCsv(p: PdObj): Unit = {
+    val returnMessage = new PdQuery("qCsv", false, PDStoreModel.query(p).reqValue)
+    p.actor ! Json.toJson(returnMessage)
+  }
+
   def applyPdChange(p: PdObj): Unit = {
     p.actor ! Json.toJson(PDStoreModel.applyPdc(p))
   }

@@ -38,6 +38,9 @@ var onMessage = function(evt) {
         case "success":
            handleSuccess(qData.reqValue);
            break;
+        case "qCsv":
+            csvCheck(qData.reqValue);
+            break;
         case "displayTable":
             displayTable(qData.reqValue);
             break;
@@ -186,7 +189,6 @@ var testTriple = function(){
     allTableTriples();
 };
 
-
 /**
  * this is the easiest - but not the cleanest way to get all the triples from the client with their current timestamp
  * there are cases, sepcially when using listeners that we want to check to see if both the client and the server have
@@ -205,28 +207,28 @@ var allTableTriples = function(){
         if ($(this).data().cellType === "pred"){
 
             if ($(this).val()) {
-                allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
-                allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+                allTriples.push({ ta: "ts" , ch: "e" , sub: currentTableName, pred: "has_column", obj: currentTableName + "_" + $(this).attr("id") });
+                allTriples.push({ ta: "ts" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
             }
             currentPreds.push($(this).val());
         } else if ($(this).data().cellType === "sub" && $(this).val()){
-            allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
-            allTriples.push({ ta: "_" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
+            allTriples.push({ ta: "ts" , ch: "e" , sub: currentTableName, pred: "has_row", obj: currentTableName + "_" + $(this).attr("id") });
+            allTriples.push({ ta: "ts" , ch: "e" , sub: currentTableName + "_" + $(this).attr("id"), pred: "has_value", obj: $(this).val() });
             counter = 0;
         } else if ($(this).data().cellType === "obj"){
             if (counter === 0) thisSub = allTriples[allTriples.length - 1].obj;
             var thisPred = currentPreds[counter];
             counter++;
-            if ($(this).val()) allTriples.push({ ta:"_" , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
+            if ($(this).val()) allTriples.push({ ta:"ts" , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
         }
     });
 
-    var tableTriples = {
+    return {
         "reqType" : "tableTriples",
         "listenTo": false,
         "reqValue": allTriples
     };
-    websocket.send(JSON.stringify(tableTriples));
+    //websocket.send(JSON.stringify(tableTriples));
 };
 
 var getAllTables = function(){
@@ -330,3 +332,8 @@ var heartBeat = function(){
     websocket.send(JSON.stringify(hb));
 
 };
+
+const queryCsv = csvReq => {
+    //console.log(csvReq);
+    websocket.send(JSON.stringify(csvReq));
+}

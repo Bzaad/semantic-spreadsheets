@@ -275,7 +275,7 @@ const loadCsvFile = () => {
     _.each(csvData, (row, i)=>{
         if (i === 0) row[0] = '';
         _.each(row, (r, j)=> {
-            $(`#${alpIds[j]}${i+1}`).val(r);
+            $(`#${alpIds[j]}${i+1}`).val(r.trim());
         });
     });
     _.each(INPUTS, (inp)=>{
@@ -311,6 +311,45 @@ const genPredAdress = (alphas, len) => {
     return allCombs;
 };
 
+const getCsvValidTriples = () => {
+    let csvTriples = [];
+    _.each(allTableTriples().reqValue, ct =>{
+        if(ct.pred && ct.sub && ct.pred !== 'has_column' && ct.pred !== 'has_value' && ct.pred !== 'has_type' && ct.pred !== 'has_row'){
+            csvTriples.push(ct);
+        }
+    });
+    return csvTriples;
+};
+
+$('#check-csv-triples').click(() =>{
+    let csvReq = getCsvValidTriples();
+    _.each(csvReq, cvt => {cvt.obj = '?'});
+    queryCsv({reqType: 'qCsv', listenTo: false, reqValue: csvReq});
+});
+
+const csvCheck = retValue => {
+    let diffTriples = [];
+    _.each(getCsvValidTriples(), cvt =>{
+        _.each(retValue, rt =>{
+            if(cvt.sub === rt.sub && cvt.pred === rt.pred && cvt.obj !== rt.obj) {
+                diffTriples.push({theirs: rt, yours: cvt});
+            }
+        });
+    });
+    _.each(diffTriples, dt =>{
+        let position = findObjPosition({sub: dt.yours.sub, pred: dt.yours.pred, obj: dt.yours.obj});
+        let elem = $(`#${position}`);
+        setInterval(()=>{
+            if (elem.val() === dt.yours.obj){
+                elem.val(dt.theirs.obj);
+                elem.attr('class', 'obj-conflict-warn');
+            } else {
+                elem.val(dt.yours.obj);
+                elem.attr('class', 'obj-conflict-warn');
+            }
+        }, 1000);
+    });
+};
 
 
 

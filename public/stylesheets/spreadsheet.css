@@ -89,15 +89,28 @@ tr:first-child td, td:first-child {
     z-index: 5000;
 }
 
-@keyframes example {
+@keyframes missing-sub-pred {
     0%   {background-color: white;}
-    50%  {background-color: #FE7272;}
+    50%  {background-color: #F08080;}
     100%   {background-color: white;}
+}
+
+@keyframes obj-conflict {
+    0%   {background-color: #90EE90;}
+    50%  {background-color: #F08080;}
+    100%   {background-color: #90EE90;}
+}
+
+.obj-conflict-warn {
+    background-color: #90EE90;
+    animation-name: obj-conflict;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
 }
 
 .no-sub-pred-warn {
     background-color: white;
-    animation-name: example;
+    animation-name: missing-sub-pred;
     animation-duration: 2s;
     animation-iteration-count: infinite;
 }
