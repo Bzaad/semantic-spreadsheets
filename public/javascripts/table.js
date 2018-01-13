@@ -284,14 +284,7 @@ const loadCsvFile = () => {
             let sp = getSubPred(i.attr('id'));
 
             //TODO: move this to a proper css class
-            if (!sp.sub || !sp.pred) i.css(
-                {
-                    'background-color': 'white',
-                    'animation-name': 'example',
-                    'animation-duration': '2s',
-                    'animation-iteration-count': 'infinite'
-                }
-            );
+            if (!sp.sub || !sp.pred) i.attr('class', 'no-sub-pred-warn');
         }
     })
     //get all the obj cells with a value

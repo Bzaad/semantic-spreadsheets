@@ -94,3 +94,10 @@ tr:first-child td, td:first-child {
     50%  {background-color: #FE7272;}
     100%   {background-color: white;}
 }
+
+.no-sub-pred-warn {
+    background-color: white;
+    animation-name: example;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
