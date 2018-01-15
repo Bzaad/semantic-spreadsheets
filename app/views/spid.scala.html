@@ -11,32 +11,7 @@
             <button class="btn btn-primary" data-toggle="modal" data-target="#load-file" style="margin-top: 10px">Load CSV</button>
             <button class="btn btn-info" id="check-csv-triples" style="margin-top: 10px">Check CSV</button>
         </div>
-        <!-- Modal -->
-        <div class="modal fade" id="load-file" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <h3 class="modal-title" id="exampleModalLabel">Upload a CSV File</h3>
-                    </div>
-                    <div class="modal-body">
-                        Select a file to load:<br>
-                        <label for="csv-file" class="btn btn-primary" style="margin: 5px 0px">
-                                Select CSV File
-                        </label>
-                        <input type="file" id="csv-file" style="display: none"/>
-                        <p id="file-name"></p>
-                        <p id="file-size-warning" style="color: red"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                        <button id="load-file-button" type="button" class="btn btn-primary" data-dismiss="modal">Load File</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @csvModal()
     </div>
     <script src="@routes.Assets.versioned("javascripts/spreadsheet.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("javascripts/table.js")" type="text/javascript"></script>
