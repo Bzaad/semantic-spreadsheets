@@ -1,15 +1,15 @@
 var INPUTS;
-var rows = 25+1;
-var columns = 14+1;
-const csvLimit = {width: 14, height: 25};
+var rows = 200+1;
+var columns = 26+1;
+const csvLimit = {width: columns-1, height: rows-1};
 
 var initTable = function(){
+    if(!document.querySelector("table")) return;
     for (var i=0; i<rows; i++) {
         var subjectCell = "data-cell-type='sub'";
         var objectCell = "data-cell-type='obj'";
         var predicateCell = "data-cell-type='pred'";
         var stpCell = "data-cell-type='stp'";
-
         var row = document.querySelector("table").insertRow(-1);
         for (var j=0; j<columns; j++) {
 
