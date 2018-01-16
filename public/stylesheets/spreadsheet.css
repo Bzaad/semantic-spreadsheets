@@ -37,6 +37,10 @@ p.conversation_comment {
     width: 50%;
 }
 
+.dropdown-icon {
+    padding-right: 5px;
+}
+
 input {
     border: none;
     width: 79px;
@@ -87,6 +91,23 @@ tr:first-child td, td:first-child {
     top: 20px;
     right: 20px;
     z-index: 5000;
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: 100%;
+    }
+}
+
+@media (min-width: 1200px){
+    .container.default {
+        width: 1170px;
+    }
+}
+
+.table-card {
+    overflow: auto;
+    height: 800px;
 }
 
 @keyframes missing-sub-pred {

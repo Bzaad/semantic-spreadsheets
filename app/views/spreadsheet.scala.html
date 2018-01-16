@@ -1,6 +1,8 @@
 @(user: String)(implicit request: play.api.mvc.RequestHeader)
 @main("spreadsheet!"){
-    <div class="container">
+    @navbar("", user)
+    <div class="container default">
+        <!--
         <ul class="nav nav-tabs" id="current-tabs">
             <li ><a href="#add" class="add-table" data-toggle="modal" data-target="#add-table-modal"> + </a></li>
         </ul>
@@ -10,6 +12,27 @@
                     <table></table>
                 </div>
             </div>
+        </div>
+        -->
+        <!--
+        <div class="row">
+            <div class="col-sm-3" height="100">
+                <div class="w3-card-4 w3-dark-grey">
+                    <div class="w3-container w3-center">
+                        <h3>Friend request</h3>
+                        <img src='@routes.Assets.versioned("images/photo.png")' alt="Avatar" style="width:80%">
+                        <h5>John Doe</h5>
+
+                        <button class="w3-button w3-green">Accept</button>
+                        <button class="w3-button w3-red">Decline</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        -->
+        <div class="row">
+            @tableSelect()
         </div>
         <div class="row" style="margin-top: 10px">
             <div class="col-sm-11">

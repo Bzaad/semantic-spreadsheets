@@ -1,10 +1,8 @@
 @(user: String, tableName: String)(implicit request: play.api.mvc.RequestHeader)
 @main("spreadsheet!"){
-    <div class="container" style="margin-top: 10px">
-        @navbar(user, tableName)
-    </div>
+    @navbar(tableName, user)
     <div class="container">
-        <div id="table-area" class="card">
+        <div id="table-area" class="card table-card">
             <table></table>
         </div>
         <button class="btn3d btn btn-primary" data-toggle="modal" data-target="#load-file" style="margin-top: 15px">Load CSV</button>
