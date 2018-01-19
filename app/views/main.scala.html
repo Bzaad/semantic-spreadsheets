@@ -12,7 +12,7 @@
         @* Here's where we render the page title `String`. *@
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/login.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("lib/jquery-ui/jquery-ui.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("lib/bootstrap/css/bootstrap.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/spreadsheet.css")">
@@ -24,7 +24,7 @@
         <script src="@routes.Assets.at("lib/bootstrap/js/bootstrap.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("lib/momentjs/moment.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("lib/papaparse/papaparse.js")" type="text/javascript"></script>
-        <script src="@routes.Assets.versioned("jsLib/bootstrap-select.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("jsLib/bootstrap-select.js")" type="text/javascript"></script>
     </head>
     <body data-ws-url="@routes.SpreadsheetController.socketSpreadsheet().webSocketURL()">
         <div class="wrap">
