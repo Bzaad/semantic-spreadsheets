@@ -14,13 +14,13 @@ var init = function () {
     }, 30000);
 
     // Load table using its url
-    if (document.URL.split("/table/").length === 2) loadTableTriples(document.URL.split("/table/")[1]);
-    /*
-    setInterval(function () {
-        constructEntireTable();
-    }, 1000);
-    */
-};
+    if (document.URL.split("/table/").length === 2){
+        loadTableTriples(document.URL.split("/table/")[1]);
+        return;
+    }
+    //TODO: The previous version must be removed!
 
+    getAllTables();
+};
 
 window.addEventListener("load", init, false);
