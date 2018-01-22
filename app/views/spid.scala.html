@@ -6,13 +6,16 @@
             <table></table>
         </div>
         <button class="btn3d btn btn-primary" data-toggle="modal" data-target="#load-file" style="margin-top: 15px">Load CSV</button>
-        <button class="btn3d btn btn-info" id="check-csv-triples" style="margin-top: 15px">Check CSV</button>
+        <button class="btn3d btn btn-danger" data-toggle="modal" data-target="#resolve-conflicts" style="margin-top: 15px">Resolve Conflicts</button>
     </div>
     @partials.csvModal()
+    @partials.conflictModal()
+    <script src="@routes.Assets.versioned("javascripts/dynamicTemplates/conflictRes.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("javascripts/spreadsheet.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("javascripts/table.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("javascripts/document.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("javascripts/sampleJson.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("javascripts/alert.js")" type="text/javascript"></script>
     <script src="@routes.Assets.versioned("javascripts/websocket.js")" type="text/javascript"></script>
+
 }
