@@ -333,19 +333,20 @@ const csvCheck = retValue => {
     _.each(getCsvValidTriples(), cvt =>{
         _.each(retValue, rt =>{
             if(cvt.sub === rt.sub && cvt.pred === rt.pred && cvt.obj !== rt.obj) {
-                diffTriples.push({theirs: rt, yours: cvt});
+                diffTriples.push({sub: rt.sub, pred: rt.pred, obj: {theirs: rt.obj, yours: cvt.obj}});
             }
         });
     });
+    sessionStorage.setItem('csvConflicts', diffTriples);
     _.each(diffTriples, dt =>{
-        let position = findObjPosition({sub: dt.yours.sub, pred: dt.yours.pred, obj: dt.yours.obj});
+        let position = findObjPosition({sub: dt.sub, pred: dt.pred, obj: dt.obj.yours});
         let elem = $(`#${position}`);
         setInterval(()=>{
-            if (elem.val() === dt.yours.obj){
-                elem.val(dt.theirs.obj);
+            if (elem.val() === dt.obj.yours){
+                elem.val(dt.obj.theirs);
                 elem.css({'color': 'red'});
             } else {
-                elem.val(dt.yours.obj);
+                elem.val(dt.obj.yours);
                 elem.css('color', 'green');
             }
         }, 1000);
