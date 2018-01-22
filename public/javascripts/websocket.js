@@ -167,7 +167,22 @@ var connectWs = function(){
 };
 
 var createTable = function(){
-    if($("#table-name").val()){
+
+    const act = JSON.parse(localStorage.getItem('allTables'));
+    let allowCreation = true;
+
+    if(!$("#table-name").val()){
+        console.log('name is empty!');
+        return;
+    }
+    _.each(act, a => {
+        if (a.sub === $("#table-name").val()){
+            console.log('table name exists!');
+            allowCreation = false;
+            return;
+        }
+    })
+    if(allowCreation){
         var newTable = {
             "reqType" : "cTable",
             "listenTo": true,
@@ -176,11 +191,10 @@ var createTable = function(){
             ]
         };
         $('#add-table-modal').modal('hide');
+        websocket.send(JSON.stringify(newTable));
+        bootstrap_alert.warning('Created the <strong>Table!</strong>', 'danger', 4000);
+        getAllTables();
     }
-    websocket.send(JSON.stringify(newTable));
-    //TODO: move this to when you get a success return message!
-    //TODO: after creating the table instead of waiting for response you query if the table exits.
-    bootstrap_alert.warning('Created the <strong>Table!</strong>', 'danger', 4000);
 };
 
 var clearQuery = function(){};
@@ -232,7 +246,6 @@ var allTableTriples = function(){
 };
 
 var getAllTables = function(){
-
     var aTable = {
         "reqType" : "aTable",
         "listenTo": false,
@@ -241,16 +254,40 @@ var getAllTables = function(){
         ]
     };
     $("#table-name").val("");
-    websocket.send(JSON.stringify(aTable)); // get all the tables.
+    waitForSocketReady(websocket, () => {
+        websocket.send(JSON.stringify(aTable)); // get all the tables.
+    });
 };
 
-var createTablePicker = function(allTables){
-    $("#table-picker").empty();
-    _.forEach(allTables, function(t){
-        $("#table-picker").append("<option>" + t.sub + "</option>");
-    });
-    $("#table-picker").selectpicker('refresh');
 
+//TODO: this!
+
+const createTablePicker = (allTables) => {
+    localStorage.setItem("allTables", JSON.stringify(allTables));
+    const tableSelectTemplate = new TableSelectTemplate(allTables);
+    $('#table-select').empty();
+    $('#table-select').append(tableSelectTemplate.getTemplate());
+    _.each($("[data-cell-type=table-card]"), tc => {
+        tc.onclick = () => {
+            location.href = `table/${tc.id}`;
+        };
+        $(`#ddown-menu-${tc.id}`).dropdown();
+        $(`#btn-remove-${tc.id}`).click((e) =>{
+            e.stopPropagation();
+            console.log(`btn-remove-${tc.id}`);
+            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+        });
+        $(`#btn-rename-${tc.id}`).click((e) =>{
+            e.stopPropagation();
+            console.log(`btn-rename-${tc.id}`);
+            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+        });
+        $(`#btn-new-tab-${tc.id}`).click((e) =>{
+            e.stopPropagation();
+            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+            window.open(`${window.location.origin}/table/${tc.id}`);
+        });
+    });
 };
 
 var addEl = '<li ><a href="#add" class="add-table" data-toggle="modal" data-target="#add-table-modal"> + </a></li>';
@@ -318,7 +355,6 @@ var applyChanges = function(change){
 
 var shareTable = function(){
     var link = "localhost:9000/table/" + currentTableName;
-    console.log();
 };
 
 var heartBeat = function(){
@@ -336,4 +372,11 @@ var heartBeat = function(){
 const queryCsv = csvReq => {
     //console.log(csvReq);
     websocket.send(JSON.stringify(csvReq));
-}
+};
+
+const confSample = [
+    {sub: "sub1", pred: "pred1", Obj: {yours: "yours1", theirs:"theirs1", newObj: "new1"}},
+    {sub: "sub2", pred: "pred2", Obj: {yours: "yours2", theirs:"theirs2", newObj: "new2"}}
+];
+
+_.each(confSample, s => {new ConflictResTemplate(s)});

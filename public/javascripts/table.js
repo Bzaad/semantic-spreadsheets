@@ -286,11 +286,14 @@ const loadCsvFile = () => {
             //TODO: move this to a proper css class
             if (!sp.sub || !sp.pred) i.attr('class', 'no-sub-pred-warn');
         }
-    })
-    //get all the obj cells with a value
-    //check if they have both predicate and object
-    //if yes ignore,
-    //if now, turn the cell color to red
+    });
+    /**
+     * check and see if triples with different values than what loaded in the csv file
+     * exist in pdstore.
+     */
+    let csvReq = getCsvValidTriples();
+    _.each(csvReq, cvt => {cvt.obj = '?'});
+    queryCsv({reqType: "qCsv", listenTo: false, reqValue: csvReq});
 };
 
 const alphabetCombs = (input, length, curstr) => {
@@ -322,9 +325,7 @@ const getCsvValidTriples = () => {
 };
 
 $('#check-csv-triples').click(() =>{
-    let csvReq = getCsvValidTriples();
-    _.each(csvReq, cvt => {cvt.obj = '?'});
-    queryCsv({reqType: 'qCsv', listenTo: false, reqValue: csvReq});
+
 });
 
 const csvCheck = retValue => {
@@ -342,10 +343,10 @@ const csvCheck = retValue => {
         setInterval(()=>{
             if (elem.val() === dt.yours.obj){
                 elem.val(dt.theirs.obj);
-                elem.attr('class', 'obj-conflict-warn');
+                elem.css({'color': 'red'});
             } else {
                 elem.val(dt.yours.obj);
-                elem.attr('class', 'obj-conflict-warn');
+                elem.css('color', 'green');
             }
         }, 1000);
     });

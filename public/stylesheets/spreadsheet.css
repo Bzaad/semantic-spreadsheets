@@ -261,3 +261,15 @@ tr:first-child td, td:first-child {
     box-shadow: 0 0 0 1px #9a00cd inset, 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 1px 3px 1px rgba(0, 0, 0, 0.3);
     background-color: #bb39d7;
 }
+
+.conflict-input {
+    boder: none;
+    width: 133px;
+    font-size: 14px !important;
+    padding: 2px;
+    font-weight: normal !important;
+}
+
+td.confl {
+    background-color: white !important;
+}

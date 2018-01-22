@@ -13,14 +13,8 @@ var initDocument = function () {
     $("#table-share").click(shareTable);
     $("#csv-file").change(loadCsv);
     $("#load-file-button").click(loadCsvFile);
-   // $("#load-table").click(loadTable($("#table-picker").val()))
-    $("#load-table").click(function () {
-        loadTable($("#table-picker").val())
-    });
-
-    $("#table-picker").change(function () {
-        if($("#table-picker").val() != "" || $("#table-picker").val() != []) $("#table-name").prop("disabled", true);
-        if($("#table-picker").val() == "" || $("#table-picker").val() == []) $("#table-name").prop("disabled", false);
+    $("#new-table").click( e =>{
+        $("#add-table-modal").modal('toggle');
     });
     $("#query-table").click(function () {
         bootstrap_alert.warning('Queried the <strong>Table!</strong>', 'danger', 4000);
@@ -33,7 +27,7 @@ var initDocument = function () {
         websocket.send(JSON.stringify(qChange));
     });
 
-    $('#add-table-modal').on('shown.bs.modal', getAllTables);
+    //$('#add-table-modal').on('shown.bs.modal', getAllTables);
 
     $(".nav-tabs").on("click", "a", function(e){
         e.preventDefault();
