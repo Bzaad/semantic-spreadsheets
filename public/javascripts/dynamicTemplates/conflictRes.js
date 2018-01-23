@@ -16,14 +16,14 @@ class ConflictResTemplate {
                         <button class="btn btn-success" id="new-${this.randId}">New</button>
                     </div>
                     <span class="input-group-addon" id="basic-addon1">${this.confl.sub}</span>
-                    <input type="text" class="form-control" id="confl-input-${this.randId}"style="text-align: left" aria-label="..." value="${this.confl.Obj.yours}">
+                    <input type="text" class="form-control" id="confl-input-${this.randId}"style="text-align: left" aria-label="..." value="${this.confl.obj.yours}">
                 </div>
             </div>`
         );
     }
     bindEvenetListeners(){
         let confInp = $(`#confl-input-${this.randId}`);
-        let newEnteredObj = this.confl.Obj.newObj;
+        let newEnteredObj = this.confl.obj.newObj;
         confInp.prop("disabled", true);
         confInp.css({"color": "white", "background-color": "#337AB7"});
         confInp.on("change paste keyup", function() {
@@ -32,12 +32,12 @@ class ConflictResTemplate {
         $(`#yours-${this.randId}`).click(e => {
             confInp.prop("disabled", true);
             confInp.css({"color": "white", "background-color": "#337AB7"});
-            confInp.val(this.confl.Obj.yours);
+            confInp.val(this.confl.obj.yours);
         });
         $(`#theirs-${this.randId}`).click(e => {
             confInp.css({"color": "white", "background-color": "#d9534f"});
             confInp.prop("disabled", true);
-            confInp.val(this.confl.Obj.theirs);
+            confInp.val(this.confl.obj.theirs);
         });
         $(`#new-${this.randId}`).click(e => {
             confInp.css({"color": "white", "background-color": "#5cb85c"});

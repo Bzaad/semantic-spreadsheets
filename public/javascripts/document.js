@@ -39,6 +39,29 @@ var initDocument = function () {
      * an event listener that gets triggered by tab change
      * reloads the sheet content on tab change
      */
+    $('#resolve-conflicts').on('show.bs.modal', e => {
+        $('#res-placeholder').contents().remove();
+        if(!sessionStorage['csvConflicts']) return;
+        let confls = JSON.parse(sessionStorage['csvConflicts']);
+        let confReses = [];
+        _.each(confls, s => {
+            let confRes = new ConflictResTemplate(s);
+            confReses.push(confRes);
+        });
+
+        console.log(confReses);
+    });
+
+    $('#resolve-conflicts').on('hide.bs.modal', e => {
+        //console.log(sessionStorage['conflictsResolved']);
+
+        let confIntervals = JSON.parse(sessionStorage.confIntervals);
+        if(confIntervals){
+            localStorage.setItem('confIntervals', JSON.stringify([]));
+            _.each(confIntervals, ci => {clearInterval(ci)})
+        }
+    });
+
     $(document).on( 'shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
         initEvent();
         loadTableTriples(e.target.text); // activated tab

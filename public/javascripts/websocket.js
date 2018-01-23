@@ -379,4 +379,3 @@ const confSample = [
     {sub: "sub2", pred: "pred2", Obj: {yours: "yours2", theirs:"theirs2", newObj: "new2"}}
 ];
 
-_.each(confSample, s => {new ConflictResTemplate(s)});

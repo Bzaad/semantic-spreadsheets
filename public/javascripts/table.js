@@ -324,24 +324,22 @@ const getCsvValidTriples = () => {
     return csvTriples;
 };
 
-$('#check-csv-triples').click(() =>{
-
-});
-
 const csvCheck = retValue => {
     let diffTriples = [];
     _.each(getCsvValidTriples(), cvt =>{
         _.each(retValue, rt =>{
             if(cvt.sub === rt.sub && cvt.pred === rt.pred && cvt.obj !== rt.obj) {
-                diffTriples.push({sub: rt.sub, pred: rt.pred, obj: {theirs: rt.obj, yours: cvt.obj}});
+                diffTriples.push({sub: rt.sub, pred: rt.pred, obj: {theirs: rt.obj, yours: cvt.obj, newObj:""}});
             }
         });
     });
-    sessionStorage.setItem('csvConflicts', diffTriples);
+    if(!diffTriples) return;
+    sessionStorage.setItem('csvConflicts', JSON.stringify(diffTriples));
+    let intervals = [];
     _.each(diffTriples, dt =>{
         let position = findObjPosition({sub: dt.sub, pred: dt.pred, obj: dt.obj.yours});
         let elem = $(`#${position}`);
-        setInterval(()=>{
+        let confInterval = setInterval(()=>{
             if (elem.val() === dt.obj.yours){
                 elem.val(dt.obj.theirs);
                 elem.css({'color': 'red'});
@@ -350,7 +348,9 @@ const csvCheck = retValue => {
                 elem.css('color', 'green');
             }
         }, 1000);
+        intervals.push(confInterval);
     });
+    sessionStorage.setItem('confIntervals', JSON.stringify(intervals));
 };
 
 
