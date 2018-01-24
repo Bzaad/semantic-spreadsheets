@@ -13,6 +13,7 @@ var initDocument = function () {
     $("#table-share").click(shareTable);
     $("#csv-file").change(loadCsv);
     $("#load-file-button").click(loadCsvFile);
+    $("#apply-csv-conflict").click(applyCsvConflict);
     $("#new-table").click( e =>{
         $("#add-table-modal").modal('toggle');
     });
@@ -40,7 +41,9 @@ var initDocument = function () {
      * reloads the sheet content on tab change
      */
     $('#resolve-conflicts').on('show.bs.modal', e => {
+
         $('#res-placeholder').contents().remove();
+        sessionStorage.setItem('ResConf', JSON.stringify({}));
         if(!sessionStorage['csvConflicts']) return;
         let confls = JSON.parse(sessionStorage['csvConflicts']);
         let confReses = [];
@@ -53,9 +56,9 @@ var initDocument = function () {
     });
 
     $('#resolve-conflicts').on('hide.bs.modal', e => {
-        //console.log(sessionStorage['conflictsResolved']);
-
-        let confIntervals = JSON.parse(sessionStorage.confIntervals);
+        let confIntervals = JSON.parse(sessionStorage['confIntervals']);
+        let csvConflicts = JSON.parse(sessionStorage['csvConflicts']);
+        if(csvConflicts) _.each(csvConflicts, cc => {console.log(cc)});
         if(confIntervals){
             sessionStorage.setItem('confIntervals', JSON.stringify([]));
             _.each(confIntervals, ci => {clearInterval(ci)})
@@ -74,6 +77,7 @@ const initSessionStorage = () => {
     sessionStorage.setItem('allTables', JSON.stringify({tables: []}));
     sessionStorage.setItem('listenerUpdate', JSON.stringify(true));
     sessionStorage.setItem('csvConflicts', JSON.stringify([]));
+    sessionStorage.setItem('ResConf', JSON.stringify({}));
     sessionStorage.setItem('csvTable', JSON.stringify([]));
     sessionStorage.setItem('confIntervals', JSON.stringify([]));
 };

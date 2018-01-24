@@ -329,7 +329,16 @@ const csvCheck = retValue => {
     _.each(getCsvValidTriples(), cvt =>{
         _.each(retValue, rt =>{
             if(cvt.sub === rt.sub && cvt.pred === rt.pred && cvt.obj !== rt.obj) {
-                diffTriples.push({sub: rt.sub, pred: rt.pred, obj: {theirs: rt.obj, yours: cvt.obj, newObj:""}});
+                diffTriples.push({
+                    sub: rt.sub,
+                    pred: rt.pred,
+                    obj: {
+                        theirs: rt.obj,
+                        yours: cvt.obj,
+                        newObj:""
+                    },
+                    selectedObj: ""
+                });
             }
         });
     });
@@ -351,6 +360,10 @@ const csvCheck = retValue => {
         intervals.push(confInterval);
     });
     sessionStorage.setItem('confIntervals', JSON.stringify(intervals));
+};
+
+const applyCsvConflict = () => {
+    console.log('applyCsvConflict');
 };
 
 
