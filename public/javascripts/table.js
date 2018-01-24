@@ -259,7 +259,7 @@ const processData = (csv) => {
         }
     });
     $('#file-size-warning').text('');
-    localStorage.setItem("csvTable", JSON.stringify(Papa.parse(csv)));
+    sessionStorage.setItem("csvTable", JSON.stringify(Papa.parse(csv)));
 };
 
 $('#load-file').on('shown.bs.modal', function () {
@@ -270,7 +270,7 @@ $('#load-file').on('shown.bs.modal', function () {
 });
 
 const loadCsvFile = () => {
-    const csvData = JSON.parse(localStorage.getItem('csvTable')).data;
+    const csvData = JSON.parse(sessionStorage['csvTable']).data;
     const alpIds = genPredAdress('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 2);
     _.each(csvData, (row, i)=>{
         if (i === 0) row[0] = '';

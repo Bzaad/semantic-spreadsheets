@@ -99,8 +99,8 @@ var handleSuccess = function(reqValue){
 
 var loadTable = function(tablesName){
 
-    var loadedTables = JSON.parse(localStorage.getItem("currentTables"));
-    localStorage.setItem("currentTables", JSON.stringify({tables: []}));
+    var loadedTables = JSON.parse(sessionStorage['currentTables']);
+    sessionStorage.setItem("currentTables", JSON.stringify({tables: []}));
     if(!loadedTables) loadedTables = {tables: []};
 
     if(Array.isArray(tablesName)){
@@ -113,12 +113,12 @@ var loadTable = function(tablesName){
 
     loadedTables.tables = _.uniq(loadedTables.tables);
 
-    localStorage.setItem("currentTables", JSON.stringify(loadedTables));
+    sessionStorage.setItem("currentTables", JSON.stringify(loadedTables));
     addCurrentTables(loadedTables.tables);
 };
 
 var listenerUpdate = function(reqValue){
-
+    if(!JSON.parse(sessionStorage['listenerUpdate'])) return;
     _.each(reqValue, function(r){
         console.log(r);
         if (r.ch === "-" && (r.pred === "has_row"|| r.pred === "has_column")){
@@ -168,7 +168,7 @@ var connectWs = function(){
 
 var createTable = function(){
 
-    const act = JSON.parse(localStorage.getItem('allTables'));
+    const act = JSON.parse(sessionStorage['allTables']);
     let allowCreation = true;
 
     if(!$("#table-name").val()){
@@ -234,6 +234,7 @@ var allTableTriples = function(){
             var thisPred = currentPreds[counter];
             counter++;
             if ($(this).val()) allTriples.push({ ta:"ts" , ch: "e" , sub: thisSub, pred: thisPred, obj: $(this).val() });
+            else allTriples.push({ ta:"ts" , ch: "e" , sub: thisSub, pred: thisPred, obj: "" });
         }
     });
 
@@ -263,7 +264,7 @@ var getAllTables = function(){
 //TODO: this!
 
 const createTablePicker = (allTables) => {
-    localStorage.setItem("allTables", JSON.stringify(allTables));
+    sessionStorage.setItem("allTables", JSON.stringify(allTables));
     const tableSelectTemplate = new TableSelectTemplate(allTables);
     $('#table-select').empty();
     $('#table-select').append(tableSelectTemplate.getTemplate());
