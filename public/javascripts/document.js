@@ -2,7 +2,7 @@
  * All the button and value assignments are done here!
  */
 var initDocument = function () {
-    localStorage.setItem("currentTables", JSON.stringify({tables: []}))
+    initSessionStorage();
     $("#connect-ws").click(connectWs);
     $("#disconnect-ws").click(disconnectWs);
     $("#submit-query").click(submitQuery);
@@ -57,7 +57,7 @@ var initDocument = function () {
 
         let confIntervals = JSON.parse(sessionStorage.confIntervals);
         if(confIntervals){
-            localStorage.setItem('confIntervals', JSON.stringify([]));
+            sessionStorage.setItem('confIntervals', JSON.stringify([]));
             _.each(confIntervals, ci => {clearInterval(ci)})
         }
     });
@@ -67,4 +67,13 @@ var initDocument = function () {
         loadTableTriples(e.target.text); // activated tab
     })
 
+};
+
+const initSessionStorage = () => {
+    sessionStorage.setItem('currentTables', JSON.stringify({tables: []}));
+    sessionStorage.setItem('allTables', JSON.stringify({tables: []}));
+    sessionStorage.setItem('listenerUpdate', JSON.stringify(true));
+    sessionStorage.setItem('csvConflicts', JSON.stringify([]));
+    sessionStorage.setItem('csvTable', JSON.stringify([]));
+    sessionStorage.setItem('confIntervals', JSON.stringify([]));
 };
