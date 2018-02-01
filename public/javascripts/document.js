@@ -41,7 +41,6 @@ var initDocument = function () {
      * reloads the sheet content on tab change
      */
     $('#resolve-conflicts').on('show.bs.modal', e => {
-
         $('#res-placeholder').contents().remove();
         sessionStorage.setItem('ResConf', JSON.stringify({}));
         if(!sessionStorage['csvConflicts']) return;
@@ -51,8 +50,6 @@ var initDocument = function () {
             let confRes = new ConflictResTemplate(s);
             confReses.push(confRes);
         });
-
-        console.log(confReses);
     });
 
     $('#resolve-conflicts').on('hide.bs.modal', e => {

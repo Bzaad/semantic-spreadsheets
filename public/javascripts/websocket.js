@@ -329,7 +329,6 @@ var loadTableTriples = function(tableName){
 
     waitForSocketReady(websocket, function () {
         websocket.send(JSON.stringify(qTable));
-        console.log("Table loaded!")
     });
 };
 

@@ -1,13 +1,19 @@
 class ConflictResTemplate {
+    //TODO: this needs to be fixed
     constructor(confl = {sub:"sub", pred:"pred", obj:{yours: "yours", theirs:"theirs", newObj: ""}, selectedObj: ""}){
         this.confl = confl;
         this.randId = this.makeRndId();
+
+        sessionStorage[this.randId] = JSON.stringify(this.confl);
+
+        this.confIndex = _.findIndex(JSON.parse(sessionStorage['csvConflicts']), this.confl);
+        this.newEnteredObj = "";
         $('#res-placeholder').append(this.getTemplate());
-        this.bindEvenetListeners();
+        this.init();
     }
     getTemplate(){
         return (
-            `<div class="panel panel-default">
+            `<div class="panel panel-default" data-confl-id="${this.randId}">
                 <div class="panel-heading" style="text-align: center; padding: 3px 10px">${this.confl.pred}</div>
                 <div class="input-group">
                     <div class="input-group-btn">
@@ -27,46 +33,48 @@ class ConflictResTemplate {
         for (i = 0; i < 6; i++) rndId += possible.charAt(Math.floor(Math.random() * possible.length));
         return rndId
     }
-    applyChange(ch){
-        //TODO: this is broken (very Important to fix on the next commit)
-        let allConfs = JSON.parse(sessionStorage['csvConflicts']).filter(el =>{
-            return (el.sub !== this.confl.sub && el.pred !== this.confl.pred);
-        });
-        console.log(allConfs);
-        this.confl.selectedObj = ch;
-        allConfs.push(this.confl);
-        console.log(allConfs);
-        sessionStorage.setItem('csvConflicts', JSON.stringify(allConfs));
+    init(){
+        this.newEnteredObj = this.confl.obj.newObj;
+        this.changeInput({"color": "#5cb85c"}, true, "someVal!");
+        this.bindEvenetListeners();
+
     }
     bindEvenetListeners(){
-        let confInp = $(`#confl-input-${this.randId}`);
-        let newEnteredObj = this.confl.obj.newObj;
-        confInp.prop("disabled", true);
-        confInp.css({"color": "white", "background-color": "#337AB7"});
-        confInp.on("change paste keyup", function() {
-           newEnteredObj = confInp.val();
+        $(`#confl-input-${this.randId}`).keyup( () => {
+           this.newEnteredObj = this.confInp.val();
+           this.applyChange(this.newEnteredObj);
         });
-        $(`#yours-${this.randId}`).click(e => {
-            confInp.prop("disabled", true);
-            confInp.css({"color": "white", "background-color": "#337AB7"});
-            confInp.val(this.confl.obj.yours);
-            this.applyChange(this.confl.obj.yours);
-        });
-        $(`#theirs-${this.randId}`).click(e => {
-            confInp.css({"color": "white", "background-color": "#d9534f"});
-            confInp.prop("disabled", true);
-            confInp.val(this.confl.obj.theirs);
-            this.applyChange(this.confl.obj.theirs);
-        });
-        $(`#new-${this.randId}`).click(e => {
-            confInp.css({"color": "white", "background-color": "#5cb85c"});
-            $(`#confl-input-${this.randId}`).prop("disabled", false);
-            confInp.val(newEnteredObj);
-            this.applyChange(newEnteredObj);
-        });
-        $(`#confl-input-${this.randId}`).on('keypress change blur focus', e => {
-            newEnteredObj = e.target.value;
-            this.applyChange(newEnteredObj);
-        });
+        $(`#yours-${this.randId}`).click(this.yours);
+        $(`#theirs-${this.randId}`).click(this.theirs);
+        $(`#new-${this.randId}`).click(this.newValue);
+}
+    yours(){
+
+        /*
+        this.changeInput({"color": "#337AB7"}, true, this.confl.obj.yours);
+        this.applyChange(this.confl.obj.yours);
+        */
+    }
+    theirs(){
+        this.changeInput({"color": "#d9534f"}, true, this.confl.obj.theirs);
+        this.applyChange(this.confl.obj.theirs);
+    }
+    newValue(){
+        this.changeInput({"color": "#5cb85c"}, false, this.newEnteredObj);
+        this.applyChange(this.newEnteredObj);
+    }
+    applyChange(ch){
+        let allConfs = JSON.parse(sessionStorage['csvConflicts']);
+        this.confl.selectedObj = ch.trim();
+        allConfs.splice(this.confIndex,1, this.confl);
+        sessionStorage.setItem('csvConflicts', JSON.stringify(allConfs));
+    }
+    changeInput(css, disabled, val){
+        $(`#confl-input-${this.randId}`).css(css);
+        $(`#confl-input-${this.randId}`).prop("disabled", disabled);
+        $(`#confl-input-${this.randId}`).val(val);
+    }
+    getValue(){
+        this.newEnteredObj = $(`#confl-input-${this.randId}`).val();
     }
 }

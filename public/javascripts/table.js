@@ -282,8 +282,6 @@ const loadCsvFile = () => {
         let i = $(inp)
         if(i.val() && i.attr('data-cell-type') === 'obj'){
             let sp = getSubPred(i.attr('id'));
-
-            //TODO: move this to a proper css class
             if (!sp.sub || !sp.pred) i.attr('class', 'no-sub-pred-warn');
         }
     });
@@ -362,8 +360,21 @@ const csvCheck = retValue => {
     sessionStorage.setItem('confIntervals', JSON.stringify(intervals));
 };
 
+//TODO: save happens here after checking everything
+
+
 const applyCsvConflict = () => {
-    console.log('applyCsvConflict');
+    let allConfs = JSON.parse(sessionStorage['csvConflicts']);
+    let warn = false;
+    _.each(allConfs, ac =>{
+        if(!ac.selectedObj){
+            warn = true;
+        }
+    });
+    if (warn){
+        $('#warn-modal').modal('show');
+        //alert("Some of the cells are empty. those with no current value will be removed from the database, are you sure you whish to proceed?");
+    }
 };
 
 
