@@ -25,15 +25,22 @@ var initTable = function(){
     $('#A1').css("background-color", "#ccc");
 };
 
+const resizableCell = (el, factor) =>{
+    let int = Number(factor) || 7.7;
+    resize = () => el.style.width = ((el.value.length+1)* int) + 'px';
+    let e = 'keyup,keypress,focus,blur,change'.split(',');
+    _.each(e, i => el.addEventListener(i, resize, false));
+    resize();
+};
+
 var initCellListeners = function(){
     INPUTS = [].slice.call(document.querySelectorAll("input"));
     INPUTS.forEach(function(elm) {
         var cellBefore = "";
         var cellAfter = "";
         // check if the selected element is an input and a spreadsheet cell else stop
-        if (elm.id.length > 3 || elm.getAttribute("type") !== "cell")
-            return;
-
+        if (elm.id.length > 3 || elm.getAttribute("type") !== "cell") return;
+        //resizableCell(elm, 7);
         elm.onblur = function(e) {
             var targetType = e.target.getAttribute("data-cell-type");
             var rowOrCol = (targetType === "sub") ? "has_row" : "has_column";

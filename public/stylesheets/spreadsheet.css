@@ -43,9 +43,13 @@ p.conversation_comment {
 
 input {
     border: none;
-    width: 79px;
+    width: 100px;
     font-size: 14px;
     padding: 2px;
+    min-width:100px!important;
+    max-width:99.99%!important;
+    transition: width 0.25s;
+    text-align:center;
 }
 
 input:hover {
