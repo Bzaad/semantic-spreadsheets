@@ -3,14 +3,14 @@ class ConflictResTemplate {
     constructor(confl = {sub:"sub", pred:"pred", obj:{yours: "yours", theirs:"theirs", newObj: ""}, selectedObj: ""}){
         this.confl = confl;
         this.randId = this.makeRndId();
-
+        // --------------
         sessionStorage[this.randId] = JSON.stringify(this.confl);
-
-        this.confIndex = _.findIndex(JSON.parse(sessionStorage['csvConflicts']), this.confl);
+        // --------------
         this.newEnteredObj = "";
         $('#res-placeholder').append(this.getTemplate());
-        this.init();
+        this.init(this.randId);
     }
+
     getTemplate(){
         return (
             `<div class="panel panel-default" data-confl-id="${this.randId}">
@@ -31,50 +31,78 @@ class ConflictResTemplate {
         let rndId = '';
         let possible = 'ABCDEF0123456789';
         for (i = 0; i < 6; i++) rndId += possible.charAt(Math.floor(Math.random() * possible.length));
-        return rndId
+        return rndId;
     }
-    init(){
+
+    init(id){
         this.newEnteredObj = this.confl.obj.newObj;
-        this.changeInput({"color": "#5cb85c"}, true, "someVal!");
+        let dh = new ConflDomHandler(id);
+        if (this.confl.obj.yours) dh.changeInput({"color": "#337AB7"} , true, this.confl.obj.yours);
+        else if (this.confl.obj.theirs) dh.changeInput({"color": "#d9534f"}, true, this.confl.obj.theirs);
+        else dh.changeInput({"color": "#d9534f"}, true, "");
+        dh = null;
+
         this.bindEvenetListeners();
 
     }
     bindEvenetListeners(){
         $(`#confl-input-${this.randId}`).keyup( () => {
-           this.newEnteredObj = this.confInp.val();
-           this.applyChange(this.newEnteredObj);
+           sessionStorage['new-' + this.randId] = this.confInp.val();
         });
         $(`#yours-${this.randId}`).click(this.yours);
         $(`#theirs-${this.randId}`).click(this.theirs);
         $(`#new-${this.randId}`).click(this.newValue);
-}
+    }
     yours(){
-
-        /*
-        this.changeInput({"color": "#337AB7"}, true, this.confl.obj.yours);
-        this.applyChange(this.confl.obj.yours);
-        */
+        let dh = new ConflDomHandler(this.id.split("-")[1]);
+        dh.changeInput({"color": "#337AB7"} , true, dh.tempConflict.obj.yours);
+        //dh.applyChange(dh.tempConflict.obj.yours);
+        dh = null;
     }
     theirs(){
-        this.changeInput({"color": "#d9534f"}, true, this.confl.obj.theirs);
-        this.applyChange(this.confl.obj.theirs);
+        let dh = new ConflDomHandler(this.id.split("-")[1]);
+        dh.changeInput({"color": "#d9534f"}, true, dh.tempConflict.obj.theirs);
+        //dh.applyChange(dh.tempConflict.obj.theirs);
+        dh = null;
     }
     newValue(){
-        this.changeInput({"color": "#5cb85c"}, false, this.newEnteredObj);
-        this.applyChange(this.newEnteredObj);
+        let dh = new ConflDomHandler(this.id.split("-")[1]);
+        dh.changeInput({"color": "#5cb85c"}, false, sessionStorage[this.id]);
+        //dh.applyChange(dh.tempConflict.obj.newObj);
+        dh = null
+    }
+
+}
+
+class ConflDomHandler {
+    constructor(id){
+        this.id = id;
+    }
+    changeInput(css, disabled, val){
+        $(`#confl-input-${this.id}`).css(css);
+        $(`#confl-input-${this.id}`).prop("disabled", disabled);
+        if(!val) $(`#confl-input-${this.id}`).attr("placeholder", "null");
+        $(`#confl-input-${this.id}`).val(val);
     }
     applyChange(ch){
+        /*
         let allConfs = JSON.parse(sessionStorage['csvConflicts']);
         this.confl.selectedObj = ch.trim();
         allConfs.splice(this.confIndex,1, this.confl);
         sessionStorage.setItem('csvConflicts', JSON.stringify(allConfs));
+        */
+        sessionStorage.removeItem(this.id);
     }
-    changeInput(css, disabled, val){
-        $(`#confl-input-${this.randId}`).css(css);
-        $(`#confl-input-${this.randId}`).prop("disabled", disabled);
-        $(`#confl-input-${this.randId}`).val(val);
+    get csvConflicts(){
+        return JSON.parse(sessionStorage.getItem("csvConflicts"));
     }
-    getValue(){
-        this.newEnteredObj = $(`#confl-input-${this.randId}`).val();
+    set csvConflicts(confl) {
+        sessionStorage.setItem("csvConflicts", JSON.stringify(confl));
+    }
+    get tempConflict() {
+        return JSON.parse(sessionStorage[this.id])
+    }
+    set tempConflict(confl) {
+        sessionStorage.setItem(this.id, JSON.stringify(confl));
     }
 }
