@@ -5,8 +5,8 @@ class ConflictResTemplate {
         this.randId = this.makeRndId();
         // --------------
         sessionStorage[this.randId] = JSON.stringify(this.confl);
+        sessionStorage['new-' + this.randId] = "";
         // --------------
-        this.newEnteredObj = "";
         $('#res-placeholder').append(this.getTemplate());
         this.init(this.randId);
     }
@@ -41,13 +41,12 @@ class ConflictResTemplate {
         else if (this.confl.obj.theirs) dh.changeInput({"color": "#d9534f"}, true, this.confl.obj.theirs);
         else dh.changeInput({"color": "#d9534f"}, true, "");
         dh = null;
-
         this.bindEvenetListeners();
 
     }
     bindEvenetListeners(){
         $(`#confl-input-${this.randId}`).keyup( () => {
-           sessionStorage['new-' + this.randId] = this.confInp.val();
+           sessionStorage['new-' + this.randId] = $(`#confl-input-${this.randId}`).val();
         });
         $(`#yours-${this.randId}`).click(this.yours);
         $(`#theirs-${this.randId}`).click(this.theirs);
@@ -71,7 +70,6 @@ class ConflictResTemplate {
         //dh.applyChange(dh.tempConflict.obj.newObj);
         dh = null
     }
-
 }
 
 class ConflDomHandler {
@@ -81,8 +79,8 @@ class ConflDomHandler {
     changeInput(css, disabled, val){
         $(`#confl-input-${this.id}`).css(css);
         $(`#confl-input-${this.id}`).prop("disabled", disabled);
-        if(!val) $(`#confl-input-${this.id}`).attr("placeholder", "null");
         $(`#confl-input-${this.id}`).val(val);
+        if(!val) $(`#confl-input-${this.id}`).attr("placeholder", "null");
     }
     applyChange(ch){
         /*
