@@ -55,19 +55,19 @@ class ConflictResTemplate {
     yours(){
         let dh = new ConflDomHandler(this.id.split("-")[1]);
         dh.changeInput({"color": "#337AB7"} , true, dh.tempConflict.obj.yours);
-        //dh.applyChange(dh.tempConflict.obj.yours);
+        dh.tempConflict = dh.tempConflict.obj.yours;
         dh = null;
     }
     theirs(){
         let dh = new ConflDomHandler(this.id.split("-")[1]);
         dh.changeInput({"color": "#d9534f"}, true, dh.tempConflict.obj.theirs);
-        //dh.applyChange(dh.tempConflict.obj.theirs);
+        dh.tempConflict = dh.tempConflict.obj.theirs;
         dh = null;
     }
     newValue(){
         let dh = new ConflDomHandler(this.id.split("-")[1]);
         dh.changeInput({"color": "#5cb85c"}, false, sessionStorage[this.id]);
-        //dh.applyChange(dh.tempConflict.obj.newObj);
+        dh.tempConflict = sessionStorage[this.id];
         dh = null
     }
 }
@@ -82,25 +82,27 @@ class ConflDomHandler {
         $(`#confl-input-${this.id}`).val(val);
         if(!val) $(`#confl-input-${this.id}`).attr("placeholder", "null");
     }
-    applyChange(ch){
-        /*
-        let allConfs = JSON.parse(sessionStorage['csvConflicts']);
-        this.confl.selectedObj = ch.trim();
-        allConfs.splice(this.confIndex,1, this.confl);
-        sessionStorage.setItem('csvConflicts', JSON.stringify(allConfs));
-        */
-        sessionStorage.removeItem(this.id);
-    }
     get csvConflicts(){
         return JSON.parse(sessionStorage.getItem("csvConflicts"));
     }
     set csvConflicts(confl) {
-        sessionStorage.setItem("csvConflicts", JSON.stringify(confl));
+        //TODO: update sessionStorage csvConflicts;
+        let allConfs = JSON.parse(sessionStorage["csvConflicts"]).filter(el => {
+            return el.sub !== confl.sub && el.pred !== confl.pred;
+        });
+        allConfs.push(confl);
+        _.each(allConfs, ac => {
+            console.log(ac.sub, " : ", ac.pred, " : ", ac.selectedObj);
+        })
+        //sessionStorage.setItem("csvConflicts", JSON.stringify(confl));
     }
     get tempConflict() {
-        return JSON.parse(sessionStorage[this.id])
+        return JSON.parse(sessionStorage[this.id]);
     }
     set tempConflict(confl) {
-        sessionStorage.setItem(this.id, JSON.stringify(confl));
+        let thiConf = JSON.parse(sessionStorage[this.id]);
+        thiConf.selectedObj = confl;
+        sessionStorage.setItem(this.id, JSON.stringify(thiConf));
+        this.csvConflicts = thiConf;
     }
 }

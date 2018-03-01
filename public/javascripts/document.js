@@ -70,6 +70,7 @@ var initDocument = function () {
 };
 
 const initSessionStorage = () => {
+    sessionStorage.clear();
     sessionStorage.setItem('currentTables', JSON.stringify({tables: []}));
     sessionStorage.setItem('allTables', JSON.stringify({tables: []}));
     sessionStorage.setItem('listenerUpdate', JSON.stringify(true));

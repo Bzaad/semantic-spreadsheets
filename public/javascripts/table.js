@@ -371,6 +371,13 @@ const csvCheck = retValue => {
 
 
 const applyCsvConflict = () => {
+
+    //TODO: 1 - apply all the values ot the table
+    //TODO: 2 - Remove all the flashing values and change all the colors to defualt text color
+    //TODO: 3 - get all the tuples and check for conflict again
+    //TODO: 4 - if there's still conflict show them on the table
+    //TODO: 5 - if not activate the save button so the entire table can be saved
+
     let allConfs = JSON.parse(sessionStorage['csvConflicts']);
     let warn = false;
     _.each(allConfs, ac =>{
