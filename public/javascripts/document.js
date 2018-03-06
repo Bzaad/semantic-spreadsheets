@@ -1,6 +1,8 @@
 /**
  * All the button and value assignments are done here!
  */
+
+
 var initDocument = function () {
     initSessionStorage();
     $("#connect-ws").click(connectWs);
@@ -17,6 +19,7 @@ var initDocument = function () {
     $("#new-table").click( e =>{
         $("#add-table-modal").modal('toggle');
     });
+
     $("#query-table").click(function () {
         bootstrap_alert.warning('Queried the <strong>Table!</strong>', 'danger', 4000);
         websocket.send(JSON.stringify(qTable));
@@ -54,8 +57,6 @@ var initDocument = function () {
 
     $('#resolve-conflicts').on('hide.bs.modal', e => {
         let confIntervals = JSON.parse(sessionStorage['confIntervals']);
-        let csvConflicts = JSON.parse(sessionStorage['csvConflicts']);
-        if(csvConflicts) _.each(csvConflicts, cc => {console.log(cc)});
         if(confIntervals){
             sessionStorage.setItem('confIntervals', JSON.stringify([]));
             _.each(confIntervals, ci => {clearInterval(ci)})

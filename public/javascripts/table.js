@@ -41,6 +41,17 @@ var initCellListeners = function(){
         // check if the selected element is an input and a spreadsheet cell else stop
         if (elm.id.length > 3 || elm.getAttribute("type") !== "cell") return;
         //resizableCell(elm, 7);
+
+        elm.onkeyup = e => {
+            let $this = $(this);
+            let $tr = $this.closest("tr");
+            let id = this.id;
+            if(e.keyCode === 38)
+                $tr.prev().find('input[type="cell"]').focus();
+            if(e.keyCode === 40)
+                $tr.next().find('input[type="cell"]').focus();
+        };
+
         elm.onblur = function(e) {
             var targetType = e.target.getAttribute("data-cell-type");
             var rowOrCol = (targetType === "sub") ? "has_row" : "has_column";
@@ -371,13 +382,33 @@ const csvCheck = retValue => {
 
 
 const applyCsvConflict = () => {
-
+    let resolvedConflicts = [];
     //TODO: 1 - apply all the values ot the table
     //TODO: 2 - Remove all the flashing values and change all the colors to defualt text color
     //TODO: 3 - get all the tuples and check for conflict again
     //TODO: 4 - if there's still conflict show them on the table
     //TODO: 5 - if not activate the save button so the entire table can be saved
 
+    _.each($('[data-confl-id]'), dci =>{
+        let conflId = $(dci).attr('data-confl-id');
+        let confInfo = JSON.parse(sessionStorage[conflId]);
+        confInfo.selectedObj = $(dci).find("input")[0].value;
+        resolvedConflicts.push(confInfo);
+        //if(!confInfo.selectedObj) console.log("one of the values is null it will be deleted or not saved! be careful!");
+    });
+    sessionStorage.setItem("resolvedConflicts", JSON.stringify(resolvedConflicts));
+    console.log(JSON.parse(sessionStorage["resolvedConflicts"]));
+    sessionStorage.removeItem("csvConflicts");
+    _.each(resolvedConflicts, rc =>{
+        if(!rc.theirs){
+            if(rc.selectedObj){
+                //TODO: the cell was empty and know have a value0
+            } else {
+
+            }
+        }
+    })
+    /*
     let allConfs = JSON.parse(sessionStorage['csvConflicts']);
     let warn = false;
     _.each(allConfs, ac =>{
@@ -389,6 +420,7 @@ const applyCsvConflict = () => {
         $('#warn-modal').modal('show');
         //alert("Some of the cells are empty. those with no current value will be removed from the database, are you sure you whish to proceed?");
     }
+    */
 };
 
 
