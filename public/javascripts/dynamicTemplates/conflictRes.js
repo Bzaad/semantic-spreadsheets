@@ -77,24 +77,19 @@ class ConflDomHandler {
         this.id = id;
     }
     changeInput(css, disabled, val){
-        $(`#confl-input-${this.id}`).css(css);
+        $('#missing-value-warning').text('');
+        $(`#confl-input-${this.id}`).css(_.assign(css, {border:"0px"}));
         $(`#confl-input-${this.id}`).prop("disabled", disabled);
         $(`#confl-input-${this.id}`).val(val);
-        if(!val) $(`#confl-input-${this.id}`).attr("placeholder", "null");
-    }
-    get csvConflicts(){
-        return JSON.parse(sessionStorage.getItem("csvConflicts"));
-    }
-    set csvConflicts(confl) {
-        //TODO: update sessionStorage csvConflicts;
-        let allConfs = JSON.parse(sessionStorage["csvConflicts"]).filter(el => {
-            return el.sub !== confl.sub && el.pred !== confl.pred;
+        if(!val){
+            $(`#confl-input-${this.id}`).attr("placeholder", "null");
+            $(`#confl-input-${this.id}`).css(_.assign(css, {border:"2px solid red"}));
+        }
+        _.each($('[data-confl-id]'), dci =>{
+            if(!$(dci).find("input")[0].value)
+                $('#missing-value-warning').text('"null" values will be ignored or removed!')
         });
-        allConfs.push(confl);
-        _.each(allConfs, ac => {
-            console.log(ac.sub, " : ", ac.pred, " : ", ac.selectedObj);
-        })
-        //sessionStorage.setItem("csvConflicts", JSON.stringify(confl));
+
     }
     get tempConflict() {
         return JSON.parse(sessionStorage[this.id]);
@@ -103,6 +98,5 @@ class ConflDomHandler {
         let thiConf = JSON.parse(sessionStorage[this.id]);
         thiConf.selectedObj = confl;
         sessionStorage.setItem(this.id, JSON.stringify(thiConf));
-        this.csvConflicts = thiConf;
     }
 }
