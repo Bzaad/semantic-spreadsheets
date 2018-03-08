@@ -399,28 +399,49 @@ const applyCsvConflict = () => {
     sessionStorage.setItem("resolvedConflicts", JSON.stringify(resolvedConflicts));
     console.log(JSON.parse(sessionStorage["resolvedConflicts"]));
     sessionStorage.removeItem("csvConflicts");
-    _.each(resolvedConflicts, rc =>{
-        if(!rc.theirs){
-            if(rc.selectedObj){
-                //TODO: the cell was empty and know have a value0
-            } else {
 
-            }
+
+    //TODO: REMOVE all the flashing stuff and unused intervals!
+    let confIntervals = JSON.parse(sessionStorage['confIntervals']);
+    if(confIntervals){
+        sessionStorage.setItem('confIntervals', JSON.stringify([]));
+        _.each(confIntervals, ci => {clearInterval(ci)})
+    }
+
+    //TODO: clear up all the intervals from session storage
+
+    let adds = [];
+    let removes = [];
+    _.each(resolvedConflicts, rc =>{
+        let pos = findObjPosition({sub: rc.sub, pred: rc.pred, obj: ""});
+        $(`#${pos}`).css({"color":"rgb(51,51,51)"});
+        if(rc.obj.theirs === rc.selectedObj){
+            //TODO: the value is not going to change. ignore it!
+            $(`#${pos}`).val(rc.obj.theirs);
         }
-    })
-    /*
-    let allConfs = JSON.parse(sessionStorage['csvConflicts']);
-    let warn = false;
-    _.each(allConfs, ac =>{
-        if(!ac.selectedObj){
-            warn = true;
+        else if(!rc.obj.theirs && rc.selectedObj){
+            //TODO: no previous value you can safely add it
+            adds.push({"ta":"ts","ch":"+","sub":rc.sub,"pred":rc.pred,"obj":rc.selectedObj});
+            $(`#${pos}`).val(rc.selectedObj);
+        }
+        else if (rc.obj.theirs && !rc.selectedObj){
+            //TODO: remove the value
+            removes.push({"ta":"ts","ch":"-","sub":rc.sub,"pred":rc.pred,"obj":rc.obj.theirs});
+            $(`#${pos}`).val(rc.selectedObj);
+        }
+        else if(rc.obj.theirs && rc.selectedObj !== rc.obj.theirs){
+            //TODO: delete the previous value and add the next one
+            removes.push({"ta":"ts","ch":"-","sub":rc.sub,"pred":rc.pred,"obj":rc.obj.theirs});
+            adds.push({"ta":"ts","ch":"+","sub":rc.sub,"pred":rc.pred,"obj":rc.selectedObj});
+            $(`#${pos}`).val(rc.selectedObj);
         }
     });
-    if (warn){
-        $('#warn-modal').modal('show');
-        //alert("Some of the cells are empty. those with no current value will be removed from the database, are you sure you whish to proceed?");
-    }
-    */
+
+    //TODO: do the removes
+
+    //TODO: update the table view
+
+
 };
 
 

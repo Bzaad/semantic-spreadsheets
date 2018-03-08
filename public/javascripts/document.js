@@ -19,7 +19,6 @@ var initDocument = function () {
     $("#new-table").click( e =>{
         $("#add-table-modal").modal('toggle');
     });
-
     $("#query-table").click(function () {
         bootstrap_alert.warning('Queried the <strong>Table!</strong>', 'danger', 4000);
         websocket.send(JSON.stringify(qTable));
@@ -54,15 +53,6 @@ var initDocument = function () {
             confReses.push(confRes);
         });
     });
-
-    $('#resolve-conflicts').on('hide.bs.modal', e => {
-        let confIntervals = JSON.parse(sessionStorage['confIntervals']);
-        if(confIntervals){
-            sessionStorage.setItem('confIntervals', JSON.stringify([]));
-            _.each(confIntervals, ci => {clearInterval(ci)})
-        }
-    });
-
     $(document).on( 'shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
         initEvent();
         loadTableTriples(e.target.text); // activated tab
