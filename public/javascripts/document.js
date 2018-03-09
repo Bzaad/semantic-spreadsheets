@@ -16,6 +16,7 @@ var initDocument = function () {
     $("#csv-file").change(loadCsv);
     $("#load-file-button").click(loadCsvFile);
     $("#apply-csv-conflict").click(applyCsvConflict);
+    $("#save-csv-table").click(saveCsvTable);
     $("#new-table").click( e =>{
         $("#add-table-modal").modal('toggle');
     });
@@ -69,4 +70,6 @@ const initSessionStorage = () => {
     sessionStorage.setItem('ResConf', JSON.stringify({}));
     sessionStorage.setItem('csvTable', JSON.stringify([]));
     sessionStorage.setItem('confIntervals', JSON.stringify([]));
+    sessionStorage.setItem('csvAdds', JSON.stringify([]));
+    sessionStorage.setItem('csvRemoves', JSON.stringify([]));
 };

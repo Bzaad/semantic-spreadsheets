@@ -358,8 +358,20 @@ const csvCheck = retValue => {
             }
         });
     });
-    if(!diffTriples) return;
+    if(diffTriples.length === 0){
+        let csvAdds = [];
+        _.each(allTableTriples().reqValue, cht =>{
+            if(cht.pred && cht.sub && cht.obj) {
+                cht.ch = "+";
+                csvAdds.push(cht);
+            }
+        });
+        sessionStorage['csvAdds'] = JSON.stringify(csvAdds);
+        sessionStorage.setItem('hasConflicts', JSON.stringify(false));
+        return;
+    }
     sessionStorage.setItem('csvConflicts', JSON.stringify(diffTriples));
+    sessionStorage.setItem('hasConflicts', JSON.stringify(true));
     let intervals = [];
     _.each(diffTriples, dt =>{
         let position = findObjPosition({sub: dt.sub, pred: dt.pred, obj: dt.obj.yours});
@@ -401,14 +413,13 @@ const applyCsvConflict = () => {
     sessionStorage.removeItem("csvConflicts");
 
 
-    //TODO: REMOVE all the flashing stuff and unused intervals!
-    let confIntervals = JSON.parse(sessionStorage['confIntervals']);
-    if(confIntervals){
-        sessionStorage.setItem('confIntervals', JSON.stringify([]));
-        _.each(confIntervals, ci => {clearInterval(ci)})
-    }
 
-    //TODO: clear up all the intervals from session storage
+    intervalCleanup();
+
+
+    /**
+     * clear up all the intervals from session storage
+     */
 
     let adds = [];
     let removes = [];
@@ -416,33 +427,87 @@ const applyCsvConflict = () => {
         let pos = findObjPosition({sub: rc.sub, pred: rc.pred, obj: ""});
         $(`#${pos}`).css({"color":"rgb(51,51,51)"});
         if(rc.obj.theirs === rc.selectedObj){
-            //TODO: the value is not going to change. ignore it!
+            /**
+             * the value is not going to change. ignore it!
+             * solve with theirs or new value!
+             */
             $(`#${pos}`).val(rc.obj.theirs);
         }
         else if(!rc.obj.theirs && rc.selectedObj){
-            //TODO: no previous value you can safely add it
+            /**
+             * no previous value you can safely add it!
+             * solve with theirs or new value!
+             */
             adds.push({"ta":"ts","ch":"+","sub":rc.sub,"pred":rc.pred,"obj":rc.selectedObj});
             $(`#${pos}`).val(rc.selectedObj);
         }
         else if (rc.obj.theirs && !rc.selectedObj){
-            //TODO: remove the value
+            /**
+             * remove the value because the selected value is null!
+             * solve with null!
+             */
             removes.push({"ta":"ts","ch":"-","sub":rc.sub,"pred":rc.pred,"obj":rc.obj.theirs});
             $(`#${pos}`).val(rc.selectedObj);
         }
         else if(rc.obj.theirs && rc.selectedObj !== rc.obj.theirs){
-            //TODO: delete the previous value and add the next one
+            /**
+             * delete the previous value and add the next one!
+             * solve with "yours"!
+             */
             removes.push({"ta":"ts","ch":"-","sub":rc.sub,"pred":rc.pred,"obj":rc.obj.theirs});
             adds.push({"ta":"ts","ch":"+","sub":rc.sub,"pred":rc.pred,"obj":rc.selectedObj});
             $(`#${pos}`).val(rc.selectedObj);
         }
     });
 
-    //TODO: do the removes
+    let csvAdds = [];
+    _.each(allTableTriples().reqValue, cht =>{
+       if(cht.pred && cht.sub && cht.obj) csvAdds.push(cht);
+    });
+    //getCsvValidTriples
+    //
 
-    //TODO: update the table view
+    sessionStorage['csvRemoves'] = JSON.stringify(removes);
+    sessionStorage['csvAdds'] = csvAdds;
 
+    //TODO: Solve concurrent conflict issues!
+    /**
+     * that is when a user imports a csv, solves the conflicts but while he's doing so
+     * somebody else makes changes some of the current triples.
+     * So we keep bringing up conflict resolution until there's none left.
+     */
+    /*
+    if (JSON.parse(sessionStorage['hasConflict'])) {
+        let csvReq = getCsvValidTriples();
+        _.each(csvReq, cvt => {cvt.obj = '?'});
+        queryCsv({reqType: "qCsv", listenTo: false, reqValue: csvReq});
+    } else {
+        console.log("does not have conflict/s!");
+    }
+    */
 
 };
+
+const saveCsvTable = () =>{
+    applyChanges({
+        "reqType": "cChange",
+        "listenTo": true,
+        "reqValue": JSON.parse(sessionStorage['csvAdds'])
+    });
+    setTimeout(location.reload(), 2000);
+};
+
+const intervalCleanup = () =>{
+    /**
+     * REMOVE all the flashing stuff and unused intervals!
+     */
+    let confIntervals = JSON.parse(sessionStorage['confIntervals']);
+    if(confIntervals){
+        sessionStorage.setItem('confIntervals', JSON.stringify([]));
+        _.each(confIntervals, ci => {clearInterval(ci)})
+    }
+};
+
 
 
 

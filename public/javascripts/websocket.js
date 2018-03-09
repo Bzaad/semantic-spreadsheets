@@ -89,6 +89,8 @@ var handleSuccess = function(reqValue){
             if (trpl.pred === "has_row" || trpl.pred === "has_column" || trpl.pred === "has_value") return;
             if (trpl.ch === "-") trpl = {ta: "", ch: "-", sub: "", pred:"", obj:""};
             $("#" + findObjPosition(trpl)).val(trpl.obj);
+            console.log(trpl);
+            console.log(findObjPosition(trpl));
             $("#" + findObjPosition(trpl)).attr("data-pred", trpl.pred);
             $("#" + findObjPosition(trpl)).attr("data-sub", trpl.sub);
         });
@@ -120,14 +122,13 @@ var loadTable = function(tablesName){
 var listenerUpdate = function(reqValue){
     if(!JSON.parse(sessionStorage['listenerUpdate'])) return;
     _.each(reqValue, function(r){
-        console.log(r);
         if (r.ch === "-" && (r.pred === "has_row"|| r.pred === "has_column")){
             cleanRowColumn(r.pred, $("#" + _.last(r.obj.split("_"))).val());
             $("#" + _.last(r.obj.split("_"))).val("");
         } else if (r.pred === "has_value") {
             $("#" + _.last(r.sub.split("_"))).val(r.obj);
             queryObjects($("#" + _.last(r.sub.split("_"))).attr("data-cell-type"), r.obj);
-        } else if (r.pred !== "has_row" && r.pred !== "has_column"){
+        } else if (r.pred !== "has_row" && r.pred !== "has_column" && r.pred !== "has_type"){
             if (r.ch === "-"){
                 $("#" + findObjPosition(r)).val("");
             } else{
@@ -209,14 +210,14 @@ var testTriple = function(){
  * the same view of the table-graph.
  * TODO: Need to clean this up later. I'm sure this is not the best way of doing it
  */
-var allTableTriples = function(){
+const allTableTriples = () => {
 
     var currentPreds = [];
     var thisSub = "";
     var allTriples = [];
     var counter = 0;
 
-    allTriples.push({ta: "_", ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
+    allTriples.push({ta: "ts", ch: "e", sub: currentTableName, pred: "has_type", obj: "table" });
     $("input[type=cell]").each(function(){
         if ($(this).data().cellType === "pred"){
 
@@ -373,9 +374,4 @@ const queryCsv = csvReq => {
     //console.log(csvReq);
     websocket.send(JSON.stringify(csvReq));
 };
-
-const confSample = [
-    {sub: "sub1", pred: "pred1", Obj: {yours: "yours1", theirs:"theirs1", newObj: "new1"}},
-    {sub: "sub2", pred: "pred2", Obj: {yours: "yours2", theirs:"theirs2", newObj: "new2"}}
-];
 
