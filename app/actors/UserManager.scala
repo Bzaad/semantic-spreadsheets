@@ -115,6 +115,11 @@ object UserManager {
     p.actor ! Json.toJson(tables)
   }
 
+  def removeTable(p: PdObj): Unit ={
+    val message = PDStoreModel.removeTable(p)
+    p.actor ! Json.toJson(message)
+  }
+
   def queryAllTables(p: PdObj): Unit = {
     val pdQuery = new PdQuery("aTable", false, PDStoreModel.query(p).reqValue)
     p.actor ! Json.toJson(pdQuery)

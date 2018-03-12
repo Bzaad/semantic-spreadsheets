@@ -243,6 +243,27 @@ object PDStoreModel {
       }
     })
   }
+  def removeTable(pdc: PdObj): PdQuery ={
+
+    //TODO: concurrent access  invalidation is not implemented
+    for(t <- pdc.pdChangeList){
+      if (t.pred == "has_type" && t.obj == "table"){
+        val rows = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), v"row"), (v"row", store.getGUIDwithName("has_value"), v"value")).toList
+        val columns = store.query((store.getGUIDwithName(t.sub), store.getGUIDwithName("has_column"), v"column"), (v"column", store.getGUIDwithName("has_value"), v"value")).toList
+        for (r <- rows){
+          store.removeLink(store.getGUIDwithName(t.sub), store.getGUIDwithName("has_row"), r.get(v"row"))
+          store.removeLink(r.get(v"row"), store.getGUIDwithName("has_value"), r.get(v"value"))
+        }
+        for (c <- columns) {
+          store.removeLink(store.getGUIDwithName(t.sub), store.getGUIDwithName("has_colum"), c.get(v"column"))
+          store.removeLink(c.get(v"column"), store.getGUIDwithName("has_value"), c.get(v"value"))
+        }
+        store.removeLink(store.getGUIDwithName(t.sub), store.getGUIDwithName(t.pred), store.getGUIDwithName(t.obj));
+      }
+    }
+    Logger.error("table deleted!");
+    PdQuery("rTable", false, pdc.pdChangeList);
+  }
 
   def notifyListeningActors(pdcj: PdChangeJson): Unit ={
     var queryResult = ListBuffer.empty[PdChangeJson]

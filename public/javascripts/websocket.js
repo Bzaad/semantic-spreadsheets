@@ -29,6 +29,8 @@ var onMessage = function(evt) {
         case "cTabel":
             $('#add-table-modal').modal('hide');
             break;
+        case "rTable":
+            removeTableSuccsess(qData);
         case "cQuery":
             console.log(qData.reqValue);
             break;
@@ -261,37 +263,6 @@ var getAllTables = function(){
     });
 };
 
-
-//TODO: this!
-
-const createTablePicker = (allTables) => {
-    sessionStorage.setItem("allTables", JSON.stringify(allTables));
-    const tableSelectTemplate = new TableSelectTemplate(allTables);
-    $('#table-select').empty();
-    $('#table-select').append(tableSelectTemplate.getTemplate());
-    _.each($("[data-cell-type=table-card]"), tc => {
-        tc.onclick = () => {
-            location.href = `table/${tc.id}`;
-        };
-        $(`#ddown-menu-${tc.id}`).dropdown();
-        $(`#btn-remove-${tc.id}`).click((e) =>{
-            e.stopPropagation();
-            console.log(`btn-remove-${tc.id}`);
-            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
-        });
-        $(`#btn-rename-${tc.id}`).click((e) =>{
-            e.stopPropagation();
-            console.log(`btn-rename-${tc.id}`);
-            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
-        });
-        $(`#btn-new-tab-${tc.id}`).click((e) =>{
-            e.stopPropagation();
-            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
-            window.open(`${window.location.origin}/table/${tc.id}`);
-        });
-    });
-};
-
 var addEl = '<li ><a href="#add" class="add-table" data-toggle="modal" data-target="#add-table-modal"> + </a></li>';
 
 var currentTables = function(){
@@ -353,6 +324,24 @@ var loadObjectValues = function(message){
 var applyChanges = function(change){
     websocket.send(JSON.stringify(change));
 };
+const removeTable = tName =>{
+  console.log(`${tName} is being removed!`);
+    let change = {
+        "reqType" : "rTable",
+        "listenTo": false,
+        "reqValue" : [
+            {"ta": "ts", "ch" : "-", "sub" : tName, "pred": "has_type", "obj" : "table"}
+        ]
+    };
+    websocket.send(JSON.stringify(change));
+};
+
+const removeTableSuccsess = qData => {
+    //TODO: Are you sure alert for table delete!
+    //TODO: refresh the table list without page reload
+    console.log(qData);
+    location.reload();
+};
 
 var shareTable = function(){
     var link = "localhost:9000/table/" + currentTableName;
@@ -365,9 +354,7 @@ var heartBeat = function(){
         "listenTo": true,
         "reqValue": []
     };
-
     websocket.send(JSON.stringify(hb));
-
 };
 
 const queryCsv = csvReq => {

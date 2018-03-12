@@ -68,6 +68,8 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
               UserManager.queryAllTables(cBundle)
             case "cTable" =>
               UserManager.createTable(cBundle)
+            case "rTable" =>
+              UserManager.removeTable(cBundle)
             case "qTable" =>
               UserManager.queryTable(cBundle)
             case "cChange" =>

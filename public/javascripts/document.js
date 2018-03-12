@@ -61,6 +61,36 @@ var initDocument = function () {
 
 };
 
+//TODO: this!
+
+const createTablePicker = (allTables) => {
+    sessionStorage.setItem("allTables", JSON.stringify(allTables));
+    const tableSelectTemplate = new TableSelectTemplate(allTables);
+    $('#table-select').empty();
+    $('#table-select').append(tableSelectTemplate.getTemplate());
+    _.each($("[data-cell-type=table-card]"), tc => {
+        tc.onclick = () => {
+            location.href = `table/${tc.id}`;
+        };
+        $(`#ddown-menu-${tc.id}`).dropdown();
+        $(`#btn-remove-${tc.id}`).click((e) =>{
+            e.stopPropagation();
+            removeTable(tc.id);
+            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+        });
+        $(`#btn-rename-${tc.id}`).click((e) =>{
+            e.stopPropagation();
+            console.log(`btn-rename-${tc.id}`);
+            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+        });
+        $(`#btn-new-tab-${tc.id}`).click((e) =>{
+            e.stopPropagation();
+            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+            window.open(`${window.location.origin}/table/${tc.id}`);
+        });
+    });
+};
+
 const initSessionStorage = () => {
     sessionStorage.clear();
     sessionStorage.setItem('currentTables', JSON.stringify({tables: []}));
