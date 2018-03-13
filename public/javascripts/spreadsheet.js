@@ -1,8 +1,7 @@
 /**
  * Created by behzadfarokhi on 1/08/17.
  */
-var init = function () {
-    i = 0;
+const init = () => {
     initTable();        // from "table.js"
     initCellListeners();// from "table.js"
     initWebsocket();    // from "websocket.js"
@@ -15,11 +14,12 @@ var init = function () {
 
     // Load table using its url
     if (document.URL.split("/table/").length === 2){
-        loadTableTriples(document.URL.split("/table/")[1]);
+        let tName = document.URL.split("/table/")[1];
+        if(tName.substr(tName.length - 1) === "#") tName = tName.slice(0, -1);
+        loadTableTriples(tName);
         return;
     }
     //TODO: The previous version must be removed!
-
     getAllTables();
 };
 

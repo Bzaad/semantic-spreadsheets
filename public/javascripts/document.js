@@ -24,6 +24,7 @@ var initDocument = function () {
         bootstrap_alert.warning('Queried the <strong>Table!</strong>', 'danger', 4000);
         websocket.send(JSON.stringify(qTable));
     });
+    $("#navbar-csv-import").click(navbarCsvImport);
 
     $("#query-change").click(function () {
         bootstrap_alert.warning('Queried the <strong>Change!</strong>', 'danger', 4000);
