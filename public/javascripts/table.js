@@ -463,13 +463,10 @@ const applyCsvConflict = () => {
 
     let csvAdds = [];
     _.each(allTableTriples().reqValue, cht =>{
-       if(cht.pred && cht.sub && cht.obj) csvAdds.push(cht);
+       if(cht.pred && cht.sub && cht.obj) csvAdds.push({ta: "ts", ch: "+", sub: cht.sub, pred: cht.pred, obj: cht.obj});
     });
-    //getCsvValidTriples
-    //
-
     sessionStorage['csvRemoves'] = JSON.stringify(removes);
-    sessionStorage['csvAdds'] = csvAdds;
+    sessionStorage['csvAdds'] = JSON.stringify(csvAdds);
 
     //TODO: Solve concurrent conflict issues!
     /**
@@ -490,12 +487,28 @@ const applyCsvConflict = () => {
 };
 
 const saveCsvTable = () =>{
-    applyChanges({
+
+    //TODO: this function is horribly written! please re-write
+    let csvChanges = {
         "reqType": "cChange",
         "listenTo": true,
-        "reqValue": JSON.parse(sessionStorage['csvAdds'])
-    });
-    setTimeout(location.reload(), 2000);
+        "reqValue": []
+    };
+    let csvAdds = JSON.parse(sessionStorage['csvAdds']);
+    let csvRemoves = JSON.parse(sessionStorage['csvRemoves']);
+    if (csvRemoves.length > 0){
+        csvChanges.reqValue = JSON.parse(sessionStorage['csvRemoves']);
+        applyChanges(csvChanges);
+        sessionStorage['csvRemoves'] = JSON.stringify([]);
+        setTimeout(saveCsvTable(), 1000);
+    } else if (csvRemoves.length <= 0 && csvAdds.length > 0){
+        csvChanges.reqValue = JSON.parse(sessionStorage['csvAdds']);
+        applyChanges(csvChanges);
+        sessionStorage['csvAdds'] = JSON.stringify([]);
+        setTimeout(saveCsvTable(), 1000);
+    } else if (csvRemoves.length <= 0 && csvAdds.length <= 0) {
+        setTimeout(location.reload(), 1000);
+    }
 };
 
 const intervalCleanup = () =>{
