@@ -76,8 +76,8 @@ const createTablePicker = (allTables) => {
         $(`#ddown-menu-${tc.id}`).dropdown();
         $(`#btn-remove-${tc.id}`).click((e) =>{
             e.stopPropagation();
-            removeTable(tc.id);
             $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+            areYouSureRemove(tc.id);
         });
         $(`#btn-rename-${tc.id}`).click((e) =>{
             e.stopPropagation();
@@ -103,4 +103,14 @@ const initSessionStorage = () => {
     sessionStorage.setItem('confIntervals', JSON.stringify([]));
     sessionStorage.setItem('csvAdds', JSON.stringify([]));
     sessionStorage.setItem('csvRemoves', JSON.stringify([]));
+};
+
+const areYouSureRemove = ttId => {
+    $("#warn-ok").text("Remove");
+    $("#warn-ok").unbind();
+    $("#warn-ok").bind("click",  _.partial(removeTable, ttId));
+    $("#warn-header").text("Confirm Remove");
+    $("#warn-message").text(`Are you sure you want to remove "${ttId}" ?`);
+    $("#ddown-").dropdown("toggle");
+    $("#warn-modal").modal('toggle');
 };

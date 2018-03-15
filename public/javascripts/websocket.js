@@ -337,10 +337,8 @@ const removeTable = tName =>{
 };
 
 const removeTableSuccsess = qData => {
-    //TODO: Are you sure alert for table delete!
-    //TODO: refresh the table list without page reload
-    console.log(qData);
-    location.reload();
+    $(`#${qData.reqValue[0].sub}`).parent('div').remove();
+    bootstrap_alert.warning(`<strong>${qData.reqValue[0].sub}</strong> has been removed successfully!` , 'danger', 4000);
 };
 
 var shareTable = function(){
