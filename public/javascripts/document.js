@@ -17,9 +17,6 @@ var initDocument = function () {
     $("#load-file-button").click(loadCsvFile);
     $("#apply-csv-conflict").click(applyCsvConflict);
     $("#save-csv-table").click(saveCsvTable);
-    $("#new-table").click( e =>{
-        $("#add-table-modal").modal('toggle');
-    });
     $("#query-table").click(function () {
         bootstrap_alert.warning('Queried the <strong>Table!</strong>', 'danger', 4000);
         websocket.send(JSON.stringify(qTable));
@@ -69,6 +66,10 @@ const createTablePicker = (allTables) => {
     const tableSelectTemplate = new TableSelectTemplate(allTables);
     $('#table-select').empty();
     $('#table-select').append(tableSelectTemplate.getTemplate());
+
+    $('#new-table').click(e => {
+        $("#add-table-modal").modal('toggle');
+    });
     _.each($("[data-cell-type=table-card]"), tc => {
         tc.onclick = () => {
             location.href = `table/${tc.id}`;
@@ -88,6 +89,11 @@ const createTablePicker = (allTables) => {
             e.stopPropagation();
             $(`#ddown-menu-${tc.id}`).dropdown('toggle');
             window.open(`${window.location.origin}/table/${tc.id}`);
+        });
+        $(`#btn-export-${tc.id}`).click((e) =>{
+            e.stopPropagation();
+            $(`#ddown-menu-${tc.id}`).dropdown('toggle');
+            console.log("exporting as CSV");
         });
     });
 };
