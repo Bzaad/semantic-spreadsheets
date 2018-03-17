@@ -64,6 +64,8 @@ var onMessage = function(evt) {
 
 var displayTable = function(reqValue){
     if (reqValue.length < 1) return;
+    //Creating the CSV and storing it in the session storage by default
+    tableToCsv(reqValue);
     _.each(reqValue, function(rv){
         if(rv.pred === "has_type" && rv.obj === "table") {
             return;

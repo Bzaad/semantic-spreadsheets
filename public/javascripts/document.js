@@ -88,12 +88,13 @@ const createTablePicker = (allTables) => {
         $(`#btn-new-tab-${tc.id}`).click((e) =>{
             e.stopPropagation();
             $(`#ddown-menu-${tc.id}`).dropdown('toggle');
-            window.open(`${window.location.origin}/table/${tc.id}`);
+            let win = window.open(`${window.location.origin}/table/${tc.id}`, '_blank');
+            win.focus();
         });
         $(`#btn-export-${tc.id}`).click((e) =>{
             e.stopPropagation();
             $(`#ddown-menu-${tc.id}`).dropdown('toggle');
-            console.log("exporting as CSV");
+            requestExportCsv(tc.id);
         });
     });
 };
@@ -120,3 +121,4 @@ const areYouSureRemove = ttId => {
     $("#ddown-").dropdown("toggle");
     $("#warn-modal").modal('toggle');
 };
+
