@@ -22,6 +22,7 @@ var initDocument = function () {
         websocket.send(JSON.stringify(qTable));
     });
     $("#navbar-csv-import").click(navbarCsvImport);
+    $("#navbar-csv-export").click(navbarCsvExport);
 
     $("#query-change").click(function () {
         bootstrap_alert.warning('Queried the <strong>Change!</strong>', 'danger', 4000);
@@ -110,6 +111,7 @@ const initSessionStorage = () => {
     sessionStorage.setItem('confIntervals', JSON.stringify([]));
     sessionStorage.setItem('csvAdds', JSON.stringify([]));
     sessionStorage.setItem('csvRemoves', JSON.stringify([]));
+    sessionStorage.setItem('currentTableName', "");
 };
 
 const areYouSureRemove = ttId => {

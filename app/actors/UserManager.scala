@@ -106,6 +106,12 @@ object UserManager {
     val pdChangeListen = queryResult.reqValue ++ p.pdChangeList
   }
 
+  def exportCsv(p: PdObj): Unit = {
+    val queryResult = PdQuery("exportCsv", false, PDStoreModel.queryTable(p).reqValue)
+    p.actor ! Json.toJson(queryResult)
+    //val pdChangeListen = queryResult.reqValue ++ p.pdChangeList
+  }
+
   /**
     * create the table and send the result back to the actor.
     * @param p

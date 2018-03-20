@@ -1,24 +1,32 @@
 const requestExportCsv = tId =>{
-    loadTableTriples(tId);
+    getTriplesForCsv(tId);
 };
 
-const tableToCsv = tableTriples => {
+const tableToCsv = (tableTriples, single) => {
     let rows = [];
     let columns = [];
     let subPreVals = [];
     let objVals = [];
+    let fileName = [];
     _.each(tableTriples, tt => {
-        if (tt.pred === "has_row"){
+        if (tt.pred === "has_row")
             rows.push(_.last(_.split(tt.obj, "_")).match(/[a-zA-Z]+|[0-9]+/g));
-        } else if (tt.pred === "has_column"){
+        else if (tt.pred === "has_column")
             columns.push(_.last(_.split(tt.obj, "_")).match(/[a-zA-Z]+|[0-9]+/g));
-        }  else if (tt.pred === "has_value"){
+        else if (tt.pred === "has_value")
             subPreVals.push({"cell": _.last(_.split(tt.sub, "_")), "val": tt.obj});
-        } else {
-            objVals.push({"sub": tt.sub, "pred":tt.pred, "obj":tt.obj });
+        else if (tt.pred === "has_type" && tt.obj === "table")
+            fileName = tt.sub;
+        else {
+            objVals.push({"sub": tt.sub, "pred": tt.pred, "obj": tt.obj});
         }
     });
-    if (rows.length < 1 || columns.length < 1) return;
+    if (rows.length < 1 || columns.length < 1){
+         if(single)
+             console.log("table is empty");
+         else
+             console.log("one of the tables is empty!");
+    }
     let rowNums = [];
     let colNums = [];
     _.each(_.flatten(rows), r => {
@@ -59,11 +67,12 @@ const tableToCsv = tableTriples => {
         data.push(tempRow);
     }
 
-    let testInput = {
+    let dataInput = {
         fields: fileds,
         data: data
     };
 
-    let csv = Papa.unparse(testInput);
-    console.log(csv);
+    let csv = Papa.unparse(dataInput);
+    let blob = new Blob([csv], {type: "data:text/csv;charset=utf-8;"});
+    saveAs(blob,fileName + ".csv");
 };

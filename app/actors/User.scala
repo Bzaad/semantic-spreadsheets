@@ -78,6 +78,8 @@ class User(userName: String, theActor: ActorRef) extends Actor with ActorLogging
               UserManager.queryPdChange(cBundle)
             case "qCsv" =>
               UserManager.queryCsv(cBundle)
+            case "csvExport"=>
+              UserManager.exportCsv(cBundle)
             case "listen" =>
               listenToPattern(cBundle)
             case "tableTriples" =>
