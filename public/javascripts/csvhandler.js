@@ -73,6 +73,26 @@ const tableToCsv = (tableTriples, single) => {
     };
 
     let csv = Papa.unparse(dataInput);
+
     let blob = new Blob([csv], {type: "data:text/csv;charset=utf-8;"});
-    saveAs(blob,fileName + ".csv");
+
+    //let zipData = new ArrayBuffer();
+
+    let zip = new JSZip();
+    var zFolder = zip.folder("All_tables");
+    zFolder.file("textTable.csv", csv);
+
+    //saveAs(blob,fileName + ".csv");
+    zip.generateAsync({type:"blob"})
+        .then(function(content) {
+            // see FileSaver.js
+            saveAs(content, "example.zip");
+        });
+
+    /*
+    var zip = new JSZip();
+    zip.file("Hello.txt", "Hello World\n");
+    var img = zip.folder("images");
+    img.file("smile.gif", imgData, {base64: true});
+    */
 };
