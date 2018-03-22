@@ -22,7 +22,8 @@ var initDocument = function () {
         websocket.send(JSON.stringify(qTable));
     });
     $("#navbar-csv-import").click(navbarCsvImport);
-    $("#navbar-csv-export").click(navbarCsvExport);
+    $("#navbar-csv-export-single").click(navbarCsvExport);
+    $("#navbar-csv-export-multi").click(navbarCsvExportMulti);
 
     $("#query-change").click(function () {
         bootstrap_alert.warning('Queried the <strong>Change!</strong>', 'danger', 4000);

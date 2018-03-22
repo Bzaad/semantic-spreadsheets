@@ -377,7 +377,7 @@ var heartBeat = function(){
 };
 
 const queryCsv = csvReq => {
-    //console.log(csvReq);
     websocket.send(JSON.stringify(csvReq));
 };
+
 

@@ -73,7 +73,8 @@ const tableToCsv = (tableTriples, single) => {
     };
 
     let csv = Papa.unparse(dataInput);
-
+    console.log(csv);
+    /*
     let blob = new Blob([csv], {type: "data:text/csv;charset=utf-8;"});
 
     //let zipData = new ArrayBuffer();
@@ -88,6 +89,7 @@ const tableToCsv = (tableTriples, single) => {
             // see FileSaver.js
             saveAs(content, "example.zip");
         });
+        */
 
     /*
     var zip = new JSZip();
@@ -95,4 +97,18 @@ const tableToCsv = (tableTriples, single) => {
     var img = zip.folder("images");
     img.file("smile.gif", imgData, {base64: true});
     */
+};
+
+const navbarCsvExportMulti = () => {
+    if(!sessionStorage["exportedTables"]){
+        let allTablesToExport = [];
+        _.each(JSON.parse(sessionStorage["allTables"]), t =>{
+            allTablesToExport.push(t.sub);
+        });
+        sessionStorage["tablesToExport"] =  JSON.stringify(allTablesToExport)
+    }
+    _.each(JSON.parse(sessionStorage["tablesToExport"]), tName => {
+        getTriplesForCsv(tName);
+    });
+
 };
