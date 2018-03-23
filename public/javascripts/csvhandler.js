@@ -1,8 +1,25 @@
-const requestExportCsv = tId =>{
-    getTriplesForCsv(tId);
+const requestExportCsv = tables =>{
+    getTriplesForCsv(tables);
 };
 
-const tableToCsv = (tableTriples, single) => {
+const allTablesToCsv = (allCsvTables) => {
+    let rawCsvData = [];
+    _.each(allCsvTables, act =>{
+        rawCsvData.push({"name": act.tableName, "csv": tableToCsv(act.tableTriples)});
+    });
+    if(rawCsvData.length === 1){
+        let blob = new Blob([Papa.unparse(rawCsvData[0].csv)], {type: "data:text/csv;charset=utf-8;"});
+        saveAs(blob, rawCsvData[0].name + ".csv");
+    } else if (rawCsvData.length > 1){
+        let zip = new JSZip();
+        _.each(rawCsvData, rcd => {
+            zip.file(rcd.name + ".csv", Papa.unparse(rcd.csv));
+        });
+        zip.generateAsync({type:"blob"}).then(content => saveAs(content, "tables.zip"));
+    }
+};
+
+const tableToCsv = (tableTriples) => {
     let rows = [];
     let columns = [];
     let subPreVals = [];
@@ -17,16 +34,9 @@ const tableToCsv = (tableTriples, single) => {
             subPreVals.push({"cell": _.last(_.split(tt.sub, "_")), "val": tt.obj});
         else if (tt.pred === "has_type" && tt.obj === "table")
             fileName = tt.sub;
-        else {
+        else
             objVals.push({"sub": tt.sub, "pred": tt.pred, "obj": tt.obj});
-        }
     });
-    if (rows.length < 1 || columns.length < 1){
-         if(single)
-             console.log("table is empty");
-         else
-             console.log("one of the tables is empty!");
-    }
     let rowNums = [];
     let colNums = [];
     _.each(_.flatten(rows), r => {
@@ -35,7 +45,6 @@ const tableToCsv = (tableTriples, single) => {
     _.each(_.flatten(columns), c =>{
        if(isNaN(c)) colNums.push(_.indexOf(alphabet, c.toLowerCase()));
     });
-
     let fileds = [];
     let data = [];
     for(i = 0; i <= _.max(colNums); i++){
@@ -43,7 +52,6 @@ const tableToCsv = (tableTriples, single) => {
         if (fVal.length != 1) fileds.push("");
         else fileds.push(fVal[0].val);
     }
-
     for(i=1; i<_.max(rowNums); i++){
         let tempRow = [];
         let dVal = _.filter(subPreVals, {cell: "A"+(i+1)});
@@ -66,49 +74,14 @@ const tableToCsv = (tableTriples, single) => {
         }
         data.push(tempRow);
     }
-
-    let dataInput = {
+    return {
         fields: fileds,
         data: data
     };
-
-    let csv = Papa.unparse(dataInput);
-    console.log(csv);
-    /*
-    let blob = new Blob([csv], {type: "data:text/csv;charset=utf-8;"});
-
-    //let zipData = new ArrayBuffer();
-
-    let zip = new JSZip();
-    var zFolder = zip.folder("All_tables");
-    zFolder.file("textTable.csv", csv);
-
-    //saveAs(blob,fileName + ".csv");
-    zip.generateAsync({type:"blob"})
-        .then(function(content) {
-            // see FileSaver.js
-            saveAs(content, "example.zip");
-        });
-        */
-
-    /*
-    var zip = new JSZip();
-    zip.file("Hello.txt", "Hello World\n");
-    var img = zip.folder("images");
-    img.file("smile.gif", imgData, {base64: true});
-    */
 };
 
 const navbarCsvExportMulti = () => {
-    if(!sessionStorage["exportedTables"]){
-        let allTablesToExport = [];
-        _.each(JSON.parse(sessionStorage["allTables"]), t =>{
-            allTablesToExport.push(t.sub);
-        });
-        sessionStorage["tablesToExport"] =  JSON.stringify(allTablesToExport)
-    }
-    _.each(JSON.parse(sessionStorage["tablesToExport"]), tName => {
-        getTriplesForCsv(tName);
-    });
-
+    let allTableNames = [];
+    _.each(JSON.parse(sessionStorage["allTables"]),t=>{allTableNames.push(t.sub)});
+    requestExportCsv(allTableNames);
 };

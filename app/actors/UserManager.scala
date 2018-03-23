@@ -1,10 +1,11 @@
 package actors
 
 import akka.actor.ActorRef
-import models.{PDStoreModel, PdChangeJson, PdQuery, PdObj, LTriple}
+import models._
 import play.api.Logger
 import play.api.libs.json.Json
-import scala.collection.mutable.Set
+
+import scala.collection.mutable.{Set, ListBuffer}
 
 /**
   * Created by behzadfarokhi on 8/08/17.
@@ -105,13 +106,13 @@ object UserManager {
     p.actor ! Json.toJson(queryResult)
     val pdChangeListen = queryResult.reqValue ++ p.pdChangeList
   }
-
-  def exportCsv(p: PdObj): Unit = {
-    val queryResult = PdQuery("exportCsv", false, PDStoreModel.queryTable(p).reqValue)
-    p.actor ! Json.toJson(queryResult)
-    //val pdChangeListen = queryResult.reqValue ++ p.pdChangeList
+  def exportCsv(pdObj: PdObj): Unit = {
+    var csvTableList = ListBuffer[CsvTable]()
+    for (p <- pdObj.pdChangeList){
+       csvTableList += CsvTable(p.sub, PDStoreModel.queryTable(new PdObj(List(p), pdObj.actor, pdObj.listenTo)).reqValue)
+    }
+    pdObj.actor ! Json.toJson(CsvPdQuery("exportCsv", false, csvTableList.toList))
   }
-
   /**
     * create the table and send the result back to the actor.
     * @param p

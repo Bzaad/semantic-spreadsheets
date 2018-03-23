@@ -47,7 +47,7 @@ var onMessage = function(evt) {
             displayTable(qData.reqValue);
             break;
         case "exportCsv":
-            tableToCsv(qData.reqValue, true);
+            allTablesToCsv(qData.reqValue);
             break;
         case "failure":
             handleFailure(qData.reqValue);
@@ -308,21 +308,12 @@ var loadTableTriples = function(tableName){
     });
 };
 
-const getTriplesForCsv = tableName => {
-    var csvTable = {
-        "reqType" : "csvExport",
-        "listenTo": false,
-        "reqValue": [
-            {
-                "ta"  : "ts",
-                "ch"  : "e",
-                "sub" : tableName,
-                "pred": "has_type",
-                "obj" : "table"
-            }
-        ]
-    };
-    websocket.send(JSON.stringify(csvTable));
+const getTriplesForCsv = tableNameList => {
+    let reqTablesCsv = [];
+    _.each(tableNameList, tnl =>{
+        reqTablesCsv.push({"ta": "ts", "ch": "e", "sub": tnl, "pred":"has_type", "obj":"table"});
+    });
+    websocket.send(JSON.stringify({"reqType":"csvExport", "listenTo": false, "reqValue": reqTablesCsv}));
 };
 
 var waitForSocketReady = function(socket, callBack){

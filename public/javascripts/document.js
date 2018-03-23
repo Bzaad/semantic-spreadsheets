@@ -96,7 +96,7 @@ const createTablePicker = (allTables) => {
         $(`#btn-export-${tc.id}`).click((e) =>{
             e.stopPropagation();
             $(`#ddown-menu-${tc.id}`).dropdown('toggle');
-            requestExportCsv(tc.id);
+            requestExportCsv([tc.id]);
         });
     });
 };
