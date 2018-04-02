@@ -25,9 +25,12 @@ libraryDependencies += guice
 
 //WebJars Dependencies
 libraryDependencies += "org.webjars" %% "webjars-play" % "2.6.0"
-libraryDependencies += "org.webjars" % "jquery" % "3.2.1"
+libraryDependencies += "org.webjars" % "jquery" % "3.3.1"
+libraryDependencies += "org.webjars.bower" % "jquery" % "1.8.0"
 libraryDependencies += "org.webjars" % "jquery-ui" % "1.12.1"
 libraryDependencies += "org.webjars" % "bootstrap" % "3.3.7-1"
 libraryDependencies += "org.webjars.bower" % "lodash" % "4.17.4"
 libraryDependencies += "org.webjars" % "momentjs" % "2.18.1"
 libraryDependencies += "org.webjars.bower" % "papaparse" % "4.3.6"
+libraryDependencies += "org.webjars.bower" % "bootstrap-select" % "1.12.4"
+
