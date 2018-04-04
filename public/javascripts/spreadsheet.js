@@ -16,6 +16,7 @@ const init = () => {
     if (document.URL.split("/table/").length === 2){
         let tName = document.URL.split("/table/")[1];
         if(tName.substr(tName.length - 1) === "#") tName = tName.slice(0, -1);
+        sessionStorage['currentTableName'] = tName;
         loadTableTriples(tName);
         return;
     }

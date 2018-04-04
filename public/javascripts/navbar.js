@@ -1,6 +1,4 @@
 const navbarCsvImport = () => {
-    //TODO: check if table is empty
-    //TODO: if not prompt user about the table needing to be empty!
     let values = [];
     _.each(allTableTriples().reqValue, cht =>{
         if(cht.sub && cht.pred && cht.obj && cht.pred !== "has_type" && cht.obj !== "table") values.push(cht);
@@ -14,8 +12,8 @@ const navbarCsvImport = () => {
     }
 };
 
-const navBarCsvExport = () => {
-
+const navbarCsvExport = () => {
+    if(sessionStorage["currentTableName"]) requestExportCsv(sessionStorage["currentTableName"]);
 };
 
 const navBarEditToggle = () => {
