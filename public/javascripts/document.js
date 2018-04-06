@@ -5,6 +5,7 @@
 
 var initDocument = function () {
     initSessionStorage();
+    initGetAllTables();
     $("#connect-ws").click(connectWs);
     $("#disconnect-ws").click(disconnectWs);
     $("#submit-query").click(submitQuery);
@@ -30,6 +31,8 @@ var initDocument = function () {
         qChange.reqValue = _.uniqWith(qChange.reqValue, _.isEqual);
         websocket.send(JSON.stringify(qChange));
     });
+
+    $("#exp-mult-csv").click(getMultiCsv);
 
     //$('#add-table-modal').on('shown.bs.modal', getAllTables);
 
@@ -63,9 +66,14 @@ var initDocument = function () {
 
 //TODO: this!
 
-const createTablePicker = (allTables) => {
-    sessionStorage.setItem("allTables", JSON.stringify(allTables));
-    const tableSelectTemplate = new TableSelectTemplate(allTables);
+const storeAllTables = allTables => {
+    localStorage.setItem("allTables", JSON.stringify(allTables));
+    if(!sessionStorage["currentTableName"])
+        createTablePicker();
+};
+
+const createTablePicker = () => {
+    const tableSelectTemplate = new TableSelectTemplate(JSON.parse(localStorage["allTables"]));
     $('#table-select').empty();
     $('#table-select').append(tableSelectTemplate.getTemplate());
 
@@ -103,8 +111,9 @@ const createTablePicker = (allTables) => {
 
 const initSessionStorage = () => {
     sessionStorage.clear();
+    localStorage.clear();
     sessionStorage.setItem('currentTables', JSON.stringify({tables: []}));
-    sessionStorage.setItem('allTables', JSON.stringify({tables: []}));
+    localStorage.setItem('allTables', JSON.stringify({tables: []}));
     sessionStorage.setItem('listenerUpdate', JSON.stringify(true));
     sessionStorage.setItem('csvConflicts', JSON.stringify([]));
     sessionStorage.setItem('ResConf', JSON.stringify({}));
@@ -123,5 +132,9 @@ const areYouSureRemove = ttId => {
     $("#warn-message").text(`Are you sure you want to remove "${ttId}" ?`);
     $("#ddown-").dropdown("toggle");
     $("#warn-modal").modal('toggle');
+};
+
+const initGetAllTables = () => {
+    getAllTables();
 };
 

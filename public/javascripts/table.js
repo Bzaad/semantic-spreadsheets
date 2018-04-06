@@ -298,7 +298,7 @@ const loadCsvFile = () => {
         });
     });
     _.each(INPUTS, (inp)=>{
-        let i = $(inp)
+        let i = $(inp);
         if(i.val() && i.attr('data-cell-type') === 'obj'){
             let sp = getSubPred(i.attr('id'));
             if (!sp.sub || !sp.pred) i.attr('class', 'no-sub-pred-warn');

@@ -24,7 +24,7 @@ var onMessage = function(evt) {
 
     switch (qData.reqType){
         case "aTable":
-            createTablePicker(qData.reqValue);
+            storeAllTables(qData.reqValue);
             break;
         case "cTabel":
             $('#add-table-modal').modal('hide');
@@ -175,7 +175,7 @@ var connectWs = function(){
 
 var createTable = function(){
 
-    const act = JSON.parse(sessionStorage['allTables']);
+    const act = JSON.parse(localStorage['allTables']);
     let allowCreation = true;
 
     if(!$("#table-name").val()){

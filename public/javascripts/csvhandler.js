@@ -81,7 +81,17 @@ const tableToCsv = (tableTriples) => {
 };
 
 const navbarCsvExportMulti = () => {
-    let allTableNames = [];
-    _.each(JSON.parse(sessionStorage["allTables"]),t=>{allTableNames.push(t.sub)});
-    requestExportCsv(allTableNames);
+    $('.selectpicker').empty();
+    $("#export-table-modal").modal('toggle');
+    _.each(JSON.parse(localStorage["allTables"]), tn => {
+        $('.selectpicker').append(`<option>${tn.sub}</option>`);
+    });
+    $('.selectpicker').selectpicker('refresh');
+
+};
+
+const getMultiCsv = () => {
+    if ($('.selectpicker').val())
+        requestExportCsv($('.selectpicker').val());
+    $("#export-table-modal").modal('toggle');
 };
