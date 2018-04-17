@@ -80,6 +80,10 @@ const tableToCsv = (tableTriples) => {
     };
 };
 
+const navbarCsvExport = () => {
+    if(sessionStorage["currentTableName"]) requestExportCsv([sessionStorage["currentTableName"]]);
+};
+
 const navbarCsvExportMulti = () => {
     $('.selectpicker').empty();
     $("#export-table-modal").modal('toggle');
@@ -87,7 +91,6 @@ const navbarCsvExportMulti = () => {
         $('.selectpicker').append(`<option>${tn.sub}</option>`);
     });
     $('.selectpicker').selectpicker('refresh');
-
 };
 
 const getMultiCsv = () => {

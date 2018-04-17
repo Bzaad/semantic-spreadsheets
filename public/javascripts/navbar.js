@@ -12,9 +12,6 @@ const navbarCsvImport = () => {
     }
 };
 
-const navbarCsvExport = () => {
-    if(sessionStorage["currentTableName"]) requestExportCsv(sessionStorage["currentTableName"]);
-};
 
 const navBarEditToggle = () => {
 
