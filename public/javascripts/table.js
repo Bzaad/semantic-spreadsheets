@@ -88,7 +88,7 @@ var initCellListeners = function(){
                 }else if (targetType === "obj"){
                     var subPred = getSubPred(targetId);
                     if (!subPred.sub || !subPred.pred){
-                        $("#" + targetId).val("")
+                        $("#" + targetId).val("");
                         return;
                     }
                     var cellVal = {"ta"  : "ts", "ch"  : "+", "sub" : subPred.sub, "pred": subPred.pred, "obj" : cellAfter};
@@ -241,10 +241,16 @@ const loadCsv = (e) => {
         $('#file-name').text(`files with "${fileExt}" extention are not supported!` );
         $('#file-name').css({'color' : 'red'});
         $('#load-file-button').prop({'disabled':true});
+        $('#import-table-name').prop('disabled', true);
+        if(!sessionStorage["currentTableName"]) $('#import-table-name').val("");
         return;
     }
     $('#file-name').css({'color' : 'black'});
     $('#file-name').text(fileName);
+    if(!sessionStorage["currentTableName"]){
+        $('#import-table-name').val(_.join(_.dropRight(fileName.split(/[\s,.]+/)),"_"));
+        $('#import-table-name').prop('disabled', false);
+    }
     $('#load-file-button').prop({'disabled':false});
     let reader = new FileReader();
     reader.readAsText(csvFile);
@@ -282,14 +288,21 @@ const processData = (csv) => {
 };
 
 $('#load-file').on('shown.bs.modal', function () {
+    $('#import-table-name').val("");
+    if(sessionStorage['currentTableName'])
+        $('#import-table-name').val(sessionStorage['currentTableName']);
     $('#file-size-warning').text('');
     $('#load-file-button').prop({'disabled':true});
+    $('#import-table-name').prop('disabled', true);
     $('#file-name').css({'color' : 'red'});
     $('#file-name').text('No file selected!');
 });
 
 const loadCsvFile = () => {
     const csvData = JSON.parse(sessionStorage['csvTable']).data;
+
+    //TODO: check if we are in the table if we are then do the load
+    //TODO: else load csv data into session storage, create a new table, open the table in a new tab, then load the data.
     const alpIds = genPredAdress('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 2);
     _.each(csvData, (row, i)=>{
         if (i === 0) row[0] = '';

@@ -8,17 +8,23 @@
                 <h3 class="modal-title" id="upload-csv-modal">Upload a CSV File</h3>
             </div>
             <div class="modal-body">
-                        Select a file to load:<br>
-                <label for="csv-file" class="btn3d btn btn-primary" style="margin: 10px 0px">
-                                Select CSV File
-                </label>
-                <input type="file" id="csv-file" style="display: none"/>
+                <label for="worksheet-label" class="control-label"> File Name:</label>
                 <p id="file-name"></p>
                 <p id="file-size-warning" style="color: red"></p>
+                <form>
+                    <div class="form-group">
+                        <label for="worksheet-label" class="control-label"> Table Name:</label>
+                        <input class="form-control" type="text" name="import-table-name" style="text-align: left" id="import-table-name"/>
                     </div>
+                </form>
+            </div>
                 <div class="modal-footer">
                 <button type="button" class="btn3d btn btn-danger" data-dismiss="modal">Close</button>
-                <button id="load-file-button" type="button" class="btn3d btn btn-primary" data-dismiss="modal" style="margin-top: 0px">Load CSV</button>
+                <label for="csv-file" class="btn3d btn btn-primary" style="margin: 10px 0px">
+                    Select CSV File
+                </label>
+                <input type="file" id="csv-file" style="display: none"/>
+                <button id="load-file-button" type="button" class="btn3d btn btn-primary" data-dismiss="modal" style="margin-top: 10px">Load CSV</button>
             </div>
         </div>
     </div>
