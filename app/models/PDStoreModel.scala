@@ -42,7 +42,11 @@ object PDStoreModel {
           store.commit
         }
       } else if (p.sub != "?" && p.obj == "?") {
-        actorsAndTheirTriples(pdObj.actor) = actorsAndTheirTriples(pdObj.actor) += p
+        if (actorsAndTheirTriples.exists(x => x._1.equals(pdObj.actor))) {
+          actorsAndTheirTriples(pdObj.actor) = actorsAndTheirTriples(pdObj.actor) += p
+        } else {
+          actorsAndTheirTriples += (pdObj.actor -> (mutable.Set(p)))
+        }
         val qResult = store.query((store.getGUIDwithName(p.sub), store.getGUIDwithName(p.pred), v"x"))
         while (qResult.hasNext) {
           val t = store.begin

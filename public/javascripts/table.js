@@ -23,6 +23,7 @@ var initTable = function(){
     }
     $("#A1").prop("disabled", true);
     $('#A1').css("background-color", "#ccc");
+
 };
 
 const resizableCell = (el, factor) =>{
@@ -234,6 +235,7 @@ var cleanRowColumn = function(targetType, cellBefore){
 
 const loadCsv = (e) => {
     e.preventDefault();
+    if (e.target.files.length === 0) return;
     let csvFile = e.target.files[0];
     let fileName = csvFile.name;
     let fileExt = fileName.split('.').pop();
@@ -284,7 +286,7 @@ const processData = (csv) => {
         }
     });
     $('#file-size-warning').text('');
-    sessionStorage.setItem("csvTable", JSON.stringify(Papa.parse(csv)));
+    localStorage.setItem("csvTable", JSON.stringify(Papa.parse(csv)));
 };
 
 $('#load-file').on('shown.bs.modal', function () {
@@ -299,8 +301,18 @@ $('#load-file').on('shown.bs.modal', function () {
 });
 
 const loadCsvFile = () => {
-    const csvData = JSON.parse(sessionStorage['csvTable']).data;
+    let currentLocaion = window.location.href.split("http://localhost:9000/")[1];
+    if (currentLocaion === "sp" || currentLocaion === "sp#"){
+        //TODO: create table and load!
+        createNewTable("true");
+        localStorage["csvBeingImported"] = true;
+    } else {
+        feedCsvData();
+    }
+};
 
+const feedCsvData = () => {
+    const csvData = JSON.parse(localStorage['csvTable']).data;
     //TODO: check if we are in the table if we are then do the load
     //TODO: else load csv data into session storage, create a new table, open the table in a new tab, then load the data.
     const alpIds = genPredAdress('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 2);
@@ -520,7 +532,11 @@ const saveCsvTable = () =>{
         sessionStorage['csvAdds'] = JSON.stringify([]);
         setTimeout(saveCsvTable(), 1000);
     } else if (csvRemoves.length <= 0 && csvAdds.length <= 0) {
-        setTimeout(location.reload(), 1000);
+        setTimeout(function(){
+            localStorage["csvBeingImported"] = JSON.parse(false);
+            localStorage["csvTable"] = JSON.parse({});
+            location.reload()
+        }, 1000);
     }
 };
 

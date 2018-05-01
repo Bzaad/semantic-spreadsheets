@@ -9,7 +9,7 @@ var initDocument = function () {
     $("#connect-ws").click(connectWs);
     $("#disconnect-ws").click(disconnectWs);
     $("#submit-query").click(submitQuery);
-    $("#create-table").click(createTable);
+    $("#create-table").click(function(){createNewTable(false)});
     $("#clear-query").click(clearQuery);
     $("#test-triple").click(testTriple);
     $("#table-triples").click(allTableTriples);
@@ -111,17 +111,19 @@ const createTablePicker = () => {
 
 const initSessionStorage = () => {
     sessionStorage.clear();
-    localStorage.clear();
     sessionStorage.setItem('currentTables', JSON.stringify({tables: []}));
     localStorage.setItem('allTables', JSON.stringify({tables: []}));
     sessionStorage.setItem('listenerUpdate', JSON.stringify(true));
     sessionStorage.setItem('csvConflicts', JSON.stringify([]));
     sessionStorage.setItem('ResConf', JSON.stringify({}));
-    sessionStorage.setItem('csvTable', JSON.stringify([]));
     sessionStorage.setItem('confIntervals', JSON.stringify([]));
     sessionStorage.setItem('csvAdds', JSON.stringify([]));
     sessionStorage.setItem('csvRemoves', JSON.stringify([]));
     sessionStorage.setItem('currentTableName', "");
+    if (!localStorage["csvBeingImported"]){
+        localStorage.clear();
+        sessionStorage.setItem('csvTable', JSON.stringify([]));
+    }
 };
 
 const areYouSureRemove = ttId => {

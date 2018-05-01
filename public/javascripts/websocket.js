@@ -8,7 +8,16 @@ var initWebsocket = function(){
     websocket.onclose = function(evt) { onClose(evt) };
     websocket.onmessage = function(evt) { onMessage(evt) };
     websocket.onerror = function(evt) { onError(evt) };
-
+    if(function () {
+        try {
+            JSON.parse(localStorage["csvBeingImported"]);
+        } catch(e) {
+            return false;
+        }
+        return true;
+    }){
+        waitForSocketReady(websocket, feedCsvData);
+    }
 };
 
 var onOpen =function(evt) {
@@ -87,8 +96,13 @@ var handleSuccess = function(reqValue){
     if (reqValue.length < 1) return;
     var message = 'Request has a <strong> success </strong> result!';
     if (reqValue.length === 1 && reqValue[0].obj === "table"){
+        if(!localStorage["csvBeingImported"]){
             message =  'A table with the name <strong>' + reqValue[0].sub + '</strong> was created!';
             loadTable(reqValue[0].sub);
+        } else{
+            window.open(window.location.href.split("sp")[0] + "table/" + reqValue[0].sub)
+        }
+
     } else {
         _.each(reqValue, function (rv) {
             var trpl = rv;
@@ -173,31 +187,42 @@ var connectWs = function(){
     initWebsocket();
 };
 
-var createTable = function(){
+var createNewTable = function(cond){
+    let cTableName = "";
+    if (cond){
+        cTableName = $("#import-table-name").val()
+    }
+    else {
+        cTableName = $("#table-name").val()
+    }
 
     const act = JSON.parse(localStorage['allTables']);
     let allowCreation = true;
 
-    if(!$("#table-name").val()){
+    if(!cTableName){
         console.log('name is empty!');
         return;
     }
     _.each(act, a => {
-        if (a.sub === $("#table-name").val()){
+        if (a.sub === cTableName){
             console.log('table name exists!');
             allowCreation = false;
             return;
         }
-    })
+    });
     if(allowCreation){
         var newTable = {
             "reqType" : "cTable",
             "listenTo": true,
             "reqValue" : [
-                {"ta": "ts", "ch" : "+", "sub" : $("#table-name").val(), "pred": "has_type", "obj" : "table"}
+                {"ta": "ts", "ch" : "+", "sub" : cTableName, "pred": "has_type", "obj" : "table"}
             ]
         };
-        $('#add-table-modal').modal('hide');
+        if (cond){
+            $("#load-file").modal('hide');
+        }else {
+            $('#add-table-modal').modal('hide');
+        }
         websocket.send(JSON.stringify(newTable));
         bootstrap_alert.warning('Created the <strong>Table!</strong>', 'danger', 4000);
         getAllTables();
@@ -262,7 +287,7 @@ var getAllTables = function(){
         ]
     };
     $("#table-name").val("");
-    waitForSocketReady(websocket, () => {
+    waitForSocketReady (websocket, () => {
         websocket.send(JSON.stringify(aTable)); // get all the tables.
     });
 };
