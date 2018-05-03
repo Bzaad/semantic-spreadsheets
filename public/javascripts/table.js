@@ -301,6 +301,7 @@ $('#load-file').on('shown.bs.modal', function () {
 });
 
 const loadCsvFile = () => {
+    //TODO: Find a fix for that so the deployed server works!
     let currentLocaion = window.location.href.split("http://localhost:9000/")[1];
     if (currentLocaion === "sp" || currentLocaion === "sp#"){
         //TODO: create table and load!
@@ -313,8 +314,6 @@ const loadCsvFile = () => {
 
 const feedCsvData = () => {
     const csvData = JSON.parse(localStorage['csvTable']).data;
-    //TODO: check if we are in the table if we are then do the load
-    //TODO: else load csv data into session storage, create a new table, open the table in a new tab, then load the data.
     const alpIds = genPredAdress('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 2);
     _.each(csvData, (row, i)=>{
         if (i === 0) row[0] = '';
